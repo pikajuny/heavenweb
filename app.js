@@ -1529,11 +1529,12 @@ function normPhotoUrl(url) {
   var s = String(url).trim();
   if (s.indexOf('data:') === 0) return s;
   var fileId = photoFileId(s);
-  if (fileId && State.photoCache && State.photoCache[fileId]) {
-    return State.photoCache[fileId];
-  }
-  if (fileId) return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w800';
+  if (fileId) return photoProxyUrl(fileId);
   return s;
+}
+
+function photoProxyUrl(fileId) {
+  return '/api/photo?id=' + encodeURIComponent(fileId);
 }
 
 function _awOpacity(aw) {
@@ -2164,7 +2165,7 @@ const PhotoModal = {
         }
         gallery.innerHTML = res.data.map(item => {
           const ref = item.id || item.url || '';
-          const src = item.dataUrl || item.url || '';
+          const src = item.id ? photoProxyUrl(item.id) : (item.dataUrl || item.url || '');
           return `<div style="cursor:pointer;border-radius:6px;overflow:hidden;aspect-ratio:2/3;background:var(--bg-secondary);border:1px solid var(--border-light);" onclick='PhotoModal.selectPhoto(${JSON.stringify(ref)},${JSON.stringify(src)})'>
             <img src="${src}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
           </div>`;
