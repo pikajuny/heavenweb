@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-﻿<style>
->>>>>>> b944d5bc61efcbf7526280fa95dbcb5d0ea23aed
 /* ================================================================
    전역 변수 & 리셋
 ================================================================ */
@@ -2376,9 +2372,4 @@ input, select, textarea { font-family: inherit; }
     border-bottom: 0.5px solid var(--border-light);
   }
   .lounge-sec--half:last-child { border-bottom: none; }
-<<<<<<< HEAD
 }
-=======
-}
-</style>
->>>>>>> b944d5bc61efcbf7526280fa95dbcb5d0ea23aed
