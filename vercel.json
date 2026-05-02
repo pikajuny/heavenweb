@@ -1,4 +1,14 @@
 {
   "cleanUrls": true,
+<<<<<<< HEAD
   "trailingSlash": false
+=======
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/((?!api/.*).*)",
+      "destination": "/index.html"
+    }
+  ]
+>>>>>>> b944d5bc61efcbf7526280fa95dbcb5d0ea23aed
 }
