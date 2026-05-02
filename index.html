@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEAVENWEB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-title">HEAVENWEB</div>
+
+    <!-- 기존 유저: 구단명 표시 후 입장 -->
+    <div id="login-existing" style="display:none;">
+      <div class="login-sub">환영합니다!</div>
+      <div id="login-club-display" style="font-size:20px;font-weight:700;text-align:center;margin:14px 0;"></div>
+      <button class="login-btn" onclick="App.enterExisting()">입장</button>
+    </div>
+
+    <!-- 신규 유저: 구단명 입력 -->
+    <div id="login-new" style="display:none;">
+      <div class="login-sub">처음 오셨군요!<br>팀 정보와 구단명을 입력해주세요.</div>
+      <select class="login-select" id="kbo-team-select" style="margin-bottom:8px;">
+        <option value="">KBO 팀 선택</option>
+        <option>두산 베어스</option>
+        <option>삼성 라이온즈</option>
+        <option>KIA 타이거즈</option>
+        <option>LG 트윈스</option>
+        <option>NC 다이노스</option>
+        <option>SSG 랜더스</option>
+        <option>롯데 자이언츠</option>
+        <option>KT 위즈</option>
+        <option>한화 이글스</option>
+        <option>키움 히어로즈</option>
+      </select>
+      <input class="login-select" id="club-name-input" type="text"
+        placeholder="구단명 (예: 이정용)" maxlength="20"
+        style="text-align:left;padding:0 12px;"
+        onkeydown="if(event.key==='Enter') App.register()">
+      <div style="height:8px;"></div>
+      <button class="login-btn" onclick="App.register()">구단 등록</button>
+    </div>
+
+    <!-- 구글 로그인 / 다른 계정으로 로그인 -->
+    <div id="login-google" style="display:none;flex-direction:column;align-items:center;gap:16px;margin-top:8px;">
+      <div class="login-sub" id="login-google-sub">구글 계정으로 로그인하세요</div>
+      <button class="login-btn" id="login-google-btn" onclick="App.openGoogleLogin()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Google로 로그인
+      </button>
+    </div>
+
+    <div id="login-err" class="err-msg" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- 온보딩 화면 -->
+<div id="onboarding-screen" style="display:none;">
+  <div class="onboarding-wrap">
+    <div class="login-title">환영합니다!</div>
+    <div class="onboarding-desc">기존 시트 데이터가 있으시면 A1:DU126 범위를 복사해서 아래에 붙여넣기 해주세요.<br>없으시면 건너뛰기를 눌러 빈 보관함으로 시작하세요.</div>
+    <textarea id="paste-area" class="paste-area" placeholder="여기에 붙여넣기 (Ctrl+V / Cmd+V / 길게 눌러 붙여넣기)"></textarea>
+    <input type="hidden" id="paste-json">
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
+      <button class="bs" onclick="App.skipOnboarding()">건너뛰기</button>
+      <button class="bp" onclick="App.processOnboarding()">데이터 불러오기</button>
+    </div>
+    <div id="onboarding-err" class="err-msg" style="display:none;"></div>
+    <div id="onboarding-loading" style="display:none;text-align:center;margin-top:12px;font-size:12px;color:var(--color-text-secondary);">데이터를 처리중입니다...</div>
+  </div>
+</div>
+
+<!-- 메인 앱 -->
+<div id="app-screen" style="display:none;">
+
+  <!-- 상단 고정 영역 (헤더 + 메뉴바) -->
+  <div class="app-sticky">
+
+    <!-- 상단 헤더 -->
+    <div class="app-header">
+      <span class="app-header-title">HEAVENWEB</span>
+      <div class="app-header-scalable">
+        <button class="header-refresh-btn" onclick="loadShortcutData()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
+        <span id="club-badge" class="club-badge"></span>
+        <button class="header-action-btn" onclick="RenameModal.open()">닉변</button>
+        <button class="header-action-btn header-action-btn--danger" onclick="WithdrawModal.open()">탈퇴</button>
+      </div>
+    </div>
+
+    <!-- 메뉴 바 -->
+    <nav class="menu-bar">
+      <button class="menu-item on" id="menu-btn-lounge"  onclick="switchMenu('lounge',this)">라운지</button>
+      <button class="menu-item menu-item-club" id="menu-btn-myclub" onclick="switchMenu('myclub',this)">—</button>
+      <button class="menu-item" onclick="switchMenu('skill',this)">스킬계산기</button>
+      <button class="menu-item" onclick="switchMenu('battle',this)">클럽대전 기록실</button>
+    </nav>
+
+  </div>
+
+  <!-- 라운지 페이지 -->
+  <div id="page-lounge" class="menu-page">
+    <div class="lounge-layout">
+
+      <!-- 상단 2분할 행 -->
+      <div class="lounge-row">
+
+        <!-- [섹션] 덱파워 랭킹 -->
+        <section class="lounge-sec lounge-sec--half" id="lounge-sec-ranking">
+          <div class="lounge-sec-hd">
+            <span class="lounge-sec-title">덱파워 랭킹</span>
+            <button class="lounge-refresh-btn" onclick="LoungeRanking.load()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              새로고침
+            </button>
+          </div>
+          <div id="lounge-ranking-body" class="lounge-sec-body">
+            <div class="lounge-sec-loading">불러오는 중...</div>
+          </div>
+        </section>
+        <!-- /섹션 끝 -->
+
+        <!-- [섹션] 헤븐 골든글러브 -->
+        <section class="lounge-sec lounge-sec--half" id="lounge-sec-golden-glove">
+          <div class="lounge-sec-hd">
+            <span class="lounge-sec-title">헤븐 골든글러브</span>
+          </div>
+          <div class="lounge-sec-body">
+            <div class="prep-screen" style="min-height:180px;">
+              <div class="prep-icon" style="font-size:24px;">🏆</div>
+              <div class="prep-title" style="font-size:14px;">준비중입니다</div>
+            </div>
+          </div>
+        </section>
+        <!-- /섹션 끝 -->
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 내 구단 페이지 -->
+  <div id="page-myclub" class="menu-page" style="display:none;">
+
+    <!-- 숏컷 바 -->
+    <section class="shortcut-bar" id="shortcutBar">
+      <div class="sc-left">
+        <div class="sc-logo-block">
+          <div class="team-logo" id="teamLogo">🏟️</div>
+          <span class="team-name" id="teamName">팀명</span>
+        </div>
+        <div class="sc-info">
+          <span class="team-org" id="teamOrg">구단명</span>
+          <div class="sc-total-row">
+            <span class="sc-total-value" id="totalPower">—</span>
+            <span class="sc-total-label">DECK POWER</span>
+            <button class="sc-export-btn" onclick="exportSheetAsPdf()">PDF 다운</button>
+          </div>
+          <div class="sc-detail-rows">
+            <div class="sc-detail-row">
+              <div class="sc-item"><span class="sc-item-label">타자:</span><span class="sc-item-value" id="batterTotal">—</span></div>
+              <div class="sc-sep"></div>
+              <div class="sc-item"><span class="sc-item-label">코어:</span><span class="sc-item-value" id="bCore">—</span></div>
+              <div class="sc-item"><span class="sc-item-label">상위:</span><span class="sc-item-value" id="bUpper">—</span></div>
+              <div class="sc-item"><span class="sc-item-label">중위:</span><span class="sc-item-value" id="bMid">—</span></div>
+              <div class="sc-item"><span class="sc-item-label">하위:</span><span class="sc-item-value" id="bLower">—</span></div>
+            </div>
+            <div class="sc-detail-row">
+              <div class="sc-item"><span class="sc-item-label">투수:</span><span class="sc-item-value" id="pitcherTotal">—</span></div>
+              <div class="sc-sep"></div>
+              <div class="sc-item"><span class="sc-item-label">선발:</span><span class="sc-item-value" id="pStarter">—</span></div>
+              <div class="sc-item"><span class="sc-item-label">중계:</span><span class="sc-item-value" id="pReliever">—</span></div>
+              <div class="sc-item"><span class="sc-item-label">마무리:</span><span class="sc-item-value" id="pCloser">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-right"></div>
+    </section>
+
+    <!-- 내 구단 탭 -->
+    <div class="app-tabs">
+      <button class="app-tab on" id="tab-btn-shortcut" onclick="App.switchTab('shortcut',this)">요약</button>
+      <button class="app-tab" onclick="App.switchTab('hitter',this)">타자 정보</button>
+      <button class="app-tab" onclick="App.switchTab('pitcher',this)">투수 정보</button>
+      <button class="app-tab" onclick="App.switchTab('team',this)">팀 정보</button>
+    </div>
+
+    <!-- 요약 탭 -->
+    <div id="tab-shortcut" class="tab-content">
+      <div class="sum-layout">
+        <div class="sum-row1">
+          <div class="sum-sec">
+            <div class="hl-field" style="flex:1;min-height:calc(9 * 58px + 2px);overflow:hidden;">
+              <div class="hl-field-grid" id="sum-hitter-grid"></div>
+            </div>
+          </div>
+          <div class="sum-sec">
+            <div class="pl-grid-wrap" style="border-left:0.5px solid var(--border-light);flex:1;">
+              <div class="pl-row-label">SP 선발</div>
+              <div class="pl-grid-row" id="sum-sp-row"></div>
+              <div class="pl-row-label">RP 중계</div>
+              <div class="pl-grid-row" id="sum-rp-row"></div>
+              <div class="pl-grid-row" id="sum-row4"></div>
+            </div>
+          </div>
+        </div>
+        <div class="hl-order">
+          <div class="hl-order-bar" id="sum-order-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 타자 정보 탭 -->
+    <div id="tab-hitter" class="tab-content" style="display:none;">
+      <div class="sub-bar">
+        <button class="sub-tab on" onclick="HitterTab.switchSub('lineup',this)">라인업</button>
+        <button class="sub-tab" onclick="HitterTab.switchSub('storage',this)">보관함</button>
+      </div>
+      <div id="hitter-lineup-view"><!-- 타자 라인업 뷰 -->
+<div class="hl-layout">
+  <div class="hl-upper">
+    <div class="hl-field">
+      <div class="hl-field-grid" id="hl-field-grid"></div>
+    </div>
+    <div class="hl-list" id="hitter-lineup-table"></div>
+  </div>
+  <div class="hl-order">
+    <div class="hl-order-bar" id="hl-order-bar"></div>
+  </div>
+</div>
+
+
+</div>
+      <div id="hitter-storage-view" style="display:none;"><!-- 타자 보관함 뷰 -->
+<div class="sec-bar">
+  <span class="sec-lbl">타자 보관함</span>
+  <button class="bp" onclick="AddModal.open(true)">+ 선수 추가</button>
+</div>
+
+<div class="filter-bar" id="hitter-filter-bar">
+  <button class="filter-btn on" onclick="HitterTab.filterPos('전체',this)">전체</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('C',this)">C</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('1B',this)">1B</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('2B',this)">2B</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('3B',this)">3B</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('SS',this)">SS</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('LF',this)">LF</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('CF',this)">CF</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('RF',this)">RF</button>
+  <button class="filter-btn" onclick="HitterTab.filterPos('DH',this)">DH</button>
+</div>
+
+<div class="storage-wrap">
+  <div class="row-header">
+    <div class="fixed-hd">
+      <div class="col-hd c-potm">셋포시뮬</div>
+      <div class="col-hd c-card">카드</div>
+      <div class="col-hd c-info" style="justify-content:flex-start;">이름</div>
+      <div class="col-hd c-stat fixed-divider" style="width:68px;">스탯</div>
+    </div>
+    <div class="scroll-hd" id="hitter-scroll-hd">
+      <div class="col-hd c-pot">잠재력</div>
+      <div class="col-hd c-skill">스킬1</div>
+      <div class="col-hd c-skill">스킬2</div>
+      <div class="col-hd c-skill">스킬3</div>
+      <div class="col-hd c-redist" style="border-right:none;">재분배</div>
+    </div>
+  </div>
+  <div id="hitter-storage-list">
+    <div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:12px;">데이터를 불러오는 중...</div>
+  </div>
+</div>
+
+<!-- 타자 보관함 모바일 상세 모달 -->
+<div id="hsd-modal" style="display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.82);align-items:flex-end;justify-content:center;" onclick="if(event.target===this)HitterStorageModal.close()">
+  <div class="hsd-sheet" onclick="event.stopPropagation()">
+    <button class="hsd-close-btn" onclick="HitterStorageModal.close()">✕</button>
+    <div class="hsd-top">
+      <div id="hsd-card" style="width:64px;flex-shrink:0;"></div>
+      <div id="hsd-info" style="flex:1;"></div>
+    </div>
+    <div id="hsd-body"></div>
+    <div class="hsd-footer">
+      <div id="hsd-checks" class="hsd-checks"></div>
+      <div class="hsd-actions">
+        <button class="bs" id="hsd-edit-btn">수정</button>
+        <button class="storage-del-btn" id="hsd-del-btn">삭제</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+    </div>
+
+    <!-- 투수 정보 탭 -->
+    <div id="tab-pitcher" class="tab-content" style="display:none;">
+      <div class="sub-bar">
+        <button class="sub-tab on" onclick="PitcherTab.switchSub('lineup',this)">라인업</button>
+        <button class="sub-tab" onclick="PitcherTab.switchSub('storage',this)">보관함</button>
+      </div>
+      <div id="pitcher-lineup-view"><!-- 투수 라인업 뷰 -->
+<div class="pl-layout">
+  <!-- 좌측: 카드 그리드 (4행) -->
+  <div class="pl-grid-wrap">
+    <div class="pl-row-label">SP 선발</div>
+    <div class="pl-grid-row" id="pl-sp-row"></div>
+    <div id="pl-tactic-banner-wrap"></div>
+    <div class="pl-row-label">RP 중계</div>
+    <div class="pl-grid-row" id="pl-rp-row"></div>
+    <div class="pl-grid-row" id="pl-row4"></div>
+  </div>
+  <!-- 우측: 선수행 -->
+  <div class="pl-lower-section" id="pl-lower-grid"></div>
+</div>
+
+
+</div>
+      <div id="pitcher-storage-view" style="display:none;"><!-- 투수 보관함 뷰 -->
+<div class="sec-bar">
+  <span class="sec-lbl">투수 보관함</span>
+  <button class="bp" onclick="AddModal.open(false)">+ 선수 추가</button>
+</div>
+
+<div class="filter-bar" id="pitcher-filter-bar">
+  <button class="filter-btn on" onclick="PitcherTab.filterPos('전체',this)">전체</button>
+  <button class="filter-btn" onclick="PitcherTab.filterPos('SP',this)">SP</button>
+  <button class="filter-btn" onclick="PitcherTab.filterPos('RP',this)">RP</button>
+  <button class="filter-btn" onclick="PitcherTab.filterPos('CP',this)">CP</button>
+</div>
+
+<div class="storage-wrap">
+  <div class="row-header">
+    <div class="fixed-hd">
+      <div class="col-hd c-potm">셋포시뮬</div>
+      <div class="col-hd c-card">카드</div>
+      <div class="col-hd c-info" style="justify-content:flex-start;">이름</div>
+      <div class="col-hd c-stat fixed-divider" style="width:68px;">스탯</div>
+    </div>
+    <div class="scroll-hd" id="pitcher-scroll-hd">
+      <div class="col-hd c-pot">잠재력</div>
+      <div class="col-hd c-skill">스킬1</div>
+      <div class="col-hd c-skill">스킬2</div>
+      <div class="col-hd c-skill">스킬3</div>
+      <div class="col-hd c-redist" style="border-right:none;">재분배</div>
+    </div>
+  </div>
+  <div id="pitcher-storage-list">
+    <div style="padding:20px;text-align:center;color:var(--text-tertiary);font-size:12px;">데이터를 불러오는 중...</div>
+  </div>
+</div>
+
+<div id="psd-modal" style="display:none;position:fixed;inset:0;z-index:250;background:rgba(0,0,0,0.82);align-items:flex-end;justify-content:center;" onclick="if(event.target===this)PitcherStorageModal.close()">
+  <div class="hsd-sheet" onclick="event.stopPropagation()">
+    <button class="hsd-close-btn" onclick="PitcherStorageModal.close()">✕</button>
+    <div class="hsd-top">
+      <div id="psd-card" style="width:64px;flex-shrink:0;"></div>
+      <div id="psd-info" style="flex:1;"></div>
+    </div>
+    <div id="psd-body"></div>
+    <div class="hsd-footer">
+      <div id="psd-checks" class="hsd-checks"></div>
+      <div class="hsd-actions">
+        <button class="bs" id="psd-edit-btn">수정</button>
+        <button class="storage-del-btn" id="psd-del-btn">삭제</button>
+      </div>
+    </div>
+  </div>
+</div></div>
+    </div>
+
+    <!-- 팀 정보 탭 -->
+    <div id="tab-team" class="tab-content" style="display:none;">
+      ﻿<!-- 팀 정보 탭 -->
+
+<!-- 통합 저장 바 -->
+<div class="team-save-bar">
+  <span>⚠ 변경 후 반드시 <b>저장</b> 버튼을 눌러야 반영됩니다</span>
+  <button class="bp" onclick="TeamTab.saveAll()">저장</button>
+</div>
+
+<!-- 2×2 그리드 -->
+<div class="team-grid">
+
+  <!-- 좌상: 팀 기본정보 -->
+  <div class="team-panel">
+    <div class="team-panel-title">팀 기본정보</div>
+    <div class="basic-grid" id="team-basic-info"></div>
+    <div class="tactic-status-slot" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- 우상: 라커룸 및 능력치 -->
+  <div class="team-panel">
+    <div class="team-panel-title">라커룸 및 능력치</div>
+    <div class="locker-row" id="team-locker-row"></div>
+    <div class="captain-split">
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">주장</div>
+        <div id="team-captain-area"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">투수조장</div>
+        <div id="team-pitchcap-area"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 좌하: 시너지 및 세트덱 -->
+  <div class="team-panel">
+    <div class="team-panel-title">시너지 및 세트덱</div>
+
+    <!-- 시너지 -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:6px;">시너지</div>
+      <div class="syn-row">
+        <span style="font-size:12px;color:var(--text-secondary);flex:1;">라이브</span>
+        <input type="checkbox" id="syn-live" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
+      </div>
+      <div class="syn-row">
+        <span style="font-size:12px;color:var(--text-secondary);flex:1;">임팩</span>
+        <input type="checkbox" id="syn-impact" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
+      </div>
+      <div class="syn-row">
+        <span style="font-size:12px;color:var(--text-secondary);flex:1;">시그</span>
+        <input type="checkbox" id="syn-sig" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
+      </div>
+    </div>
+
+    <!-- 세트덱 -->
+    <div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:6px;">세트덱</div>
+      <div class="deck-row">
+        <span class="deck-desc">라올기용 <span style="font-size:12px;color:var(--text-tertiary);">(스페셜 대신 선택팀)</span></span>
+        <button class="toggle-btn" id="deck-raol" onclick="TeamTab.toggleRaol(this)">OFF</button>
+      </div>
+      <div id="setdeck-list"></div>
+    </div>
+  </div>
+
+  <!-- 우하: 포지션 특훈 -->
+  <div class="team-panel">
+    <div class="team-panel-title">포지션 특훈</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:8px;">타자</div>
+      <div style="overflow-x:auto;">
+        <table class="postrain-table">
+          <colgroup>
+            <col style="width:46px;"><col style="width:36px;">
+            <col style="width:38px;"><col style="width:38px;"><col style="width:38px;"><col style="width:38px;">
+            <col style="width:0;">
+            <col><col>
+          </colgroup>
+          <thead><tr>
+            <th style="text-align:left;">포지션</th>
+            <th>레벨</th><th>파워</th><th>정확</th><th>선구</th><th>인내</th>
+            <th class="postrain-break"></th>
+            <th>메이저스킬</th><th>기본스킬</th>
+          </tr></thead>
+          <tbody id="hitter-postrain-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:8px;">투수</div>
+      <div style="overflow-x:auto;">
+        <table class="postrain-table">
+          <colgroup>
+            <col style="width:46px;"><col style="width:36px;">
+            <col style="width:38px;"><col style="width:38px;"><col style="width:38px;"><col style="width:38px;">
+            <col style="width:0;">
+            <col><col>
+          </colgroup>
+          <thead><tr>
+            <th style="text-align:left;">포지션</th>
+            <th>레벨</th><th>변화</th><th>구위</th>
+            <th></th><th></th>
+            <th class="postrain-break"></th>
+            <th>메이저스킬</th><th>기본스킬</th>
+          </tr></thead>
+          <tbody id="pitcher-postrain-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 포지션 특훈 팝업 모달 (기존 유지) -->
+<div id="postrain-modal" style="display:none;">
+  <div class="modal-bg">
+    <div class="modal" style="width:400px;">
+      <div class="modal-hd">
+        <span class="modal-title" id="postrain-modal-title">포지션 특훈 수정</span>
+        <button class="modal-close" onclick="TeamTab.closePostrainModal()">✕</button>
+      </div>
+      <div class="modal-body" id="postrain-modal-body"></div>
+      <div class="modal-foot">
+        <button class="bs" onclick="TeamTab.closePostrainModal()">취소</button>
+        <button class="bp" onclick="TeamTab.savePostrainModal()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    </div>
+
+  </div>
+
+  <!-- 스킬계산기 페이지 -->
+  <div id="page-skill" class="menu-page" style="display:none;">
+    <div class="prep-screen">
+      <div class="prep-icon" style="font-size:28px;">🧮</div>
+      <div class="prep-title">스킬계산기</div>
+      <div class="prep-sub">준비중입니다</div>
+    </div>
+  </div>
+
+  <!-- 클럽대전 기록실 페이지 -->
+  <div id="page-battle" class="menu-page" style="display:none;">
+    <div class="prep-screen">
+      <div class="prep-icon" style="font-size:28px;">⚔️</div>
+      <div class="prep-title">클럽대전 기록실</div>
+      <div class="prep-sub">준비중입니다</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 구단 뷰 모달 (대형) -->
+<div id="club-view-modal" style="display:none;position:fixed;inset:0;z-index:300;align-items:flex-start;justify-content:center;padding:20px 0 0;background:rgba(0,0,0,0.82);backdrop-filter:blur(4px);overflow-y:auto;" onclick="if(event.target===this)ClubViewModal.close()">
+  <div class="cv-modal">
+    <div class="cv-hd">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="sw-slot-badge" id="cv-club-badge"></span>
+        <span class="sw-title" id="cv-club-title"></span>
+      </div>
+      <button class="sw-close-btn" onclick="ClubViewModal.close()">✕</button>
+    </div>
+    <div class="cv-body" id="cv-body">
+      <div class="lounge-sec-loading">불러오는 중...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 포지션 비교 모달 -->
+<div id="club-compare-modal" style="display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);" onclick="if(event.target===this)ClubCompareModal.close()">
+  <div class="sw-modal" style="width:min(560px,96vw);max-height:88vh;">
+    <div class="sw-hd" id="cc-hd"></div>
+    <div style="overflow-y:auto;flex:1;min-height:0;">
+      <div class="sw-upper" id="cc-other" style="border-bottom:none;"></div>
+      <div class="cc-divider" id="cc-divider"></div>
+      <div class="sw-upper" id="cc-mine" style="border-bottom:none;"></div>
+    </div>
+    <div class="sw-footer" style="padding:8px 18px 12px;">
+      <button class="sw-btn sw-btn-ghost" onclick="ClubCompareModal.close()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 구단명 변경 모달 -->
+<div id="rename-modal" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);">
+  <div class="modal" style="width:340px;">
+    <div class="modal-hd">
+      <span class="modal-title">구단명 변경</span>
+      <button class="modal-close" onclick="RenameModal.close()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="font-size:13px;color:var(--text-secondary);">
+        현재 구단명: <strong id="rename-current" style="color:var(--text-primary);"></strong>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px;">새 구단명 (최대 8글자)</div>
+        <input id="rename-input" class="form-input" type="text" maxlength="8"
+          placeholder="새 구단명 입력"
+          oninput="RenameModal.onInput(this)"
+          onkeydown="if(event.key==='Enter') RenameModal.submit()">
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <span id="rename-err" style="font-size:12px;color:var(--danger-text);display:none;"></span>
+          <span id="rename-count" style="font-size:11px;color:var(--text-tertiary);margin-left:auto;">0 / 8</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="bs" onclick="RenameModal.close()">취소</button>
+      <button class="bp" id="rename-submit-btn" onclick="RenameModal.submit()">변경</button>
+    </div>
+  </div>
+</div>
+
+<!-- 탈퇴 모달 -->
+<div id="withdraw-modal" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(0,0,0,0.78);backdrop-filter:blur(4px);">
+  <div class="modal" style="width:360px;">
+    <div class="modal-hd" style="border-bottom-color:rgba(248,81,73,0.3);">
+      <span class="modal-title" style="color:var(--danger-text);">구단 탈퇴</span>
+      <button class="modal-close" onclick="WithdrawModal.close()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div style="background:var(--danger-bg);border:1px solid rgba(248,81,73,0.25);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--danger-text);line-height:1.6;">
+        ⚠ 탈퇴 시 <strong>모든 선수 데이터와 개인 시트가 영구 삭제</strong>됩니다.<br>이 작업은 되돌릴 수 없습니다.
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px;">
+          계속하려면 아래 문구를 정확히 입력하세요:
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--danger-text);background:rgba(248,81,73,0.08);border:1px solid rgba(248,81,73,0.2);border-radius:6px;padding:7px 10px;text-align:center;margin-bottom:8px;letter-spacing:0.05em;">
+          좌완언더임현준
+        </div>
+        <input id="withdraw-input" class="form-input" type="text" placeholder="위 문구를 입력하세요"
+          oninput="WithdrawModal.onInput(this)"
+          onkeydown="if(event.key==='Enter') WithdrawModal.submit()"
+          style="border-color:var(--border-medium);">
+        <span id="withdraw-err" style="font-size:12px;color:var(--danger-text);display:none;margin-top:4px;"></span>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="bs" onclick="WithdrawModal.close()">취소</button>
+      <button class="bp" id="withdraw-submit-btn" onclick="WithdrawModal.submit()"
+        style="background:var(--danger-text);color:#fff;opacity:0.4;cursor:not-allowed;" disabled>탈퇴 확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 전역 로딩 오버레이 -->
+<div id="global-loading" style="display:none;">
+  <div class="loading-wrap">
+    <div class="loading-spinner"></div>
+    <div class="loading-msg" id="loading-msg">처리 중...</div>
+  </div>
+</div>
+
+<!-- 선수 교체 모달 -->
+<div id="swap-modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);" onclick="if(event.target===this)SwapModal.close()">
+  <div class="sw-modal">
+    <div id="sw-hd" class="sw-hd"></div>
+    <div id="sw-upper" class="sw-upper"></div>
+    <div id="sw-lower" class="sw-lower"></div>
+    <div id="sw-footer" class="sw-footer"></div>
+  </div>
+</div>
+
+<!-- 선수 정보 확인 모달 -->
+<div id="pi-modal-bg" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);" onclick="if(event.target===this)PlayerInfoModal.close()">
+  <div class="sw-modal">
+    <div class="sw-hd" id="pi-hd"></div>
+    <div class="sw-upper" id="pi-upper" style="overflow-y:auto;flex:1;min-height:0;"></div>
+    <div class="sw-footer" style="padding:8px 18px 12px;justify-content:center;">
+      <button class="sw-btn sw-btn-ghost" style="max-width:160px;" onclick="PlayerInfoModal.close()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 선수 추가 모달 -->
+<div id="add-modal" style="display:none;">
+  <div class="modal-bg">
+    <div class="modal">
+      <div class="modal-hd">
+        <span class="modal-title" id="add-modal-title">선수 추가</span>
+        <button class="modal-close" onclick="AddModal.close()">✕</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab add-modal-tab on" onclick="AddModal.switchTab(0,this)">기본 정보</button>
+        <button class="modal-tab add-modal-tab" onclick="AddModal.switchTab(1,this)">스탯</button>
+        <button class="modal-tab add-modal-tab" onclick="AddModal.switchTab(2,this)">잠재력·스킬</button>
+      </div>
+      <div class="modal-body">
+        <div id="add-tab-0-content">
+          <div id="add-hitter-fields">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">별명</label><input class="form-input" id="add-h-nick" placeholder="예: 홍대장"></div>
+              <div class="form-group"><label class="form-label req">포지션</label><select class="form-input" id="add-h-pos"><option value="">선택</option><option>C</option><option>1B</option><option>2B</option><option>3B</option><option>SS</option><option>LF</option><option>CF</option><option>RF</option><option>DH</option></select></div>
+              <div class="form-group"><label class="form-label req">종류</label><select class="form-input" id="add-h-type"><option value="">선택</option><option>골글</option><option>시그</option><option>시그(F)</option><option>임팩</option><option>임팩(F)</option><option>국대</option><option>라올</option></select></div>
+              <div class="form-group"><label class="form-label req">각성</label><select class="form-input" id="add-h-aw"><option value="">선택</option><option>10강</option><option>1각</option><option>2각</option><option>3각</option><option>4각</option><option>5각</option><option>6각</option><option>7각</option><option>8각</option><option>9각</option></select></div>
+              <div class="form-group"><label class="form-label req">연도/임팩종류</label><input class="form-input" id="add-h-year" placeholder="예: 2022 또는 돌대"></div>
+              <div class="form-group"><label class="form-label req">이름</label><input class="form-input" id="add-h-name" placeholder="선수 실명"></div>
+              <div class="form-group"><label class="form-label req">타격유형</label><select class="form-input" id="add-h-bat"><option value="">선택</option><option>좌타</option><option>우타</option><option>양타</option></select></div>
+              <div class="form-group"><label class="form-label req">발사각</label><input class="form-input" id="add-h-ang" type="number" min="0" max="30" placeholder="0~30"></div>
+              <div class="form-group"><label class="form-label req">흰존</label><input class="form-input" id="add-h-white" type="number" min="0" max="9" placeholder="0~9"></div>
+              <div class="form-group"><label class="form-label req">콜존</label><input class="form-input" id="add-h-call" type="number" min="0" max="9" placeholder="0~9"></div>
+            </div>
+          </div>
+          <div id="add-pitcher-fields" style="display:none;">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label">별명</label><input class="form-input" id="add-p-nick" placeholder="예: 박에이스"></div>
+              <div class="form-group"><label class="form-label req">포지션</label><select class="form-input" id="add-p-pos"><option value="">선택</option><option>SP</option><option>RP</option><option>CP</option></select></div>
+              <div class="form-group"><label class="form-label req">종류</label><select class="form-input" id="add-p-type"><option value="">선택</option><option>골글</option><option>시그</option><option>시그(F)</option><option>임팩</option><option>임팩(F)</option><option>국대</option><option>라올</option></select></div>
+              <div class="form-group"><label class="form-label req">각성</label><select class="form-input" id="add-p-aw"><option value="">선택</option><option>10강</option><option>1각</option><option>2각</option><option>3각</option><option>4각</option><option>5각</option><option>6각</option><option>7각</option><option>8각</option><option>9각</option></select></div>
+              <div class="form-group"><label class="form-label req">연도/임팩종류</label><input class="form-input" id="add-p-year" placeholder="예: 2022 또는 좌에"></div>
+              <div class="form-group"><label class="form-label req">이름</label><input class="form-input" id="add-p-name" placeholder="선수 실명"></div>
+              <div class="form-group"><label class="form-label req">투구유형</label><select class="form-input" id="add-p-pitch"><option value="">선택</option><option value="좌완">좌완</option><option value="우완">우완</option></select></div>
+            </div>
+          </div>
+        </div>
+        <div id="add-tab-1-content" style="display:none;">
+          <div id="add-hitter-stats">
+            <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
+              <div class="form-group"><label class="form-label req">파워 기본값</label><input class="form-input" id="add-h-powb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">파워 훈련치</label><input class="form-input" id="add-h-powt" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">파워 특훈치</label><input class="form-input" id="add-h-pows" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">정확 기본값</label><input class="form-input" id="add-h-accb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">정확 훈련치</label><input class="form-input" id="add-h-acct" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">정확 특훈치</label><input class="form-input" id="add-h-accs" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">선구 기본값</label><input class="form-input" id="add-h-selb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">선구 훈련치</label><input class="form-input" id="add-h-selt" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">선구 특훈치</label><input class="form-input" id="add-h-sels" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">인내 기본값</label><input class="form-input" id="add-h-patb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">인내 훈련치</label><input class="form-input" id="add-h-patt" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">인내 특훈치</label><input class="form-input" id="add-h-pats" type="number" min="0" value="0"></div>
+            </div>
+          </div>
+          <div id="add-pitcher-stats" style="display:none;">
+            <div class="form-grid" style="grid-template-columns:repeat(3,1fr);">
+              <div class="form-group"><label class="form-label req">변화 기본값</label><input class="form-input" id="add-p-chb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">변화 훈련치</label><input class="form-input" id="add-p-cht" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">변화 특훈치</label><input class="form-input" id="add-p-chs" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">구위 기본값</label><input class="form-input" id="add-p-gwb" type="number" min="0"></div>
+              <div class="form-group"><label class="form-label req">구위 훈련치</label><input class="form-input" id="add-p-gwt" type="number" min="0" value="0"></div>
+              <div class="form-group"><label class="form-label req">구위 특훈치</label><input class="form-input" id="add-p-gws" type="number" min="0" value="0"></div>
+            </div>
+          </div>
+        </div>
+        <div id="add-tab-2-content" style="display:none;">
+          <div id="add-hitter-pots">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label req">잠재 - 풀스윙</label><select class="form-input" id="add-h-pfs"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">잠재 - 클러치</label><select class="form-input" id="add-h-pcl"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">잠재 - 송구</label><select class="form-input" id="add-h-pso"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">잠재 - 각성</label><select class="form-input" id="add-h-paw"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬1 이름</label><input class="form-input" id="add-h-sk1n" list="hitter-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬1 레벨</label><select class="form-input" id="add-h-sk1l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬2 이름</label><input class="form-input" id="add-h-sk2n" list="hitter-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬2 레벨</label><select class="form-input" id="add-h-sk2l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬3 이름</label><input class="form-input" id="add-h-sk3n" list="hitter-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬3 레벨</label><select class="form-input" id="add-h-sk3l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <datalist id="hitter-skill-list"></datalist>
+            </div>
+          </div>
+          <div id="add-pitcher-pots" style="display:none;">
+            <div class="form-grid">
+              <div class="form-group"><label class="form-label req">장타 억제력</label><select class="form-input" id="add-p-pjs"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">침착</label><select class="form-input" id="add-p-pcm"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">변화구 구종</label><select class="form-input" id="add-p-pcg"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">각성 잠재력</label><select class="form-input" id="add-p-paw"><option>-</option><option>E</option><option>D</option><option>D+</option><option>C</option><option>C+</option><option>B</option><option>B+</option><option>A</option><option>A+</option><option>S</option><option>S+</option><option>SS</option><option>SS+</option><option>SR</option><option>SR+</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬1 이름</label><input class="form-input" id="add-p-sk1n" list="pitcher-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬1 레벨</label><select class="form-input" id="add-p-sk1l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬2 이름</label><input class="form-input" id="add-p-sk2n" list="pitcher-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬2 레벨</label><select class="form-input" id="add-p-sk2l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <div class="form-group"><label class="form-label req">스킬3 이름</label><input class="form-input" id="add-p-sk3n" list="pitcher-skill-list" placeholder="스킬명 검색"></div>
+              <div class="form-group"><label class="form-label req">스킬3 레벨</label><select class="form-input" id="add-p-sk3l"><option>-</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+              <datalist id="pitcher-skill-list"></datalist>
+            </div>
+          </div>
+        </div>
+        <div id="add-err" class="err-msg" style="display:none;margin-top:10px;"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="bs" onclick="AddModal.close()">취소</button>
+        <button class="bp" onclick="AddModal.submit()">추가 완료</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="api.js"></script>
+
+
+
+
+
+<script src="app.js"></script>
+</body>
+</html>
