@@ -3556,12 +3556,19 @@ const LoungeRanking = {
   _page: 0,
   _pageSizes: [7, 7, 8],
   _updatedAt: '',
+  _refreshCooldownMs: 10 * 60 * 1000,
 
   load() {
     this._fetch('getRankings', '랭킹 불러오는 중...');
   },
 
   refresh() {
+    const remainingSeconds = this.getRefreshCooldownRemainingSeconds();
+    if (remainingSeconds > 0) {
+      const remainingMinutes = Math.max(1, Math.ceil(remainingSeconds / 60));
+      showRefreshNotice(`다음 갱신까지 ${remainingMinutes}분`, 2600);
+      return;
+    }
     this._fetch('refreshRankings', '랭킹 갱신 중...', { toast: true });
   },
 
@@ -3643,6 +3650,33 @@ const LoungeRanking = {
     if (prev) prev.disabled = this._loading || this._page <= 0;
     if (next) next.disabled = this._loading || this._page >= totalPages - 1;
     if (updatedAt) updatedAt.textContent = this._updatedAt ? `최종갱신: ${this.formatUpdatedAt(this._updatedAt)}` : '';
+  },
+
+  getRefreshCooldownRemainingSeconds() {
+    const updatedAtMs = this.parseUpdatedAtMs(this._updatedAt);
+    if (!updatedAtMs) return 0;
+    const elapsedMs = Date.now() - updatedAtMs;
+    if (elapsedMs < 0) return Math.ceil(this._refreshCooldownMs / 1000);
+    if (elapsedMs >= this._refreshCooldownMs) return 0;
+    return Math.ceil((this._refreshCooldownMs - elapsedMs) / 1000);
+  },
+
+  parseUpdatedAtMs(value) {
+    const text = String(value || '').trim();
+    if (!text) return 0;
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (match) {
+      return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5]),
+        Number(match[6] || 0)
+      ).getTime();
+    }
+    const parsed = new Date(text);
+    return isNaN(parsed.getTime()) ? 0 : parsed.getTime();
   },
 
   formatUpdatedAt(value) {
