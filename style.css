@@ -1372,6 +1372,7 @@ input, select, textarea { font-family: inherit; }
   overflow: visible;
   position: relative;
 }
+#tab-hitter .hl-field-grid { margin-top: 6px; }
 .hl-diamond-svg {
   position: absolute;
   inset: 0;
