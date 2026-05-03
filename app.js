@@ -3349,7 +3349,7 @@ const SummaryTab = {
 // 선수 정보 확인 모달 — PlayerInfoModal
 // ================================================================
 const PlayerInfoModal = {
-  open(playerKey, isHitter, slotLabel) {
+  open(playerKey, isHitter, slotLabel, lineupRowOverride) {
     const p = isHitter
       ? State.hitters.find(h => h[HITTER_COL.KEY] === playerKey)
       : State.pitchers.find(pt => pt[PITCHER_COL.KEY] === playerKey);
@@ -3364,43 +3364,62 @@ const PlayerInfoModal = {
       </div>
       <button class="sw-close-btn" onclick="PlayerInfoModal.close()">✕</button>`;
 
-    // 라인업 보정 OVR 조회
-    let bojOvr = null;
-    if (isHitter) {
-      const POS_ORDER = ['C','1B','2B','3B','SS','LF','CF','RF','DH'];
-      const idx = POS_ORDER.indexOf(slotLabel);
-      const sr  = idx >= 0 ? (State.hitterLineup[idx] || []) : [];
-      bojOvr = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
-    } else {
-      const idx = SLOT_ORDER_ALL.indexOf(slotLabel);
-      const sr  = idx >= 0 ? ((State.pitcherLineup || [])[idx] || []) : [];
-      bojOvr = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
-    }
+    const lineupRow = Array.isArray(lineupRowOverride)
+      ? lineupRowOverride
+      : this._lineupRowFor(isHitter, slotLabel);
+    const bojOvr = (lineupRow[7] !== '' && lineupRow[7] != null) ? lineupRow[7] : null;
 
     const rawBoj = isHitter ? (p[HITTER_COL.BOJ] || 0) : (p[PITCHER_COL.BOJ] || 0);
     const card = makeCardLineup(p, 88, isHitter, bojOvr, slotLabel, fmt1(rawBoj));
     document.getElementById('pi-upper').innerHTML = `
-      <div class="sw-player-row">${card}${this._statsHtml(p, isHitter)}</div>`;
+      <div class="sw-player-row">${card}${this._statsHtml(p, isHitter, lineupRow)}</div>`;
 
     document.getElementById('pi-modal-bg').style.display = 'flex';
   },
 
   close() { document.getElementById('pi-modal-bg').style.display = 'none'; },
 
-  _statsHtml(p, isH) {
+  _lineupRowFor(isHitter, slotLabel) {
+    if (isHitter) {
+      const POS_ORDER = ['C','1B','2B','3B','SS','LF','CF','RF','DH'];
+      const idx = POS_ORDER.indexOf(slotLabel);
+      return idx >= 0 ? (State.hitterLineup[idx] || []) : [];
+    }
+    const idx = SLOT_ORDER_ALL.indexOf(slotLabel);
+    return idx >= 0 ? ((State.pitcherLineup || [])[idx] || []) : [];
+  },
+
+  _lineupVal(row, idx, fallback, formatter) {
+    const v = row && row[idx] !== '' && row[idx] != null ? row[idx] : fallback;
+    if (v === null || v === undefined || v === '' || v === '-') return '-';
+    return formatter ? formatter(v) : v;
+  },
+
+  _intStat(row, idx, fallback) {
+    const v = row && row[idx] !== '' && row[idx] != null ? row[idx] : fallback;
+    if (v === null || v === undefined || v === '' || v === '-') return '-';
+    const n = Number(v);
+    return Number.isFinite(n) ? String(Math.round(n)) : String(v);
+  },
+
+  _statsHtml(p, isH, lineupRow) {
     const SC = isH ? HITTER_COL : PITCHER_COL;
     const stats = isH
-      ? [['파워',p[HITTER_COL.S_POW]],['정확',p[HITTER_COL.S_ACC]],['선구',p[HITTER_COL.S_SEL]],['인내',p[HITTER_COL.S_PAT]]]
-      : [['변화',p[PITCHER_COL.S_CH]],['구위',p[PITCHER_COL.S_GW]]];
+      ? [['파워',this._intStat(lineupRow, 8, p[HITTER_COL.S_POW])],['정확',this._intStat(lineupRow, 9, p[HITTER_COL.S_ACC])],['선구',this._intStat(lineupRow, 10, p[HITTER_COL.S_SEL])],['인내',this._intStat(lineupRow, 11, p[HITTER_COL.S_PAT])]]
+      : [['변화',this._intStat(lineupRow, 8, p[PITCHER_COL.S_CH])],['구위',this._intStat(lineupRow, 9, p[PITCHER_COL.S_GW])]];
     const pots = isH
-      ? [['풀스윙',p[HITTER_COL.POT_FS]],['클러치',p[HITTER_COL.POT_CL]],['송구',p[HITTER_COL.POT_SO]],['각성잠재력',p[HITTER_COL.POT_AW]]]
-      : [['장타억제력',p[PITCHER_COL.POT_JS]],['침착',p[PITCHER_COL.POT_CM]],['변화구구종',p[PITCHER_COL.POT_CG]],['각성잠재력',p[PITCHER_COL.POT_AW]]];
-    const sr  = (lbl,v) => `<div class="sw-stat-row"><span class="sw-stat-lbl">${lbl}</span><div class="sw-stat-val">${fmt1(v)||'-'}</div></div>`;
+      ? [['풀스윙',this._lineupVal(lineupRow, 13, p[HITTER_COL.POT_FS])],['클러치',this._lineupVal(lineupRow, 14, p[HITTER_COL.POT_CL])],['송구',this._lineupVal(lineupRow, 15, p[HITTER_COL.POT_SO])],['각성잠재력',this._lineupVal(lineupRow, 16, p[HITTER_COL.POT_AW])]]
+      : [['장타억제력',this._lineupVal(lineupRow, 13, p[PITCHER_COL.POT_JS])],['침착',this._lineupVal(lineupRow, 14, p[PITCHER_COL.POT_CM])],['변화구구종',this._lineupVal(lineupRow, 15, p[PITCHER_COL.POT_CG])],['각성잠재력',this._lineupVal(lineupRow, 16, p[PITCHER_COL.POT_AW])]];
+    const sr  = (lbl,v) => `<div class="sw-stat-row"><span class="sw-stat-lbl">${lbl}</span><div class="sw-stat-val">${v||'-'}</div></div>`;
     const pr  = (lbl,v) => `<div class="sw-stat-row"><span class="sw-stat-lbl">${lbl}</span><div class="sw-stat-val ${POT_CLASS(v)}">${v||'-'}</div></div>`;
-    const skills = [[p[SC.SK1N],p[SC.SK1L]],[p[SC.SK2N],p[SC.SK2L]],[p[SC.SK3N],p[SC.SK3L]]].filter(([n])=>n&&n!=='-');
+    const skills = [
+      [this._lineupVal(lineupRow, 18, p[SC.SK1N]), this._lineupVal(lineupRow, 19, p[SC.SK1L])],
+      [this._lineupVal(lineupRow, 20, p[SC.SK2N]), this._lineupVal(lineupRow, 21, p[SC.SK2L])],
+      [this._lineupVal(lineupRow, 22, p[SC.SK3N]), this._lineupVal(lineupRow, 23, p[SC.SK3L])]
+    ].filter(([n])=>n&&n!=='-');
     while (skills.length < 3) skills.push(['—','-']);
     const slv = lv => { const n=parseInt(lv); return n>=7?'#C9A227':n>=5?'var(--accent)':'var(--text-secondary)'; };
-    const score = parseFloat(p[SC.LINEUP_SCORE]) || 0;
+    const score = parseFloat(this._lineupVal(lineupRow, 12, p[SC.LINEUP_SCORE])) || 0;
     const trainV = p[SC.TRAIN]??'-';  const trainP = p[SC.TRAIN_PROB]!=null&&p[SC.TRAIN_PROB]!==''?fmtPct(p[SC.TRAIN_PROB]):'-';
     const spV    = p[SC.SP]??'-';    const spP    = p[SC.SP_PROB]!=null&&p[SC.SP_PROB]!==''?fmtPct(p[SC.SP_PROB]):'-';
     return `<div class="sw-full-stats">
@@ -3664,7 +3683,7 @@ const ClubViewModal = {
             </div>
           </div>
         </div>
-        <div class="hl-order" style="pointer-events:none;user-select:none;opacity:0.7;">
+        <div class="hl-order">
           <div class="hl-order-bar" id="cv-order-bar"></div>
         </div>
       </div>`;
@@ -3753,6 +3772,7 @@ const ClubViewModal = {
       wrap.className = 'hl-ob-wrap';
       wrap.innerHTML = (p ? makeCardLineup(p, 48, true, bojOvr, pos === 'DH' ? 'DH' : null) : makeEmptyCard(order || pos, 48)) +
         `<span class="hl-ob-num">${order ? order + '번타자' : '-'}</span>`;
+      if (p) wrap.onclick = () => ClubViewModal.onCardClick(pos, true);
       bar.appendChild(wrap);
     });
     applyOrderBarScaleById('cv-order-bar');
@@ -3769,12 +3789,14 @@ const ClubViewModal = {
 const ClubCompareModal = {
   open(posOrSlot, isHitter, otherData) {
     const POS_ORDER = ['C','1B','2B','3B','SS','LF','CF','RF','DH'];
-    let otherP = null, myP = null, otherBoj = null, myBoj = null;
+    let otherP = null, myP = null, otherBoj = null, myBoj = null, otherRow = [], myRow = [];
 
     if (isHitter) {
       const idx   = POS_ORDER.indexOf(posOrSlot);
       const oSr   = (otherData.hitterLineup || [])[idx] || [];
       const mSr   = (State.hitterLineup || [])[idx] || [];
+      otherRow = oSr;
+      myRow = mSr;
       otherP = oSr[6] ? otherData.hitters.find(h => h[HITTER_COL.NAME] === oSr[6]) : null;
       myP    = mSr[6] ? State.hitters.find(h => h[HITTER_COL.NAME] === mSr[6]) : null;
       otherBoj = (oSr[7] !== '' && oSr[7] != null) ? oSr[7] : null;
@@ -3783,6 +3805,8 @@ const ClubCompareModal = {
       const idx   = SLOT_ORDER_ALL.indexOf(posOrSlot);
       const oSr   = (otherData.pitcherLineup || [])[idx] || [];
       const mSr   = (State.pitcherLineup || [])[idx] || [];
+      otherRow = oSr;
+      myRow = mSr;
       otherP = oSr[6] ? otherData.pitchers.find(p => p[PITCHER_COL.NAME] === oSr[6]) : null;
       myP    = mSr[6] ? State.pitchers.find(p => p[PITCHER_COL.NAME] === mSr[6]) : null;
       otherBoj = (oSr[7] !== '' && oSr[7] != null) ? oSr[7] : null;
@@ -3801,16 +3825,16 @@ const ClubCompareModal = {
       return p ? makeCardLineup(p, 88, isH, boj, posOrSlot, fmt1(raw)) : makeEmptyCard(posOrSlot, 88);
     };
     const empty = `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);">미배치</div>`;
-    const stats = (p, isH) => p ? PlayerInfoModal._statsHtml(p, isH) : empty;
+    const stats = (p, isH, row) => p ? PlayerInfoModal._statsHtml(p, isH, row) : empty;
 
     document.getElementById('cc-other').innerHTML = `
       <div class="cc-sec-label">${otherData.clubId}</div>
-      <div class="sw-player-row">${mkCard(otherP, otherBoj, isHitter)}${stats(otherP, isHitter)}</div>`;
+      <div class="sw-player-row">${mkCard(otherP, otherBoj, isHitter)}${stats(otherP, isHitter, otherRow)}</div>`;
 
     document.getElementById('cc-divider').textContent = `${State.clubId} — 같은 포지션`;
 
     document.getElementById('cc-mine').innerHTML = `
-      <div class="sw-player-row">${mkCard(myP, myBoj, isHitter)}${stats(myP, isHitter)}</div>`;
+      <div class="sw-player-row">${mkCard(myP, myBoj, isHitter)}${stats(myP, isHitter, myRow)}</div>`;
 
     document.getElementById('club-compare-modal').style.display = 'flex';
   },
