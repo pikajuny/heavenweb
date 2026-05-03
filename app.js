@@ -3592,8 +3592,8 @@ const LoungeRanking = {
     const next = document.getElementById('rank-next-btn');
     const updatedAt = document.getElementById('rank-updated-at');
     if (label) label.textContent = `${this._page + 1} / ${totalPages}`;
-    if (prev) prev.disabled = this._loading || this._page <= 0 || !this._data.length;
-    if (next) next.disabled = this._loading || this._page >= totalPages - 1 || !this._data.length;
+    if (prev) prev.disabled = this._loading || this._page <= 0;
+    if (next) next.disabled = this._loading || this._page >= totalPages - 1;
     if (updatedAt) updatedAt.textContent = this._updatedAt ? `최종갱신: ${this.formatUpdatedAt(this._updatedAt)}` : '';
   },
 
@@ -3603,8 +3603,18 @@ const LoungeRanking = {
     if (match) return `${match[2]}/${match[3]} ${match[4]}:${match[5]}`;
     const parsed = new Date(text);
     if (!isNaN(parsed.getTime())) {
-      const pad = n => String(n).padStart(2, '0');
-      return `${pad(parsed.getMonth() + 1)}/${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Seoul',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).formatToParts(parsed).reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+      return `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
     }
     return text.replace(/^\d{4}-/, '').replace(/-/g, '/').replace(/:\d{2}$/, '');
   },
@@ -3613,48 +3623,44 @@ const LoungeRanking = {
     const body = document.getElementById('lounge-ranking-body');
     if (!body) return;
     const data = this._data;
-    if (!data || !data.length) {
-      body.innerHTML = '<div class="lounge-sec-loading">랭킹 데이터가 없습니다. 새로고침을 눌러 갱신해주세요.</div>';
-      this.updateControls();
-      return;
-    }
 
     const int = v => (v != null && v !== '' && !isNaN(v)) ? Math.round(Number(v)).toLocaleString() : '—';
     const numCls = (i) => i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
     const start = this.getPageStart(this._page);
     const pageSize = this.getPageSize(this._page);
-    const pageData = data.slice(start, start + pageSize);
+    const pageData = Array.from({ length: pageSize }, (_, i) => data[start + i] || null);
     this.updateControls();
 
     body.innerHTML = '<div class="rank-list">' + pageData.map((d, i) => {
       const rankIndex = start + i;
+      const isFilled = !!d;
       return `
-      <div class="rank-entry" style="cursor:pointer;" onclick="ClubViewModal.open('${d.clubId}')">
+      <div class="rank-entry${isFilled ? '' : ' rank-entry-empty'}" ${isFilled ? `style="cursor:pointer;" onclick="ClubViewModal.open('${d.clubId}')"` : ''}>
         <div class="rank-top">
           <span class="rank-num ${numCls(rankIndex)}">${rankIndex + 1}</span>
           <div class="rank-club">
             <div class="rank-names">
-              <span class="rank-club-name">${d.clubId}</span>
-              ${d.teamName ? `<span class="rank-kbo">${d.teamName}</span>` : ''}
+              <span class="rank-club-name">${isFilled ? d.clubId : '-'}</span>
+              ${isFilled && d.teamName ? `<span class="rank-kbo">${d.teamName}</span>` : ''}
             </div>
           </div>
-          <span class="rank-total">${int(d.totalPower)}</span>
+          <span class="rank-total">${isFilled ? int(d.totalPower) : '-'}</span>
         </div>
         <div class="rank-details">
           <div class="rank-detail-row">
-            <div class="rank-detail-group"><span class="rank-detail-lbl">타자</span><span class="rank-detail-val hi">${int(d.batterTotal)}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">타자</span><span class="rank-detail-val hi">${isFilled ? int(d.batterTotal) : '-'}</span></div>
             <div class="rank-vsep"></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">코어</span><span class="rank-detail-val">${int(d.bCore)}</span></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">상위</span><span class="rank-detail-val">${int(d.bUpper)}</span></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">중위</span><span class="rank-detail-val">${int(d.bMid)}</span></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">하위</span><span class="rank-detail-val">${int(d.bLower)}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">코어</span><span class="rank-detail-val">${isFilled ? int(d.bCore) : '-'}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">상위</span><span class="rank-detail-val">${isFilled ? int(d.bUpper) : '-'}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">중위</span><span class="rank-detail-val">${isFilled ? int(d.bMid) : '-'}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">하위</span><span class="rank-detail-val">${isFilled ? int(d.bLower) : '-'}</span></div>
           </div>
           <div class="rank-detail-row">
-            <div class="rank-detail-group"><span class="rank-detail-lbl">투수</span><span class="rank-detail-val hi">${int(d.pitcherTotal)}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">투수</span><span class="rank-detail-val hi">${isFilled ? int(d.pitcherTotal) : '-'}</span></div>
             <div class="rank-vsep"></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">선발</span><span class="rank-detail-val">${int(d.pStarter)}</span></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">중계</span><span class="rank-detail-val">${int(d.pReliever)}</span></div>
-            <div class="rank-detail-group"><span class="rank-detail-lbl">마무리</span><span class="rank-detail-val">${int(d.pCloser)}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">선발</span><span class="rank-detail-val">${isFilled ? int(d.pStarter) : '-'}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">중계</span><span class="rank-detail-val">${isFilled ? int(d.pReliever) : '-'}</span></div>
+            <div class="rank-detail-group"><span class="rank-detail-lbl">마무리</span><span class="rank-detail-val">${isFilled ? int(d.pCloser) : '-'}</span></div>
           </div>
         </div>
       </div>`;

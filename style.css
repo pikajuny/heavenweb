@@ -1705,6 +1705,8 @@ input, select, textarea { font-family: inherit; }
 }
 .rank-entry:last-child { border-bottom:none; }
 .rank-entry:hover { background:var(--bg-secondary); }
+.rank-entry-empty { cursor:default; opacity:.45; }
+.rank-entry-empty:hover { background:transparent; }
 .rank-top { display:flex; align-items:center; gap:12px; }
 .rank-num {
   font-size:16px; font-weight:800;
