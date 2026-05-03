@@ -145,6 +145,12 @@ input, select, textarea { font-family: inherit; }
   font-size: 17px;
   font-weight: 500;
   white-space: nowrap;
+}
+
+.app-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -1512,13 +1518,23 @@ input, select, textarea { font-family: inherit; }
 .pl-grid-row { display: flex; gap: 3px; margin-bottom: 4px; }
 .pl-grid-slot {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  gap: 1px; cursor: pointer; padding: 2px; border-radius: 4px;
+  gap: 1px; padding: 2px; border-radius: 4px;
   transition: background 0.15s;
 }
-.pl-grid-slot:hover { background: rgba(128,128,128,0.15); }
+.pl-grid-card-hit {
+  width: 89px;
+  aspect-ratio: 2/3;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.pl-grid-card-hit:hover { background: rgba(128,128,128,0.15); }
 .pl-grid-slot.pl-active { background: rgba(255,255,255,0.18); outline: 1.5px solid var(--border-medium); border-radius: 4px; }
 .pl-grid-slot .select-card { width: 89px !important; height: auto !important; aspect-ratio: 2/3 !important; }
 .pl-grid-slot .empty-card { width: 89px !important; height: auto !important; aspect-ratio: 2/3 !important; font-size: 8px; }
+.pl-grid-card-hit .select-card,
+.pl-grid-card-hit .empty-card { width: 100% !important; height: auto !important; aspect-ratio: 2/3 !important; }
 .pl-role-badge { font-size: 10px; color: var(--text-tertiary); height: 12px; }
 .pl-slot-lbl { font-size: 9px; color: var(--text-secondary); font-weight: 500; }
 .pl-grid-slot .pl-slot-lbl { font-size: 13px; font-weight: 700; }

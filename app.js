@@ -487,9 +487,8 @@ const PitcherTab = {
       const bojOverride = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
       const card = p ? makeCardLineup(p, 50, false, bojOverride) : makeEmptyCard(slotKey, 50);
       return `<div class="pl-grid-slot${isActive ? ' pl-active' : ''}"
-        data-slot="${slotKey}"
-        onclick="PitcherTab.onGridSlotClick('${slotKey}')">
-        ${card}
+        data-slot="${slotKey}">
+        <div class="pl-grid-card-hit" onclick="PitcherTab.onGridSlotClick('${slotKey}')">${card}</div>
         <span class="pl-slot-lbl">${slotKey}</span>
       </div>`;
     }).join('');
@@ -511,10 +510,11 @@ const PitcherTab = {
         ? `<span class="pl-role-badge" id="pl-rb-${slotKey}">${slot?.role || ''}</span>`
         : '';
       return `<div class="pl-grid-slot${isActive ? ' pl-active' : ''}"
-        data-slot="${slotKey}"
-        ${canDrag ? 'draggable="true"' : ''}
-        onclick="PitcherTab.onGridSlotClick('${slotKey}')">
-        ${card}
+        data-slot="${slotKey}">
+        <div class="pl-grid-card-hit"
+          data-slot="${slotKey}"
+          ${canDrag ? 'draggable="true"' : ''}
+          onclick="PitcherTab.onGridSlotClick('${slotKey}')">${card}</div>
         <span class="pl-slot-lbl">${slotKey}</span>
         ${roleBadge}
       </div>`;
@@ -524,7 +524,7 @@ const PitcherTab = {
   },
 
   _attachGridDrag(rowEl) {
-    rowEl.querySelectorAll('[draggable="true"]').forEach(el => {
+    rowEl.querySelectorAll('.pl-grid-card-hit[draggable="true"]').forEach(el => {
       el.addEventListener('dragstart', e => {
         this.gridDragSrc = el.dataset.slot;
         e.dataTransfer.setData('text', el.dataset.slot);
@@ -551,7 +551,7 @@ const PitcherTab = {
         el.style.opacity = '1';
         const touch = e.changedTouches[0];
         const tgt = document.elementFromPoint(touch.clientX, touch.clientY)
-          ?.closest('.pl-grid-slot[draggable]');
+          ?.closest('.pl-grid-card-hit[draggable]');
         const toKey   = tgt?.dataset?.slot;
         const fromKey = this.gridDragSrc;
         this.gridDragSrc = null;
@@ -3296,8 +3296,8 @@ const SummaryTab = {
       const bojOvr = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
       const card = p ? makeCardLineup(p, 50, false, bojOvr) : makeEmptyCard(slotKey, 50);
       const role = isRP && slot?.role ? `<span class="pl-role-badge">${slot.role}</span>` : '';
-      const click = p ? `onclick="PlayerInfoModal.open('${p[PITCHER_COL.KEY]}',false,'${slotKey}')"` : 'style="cursor:default;"';
-      return `<div class="pl-grid-slot" ${click}>${card}<span class="pl-slot-lbl">${slotKey}</span>${role}</div>`;
+      const cardClick = p ? ` onclick="PlayerInfoModal.open('${p[PITCHER_COL.KEY]}',false,'${slotKey}')"` : '';
+      return `<div class="pl-grid-slot"><div class="pl-grid-card-hit"${cardClick}>${card}</div><span class="pl-slot-lbl">${slotKey}</span>${role}</div>`;
     }).join('');
   },
 
@@ -3313,8 +3313,8 @@ const SummaryTab = {
       const bojOvr = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
       const card = p ? makeCardLineup(p, 50, false, bojOvr) : makeEmptyCard(slotKey, 50);
       const role = slotKey === '6RP' && slot?.role ? `<span class="pl-role-badge">${slot.role}</span>` : '';
-      const click = p ? `onclick="PlayerInfoModal.open('${p[PITCHER_COL.KEY]}',false,'${slotKey}')"` : 'style="cursor:default;"';
-      return `<div class="pl-grid-slot" ${click}>${card}<span class="pl-slot-lbl">${slotKey}</span>${role}</div>`;
+      const cardClick = p ? ` onclick="PlayerInfoModal.open('${p[PITCHER_COL.KEY]}',false,'${slotKey}')"` : '';
+      return `<div class="pl-grid-slot"><div class="pl-grid-card-hit"${cardClick}>${card}</div><span class="pl-slot-lbl">${slotKey}</span>${role}</div>`;
     }).join('');
   },
 
@@ -3711,9 +3711,9 @@ const ClubViewModal = {
     rowEl.innerHTML = slots.map(slotKey => {
       const { p, bojOvr, role } = this._pitcherAt(slotKey);
       const card  = p ? makeCardLineup(p, 50, false, bojOvr) : makeEmptyCard(slotKey, 50);
-      const click = p ? `onclick="ClubViewModal.onCardClick('${slotKey}',false)"` : 'style="cursor:default;"';
+      const cardClick = p ? ` onclick="ClubViewModal.onCardClick('${slotKey}',false)"` : '';
       const roleBadge = isRP && role ? `<span class="pl-role-badge">${role}</span>` : '';
-      return `<div class="pl-grid-slot" ${click}>${card}<span class="pl-slot-lbl">${slotKey}</span>${roleBadge}</div>`;
+      return `<div class="pl-grid-slot"><div class="pl-grid-card-hit"${cardClick}>${card}</div><span class="pl-slot-lbl">${slotKey}</span>${roleBadge}</div>`;
     }).join('');
   },
 
@@ -3726,9 +3726,9 @@ const ClubViewModal = {
       if (!slotKey) return `<div class="pl-grid-slot" style="cursor:default;pointer-events:none;"></div>`;
       const { p, bojOvr, role } = this._pitcherAt(slotKey);
       const card  = p ? makeCardLineup(p, 50, false, bojOvr) : makeEmptyCard(slotKey, 50);
-      const click = p ? `onclick="ClubViewModal.onCardClick('${slotKey}',false)"` : 'style="cursor:default;"';
+      const cardClick = p ? ` onclick="ClubViewModal.onCardClick('${slotKey}',false)"` : '';
       const roleBadge = slotKey === '6RP' && role ? `<span class="pl-role-badge">${role}</span>` : '';
-      return `<div class="pl-grid-slot" ${click}>${card}<span class="pl-slot-lbl">${slotKey}</span>${roleBadge}</div>`;
+      return `<div class="pl-grid-slot"><div class="pl-grid-card-hit"${cardClick}>${card}</div><span class="pl-slot-lbl">${slotKey}</span>${roleBadge}</div>`;
     }).join('');
   },
 

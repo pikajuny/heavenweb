@@ -24,7 +24,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="style.css?v=1777806811124">
+  <link rel="stylesheet" href="style.css?v=1777807182235">
 </head>
 <body>
 
@@ -101,11 +101,13 @@
 
     <!-- 상단 헤더 -->
     <div class="app-header">
-      <span class="app-header-title">HEAVENWEB</span>
-      <div class="app-header-scalable">
-        <button class="header-refresh-btn" onclick="loadShortcutData()">
+      <div class="app-header-title-wrap">
+        <span class="app-header-title">HEAVENWEB</span>
+        <button class="header-refresh-btn" onclick="loadShortcutData()" aria-label="새로고침" title="새로고침">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         </button>
+      </div>
+      <div class="app-header-scalable">
         <span id="club-badge" class="club-badge"></span>
         <button class="header-action-btn" onclick="RenameModal.open()">닉변</button>
         <button class="header-action-btn header-action-btn--danger" onclick="WithdrawModal.open()">탈퇴</button>
@@ -795,12 +797,12 @@
 </div>
 
 
-<script src="api.js?v=1777806811124"></script>
+<script src="api.js?v=1777807182235"></script>
 
 
 
 
 
-<script src="app.js?v=1777806811124"></script>
+<script src="app.js?v=1777807182235"></script>
 </body>
 </html>
