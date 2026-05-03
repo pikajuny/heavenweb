@@ -1764,7 +1764,7 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-pitcher-wrap,
 .gg-field-wrap {
-  width:100%;
+  width:480px;
   display:flex;
   justify-content:center;
 }
@@ -1810,15 +1810,37 @@ input, select, textarea { font-family: inherit; }
   text-overflow:ellipsis;
 }
 .gg-card-hit {
-  height:75px;
+  height:133px;
   aspect-ratio:2/3;
   display:flex;
   justify-content:center;
   border-radius:4px;
 }
+.gg-card-hit .select-card,
+.gg-card-hit .empty-card { width:auto !important; height:100% !important; aspect-ratio:2/3; }
 .gg-card-hit:hover,
 .gg-award-slot .hl-field-card-hit:hover {
   background:rgba(201,162,39,0.12);
+}
+.gg-hitter-slot {
+  height:165px;
+}
+.gg-hitter-slot .hl-field-card-hit {
+  height:calc(100% - 32px);
+}
+.gg-hitter-club {
+  display:block;
+  flex-shrink:0;
+  height:16px;
+  line-height:16px;
+  font-size:10px;
+  font-weight:700;
+  color:var(--text-primary);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+  text-align:center;
 }
 .gg-hitter-field {
   flex:none;

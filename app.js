@@ -3867,7 +3867,7 @@ const GoldenGlove = {
       <div class="gg-card-hit">${card}</div>
       <div class="gg-pitcher-meta">
         <div class="gg-slot-label">${pos}</div>
-        <div class="gg-club-label">${award ? award.clubId : '-'}</div>
+        <div class="gg-club-label">${award ? award.clubId + "'s" : '-'}</div>
       </div>
     </div>`;
   },
@@ -3878,8 +3878,10 @@ const GoldenGlove = {
       ? makeCardLineup(award.dbRow, 50, true, award.overall, fs.pos === 'DH' ? 'DH' : fs.pos, fmt1(award.dbRow[HITTER_COL.BOJ] || 0))
       : makeEmptyCard(fs.pos, 50);
     const click = award ? ` onclick="GoldenGlove.openCompare('${fs.pos}')"` : '';
-    return `<div class="hl-field-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
-      <span class="hl-pos-lbl">${fs.pos}</span><div class="hl-field-card-hit"${click}>${card}</div>
+    return `<div class="hl-field-slot gg-hitter-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
+      <span class="hl-pos-lbl">${fs.pos}</span>
+      <div class="hl-field-card-hit"${click}>${card}</div>
+      <div class="gg-hitter-club">${award ? award.clubId + "'s" : ''}</div>
     </div>`;
   },
 
