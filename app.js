@@ -1390,6 +1390,38 @@ const RP_ROLES = {
 // ================================================================
 // 앱 상태
 // ================================================================
+const TEAM_LOGO_MAP = {
+  'KIA': '/assets/logos/KIA.svg',
+  'KIA 타이거즈': '/assets/logos/KIA.svg',
+  'KT': '/assets/logos/kt.svg',
+  'kt': '/assets/logos/kt.svg',
+  'KT 위즈': '/assets/logos/kt.svg',
+  'LG': '/assets/logos/LG.svg',
+  'LG 트윈스': '/assets/logos/LG.svg',
+  'NC': '/assets/logos/NC.svg',
+  'NC 다이노스': '/assets/logos/NC.svg',
+  'SSG': '/assets/logos/SSG.svg',
+  'SSG 랜더스': '/assets/logos/SSG.svg',
+  '두산': '/assets/logos/두산.svg',
+  '두산 베어스': '/assets/logos/두산.svg',
+  '롯데': '/assets/logos/롯데.svg',
+  '롯데 자이언츠': '/assets/logos/롯데.svg',
+  '삼성': '/assets/logos/삼성.svg',
+  '삼성 라이온즈': '/assets/logos/삼성.svg',
+  '키움': '/assets/logos/키움.svg',
+  '키움 히어로즈': '/assets/logos/키움.svg',
+  '한화': '/assets/logos/한화.svg',
+  '한화 이글스': '/assets/logos/한화.svg',
+};
+
+function getTeamLogoSrc(teamName, fallbackUrl) {
+  const name = String(teamName || '').trim();
+  if (!name) return fallbackUrl || '';
+  if (TEAM_LOGO_MAP[name]) return TEAM_LOGO_MAP[name];
+  const foundKey = Object.keys(TEAM_LOGO_MAP).find(key => name.includes(key) || key.includes(name));
+  return foundKey ? TEAM_LOGO_MAP[foundKey] : (fallbackUrl || '');
+}
+
 const State = {
   clubId: null,
   email: null,
@@ -3201,8 +3233,9 @@ function loadShortcutData() {
       if (data.teamOrg)  set('teamOrg',  data.teamOrg);
       if (data.teamName) set('teamName', data.teamName);
       const logoEl = document.getElementById('teamLogo');
-      if (data.logoUrl) {
-        logoEl.innerHTML = '<img src="' + data.logoUrl + '" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.innerHTML=\'🏟️\'">';
+      const logoSrc = getTeamLogoSrc(data.teamName, data.logoUrl);
+      if (logoSrc) {
+        logoEl.innerHTML = '<img src="' + logoSrc + '" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.innerHTML=\'🏟️\'">';
       } else {
         logoEl.textContent = '🏟️';
       }
@@ -3634,13 +3667,14 @@ const LoungeRanking = {
     body.innerHTML = '<div class="rank-list">' + pageData.map((d, i) => {
       const rankIndex = start + i;
       const isFilled = !!d;
+      const logoSrc = isFilled ? getTeamLogoSrc(d.teamName, d.logoUrl) : '';
       return `
       <div class="rank-entry${isFilled ? '' : ' rank-entry-empty'}" ${isFilled ? `style="cursor:pointer;" onclick="ClubViewModal.open('${d.clubId}')"` : ''}>
         <div class="rank-top">
           <span class="rank-num ${numCls(rankIndex)}">${rankIndex + 1}</span>
           <div class="rank-club">
             <div class="rank-names">
-              ${isFilled && d.logoUrl ? `<span class="rank-team-logo" title="${d.teamName || ''}" aria-label="${d.teamName || ''}"><img src="${d.logoUrl}" alt=""></span>` : `<span class="rank-team-logo rank-team-logo-empty">-</span>`}
+              ${logoSrc ? `<span class="rank-team-logo" title="${d.teamName || ''}" aria-label="${d.teamName || ''}"><img src="${logoSrc}" alt=""></span>` : `<span class="rank-team-logo rank-team-logo-empty">-</span>`}
               <span class="rank-club-name">${isFilled ? d.clubId : '-'}</span>
             </div>
           </div>
