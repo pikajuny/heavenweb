@@ -1753,7 +1753,8 @@ input, select, textarea { font-family: inherit; }
    헤븐 골든글러브 섹션
 ================================================================ */
 .gg-layout {
-  width:480px;
+  width:100%;
+  min-width:480px;
   box-sizing:border-box;
   display:flex;
   flex-direction:column;
@@ -1764,7 +1765,7 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-pitcher-wrap,
 .gg-field-wrap {
-  width:480px;
+  width:100%;
   display:flex;
   justify-content:center;
 }
@@ -1810,7 +1811,7 @@ input, select, textarea { font-family: inherit; }
   text-overflow:ellipsis;
 }
 .gg-card-hit {
-  height:133px;
+  height:117px;
   aspect-ratio:2/3;
   display:flex;
   justify-content:center;
@@ -1823,7 +1824,8 @@ input, select, textarea { font-family: inherit; }
   background:rgba(201,162,39,0.12);
 }
 .gg-hitter-slot {
-  height:165px;
+  gap:0;
+  padding:0;
 }
 .gg-hitter-slot .hl-field-card-hit {
   height:calc(100% - 32px);
@@ -1844,8 +1846,9 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-hitter-field {
   flex:none;
-  width:480px;
+  width:100%;
   max-width:none;
+  min-width:0;
   border-left:none;
   border-right:none;
   border-radius:0;
