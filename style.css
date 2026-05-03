@@ -1772,7 +1772,7 @@ input, select, textarea { font-family: inherit; }
 .gg-pitcher-row {
   width:100%;
   display:grid;
-  grid-template-columns:repeat(3, 1fr);
+  grid-template-columns:repeat(4, 1fr);
   gap:4px;
   padding:0 8px 2px;
   box-sizing:border-box;
@@ -1804,13 +1804,27 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-club-label {
   max-width:100%;
-  color:var(--text-primary);
+  color:#f0c040;
   font-size:12px;
   font-weight:700;
   line-height:1.15;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
+}
+.gg-player-name {
+  max-width:100%;
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:500;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.gg-pitcher-slot--empty {
+  pointer-events:none;
+  cursor:default;
 }
 .gg-card-hit {
   height:117px;
@@ -1831,6 +1845,7 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-hitter-slot .hl-field-card-hit {
   height:calc(100% - 32px);
+  flex:1;
 }
 .gg-hitter-club {
   display:block;
@@ -1839,7 +1854,7 @@ input, select, textarea { font-family: inherit; }
   line-height:16px;
   font-size:10px;
   font-weight:700;
-  color:var(--text-primary);
+  color:#f0c040;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -1851,11 +1866,11 @@ input, select, textarea { font-family: inherit; }
   width:100%;
   max-width:none;
   min-width:0;
-  border-left:none;
-  border-right:none;
+  border:none;
   border-radius:0;
   padding-top:4px;
   padding-bottom:4px;
+  background:var(--bg-primary);
 }
 .gg-hitter-field .hl-field-grid { margin-top:4px; }
 
