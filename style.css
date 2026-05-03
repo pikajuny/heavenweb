@@ -883,7 +883,9 @@ input, select, textarea { font-family: inherit; }
   gap: 0;
 }
 
-.select-card .card-top-main-row,
+.select-card .card-top-main-row {
+  transform: translateY(2px);
+}
 .select-card .card-top-badge-row {
   transform: translateY(3px);
 }
