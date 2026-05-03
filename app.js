@@ -3640,8 +3640,8 @@ const LoungeRanking = {
           <span class="rank-num ${numCls(rankIndex)}">${rankIndex + 1}</span>
           <div class="rank-club">
             <div class="rank-names">
+              ${isFilled && d.logoUrl ? `<span class="rank-team-logo" title="${d.teamName || ''}" aria-label="${d.teamName || ''}"><img src="${d.logoUrl}" alt=""></span>` : `<span class="rank-team-logo rank-team-logo-empty">-</span>`}
               <span class="rank-club-name">${isFilled ? d.clubId : '-'}</span>
-              ${isFilled && d.teamName ? `<span class="rank-kbo">${d.teamName}</span>` : ''}
             </div>
           </div>
           <span class="rank-total">${isFilled ? int(d.totalPower) : '-'}</span>

@@ -1717,9 +1717,19 @@ input, select, textarea { font-family: inherit; }
 .rank-num.r2 { color:#adb5bd; }
 .rank-num.r3 { color:#cd7f32; }
 .rank-club { flex:1; min-width:0; }
-.rank-names { display:flex; align-items:baseline; gap:6px; }
+.rank-names { display:flex; align-items:center; gap:7px; }
+.rank-team-logo {
+  width:24px; height:24px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  border-radius:5px;
+  background:rgba(255,255,255,0.04);
+  color:var(--text-tertiary);
+  font-size:11px;
+}
+.rank-team-logo img { width:100%; height:100%; object-fit:contain; border-radius:5px; }
+.rank-team-logo-empty { opacity:.5; }
 .rank-club-name { font-size:15px; font-weight:700; color:var(--text-primary); }
-.rank-kbo { font-size:10px; color:var(--text-tertiary); }
 .rank-total {
   font-size:22px; font-weight:800; color:#f0c040;
   font-family:Consolas,'Courier New',monospace;
