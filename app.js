@@ -3864,8 +3864,11 @@ const GoldenGlove = {
       : makeEmptyCard(pos, 50);
     const click = award ? ` onclick="GoldenGlove.openCompare('${pos}')"` : '';
     return `<div class="gg-pitcher-slot"${click}>
-      <div class="gg-slot-label">${pos}</div>
       <div class="gg-card-hit">${card}</div>
+      <div class="gg-pitcher-meta">
+        <div class="gg-slot-label">${pos}</div>
+        <div class="gg-club-label">${award ? award.clubId : '-'}</div>
+      </div>
     </div>`;
   },
 
@@ -4381,15 +4384,12 @@ function applyFilterBarScale(barId) {
 
 function applyGoldenGloveScale() {
   const BASE = 480;
-  const scaleFor = (el) => {
-    if (!el) return;
-    const parent = el.parentElement;
-    const available = parent ? parent.clientWidth : window.innerWidth;
-    const z = available > 0 && available < BASE ? available / BASE : 1;
-    el.style.zoom = z < 1 ? String(z) : '';
-  };
-  scaleFor(document.querySelector('.gg-pitcher-row'));
-  scaleFor(document.querySelector('.gg-hitter-field'));
+  const el = document.querySelector('.gg-layout');
+  if (!el) return;
+  const parent = el.parentElement;
+  const available = parent ? parent.clientWidth : window.innerWidth;
+  const z = available > 0 && available < BASE ? available / BASE : 1;
+  el.style.zoom = z < 1 ? String(z) : '';
 }
 
 function initOrderBarScale() {
