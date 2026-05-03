@@ -1378,11 +1378,19 @@ input, select, textarea { font-family: inherit; }
 
 .hl-field-slot {
   display: flex; flex-direction: column; align-items: center;
-  cursor: pointer; gap: 2px; padding: 2px; border-radius: 4px;
+  gap: 2px; padding: 2px; border-radius: 4px;
   transition: background 0.15s;
   height: 149px; align-self: start; position: relative;
 }
-.hl-field-slot:hover { background: rgba(128,128,128,0.15); }
+.hl-field-card-hit {
+  height: calc(100% - 16px);
+  aspect-ratio: 2/3;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.hl-field-card-hit:hover { background: rgba(128,128,128,0.15); }
 .hl-field-slot.hl-active { background: rgba(255,255,255,0.18); outline: 1.5px solid var(--border-medium); border-radius: 4px; }
 .hl-pos-lbl { font-size: 9px; color: var(--text-tertiary); font-weight: 500; }
 .hl-field .hl-pos-lbl {
@@ -1394,6 +1402,8 @@ input, select, textarea { font-family: inherit; }
 }
 .hl-field .select-card { width: auto !important; height: calc(100% - 16px) !important; aspect-ratio: 2/3; }
 .hl-field .empty-card  { width: auto !important; height: calc(100% - 16px) !important; aspect-ratio: 2/3; }
+.hl-field-card-hit .select-card,
+.hl-field-card-hit .empty-card { width: auto !important; height: 100% !important; aspect-ratio: 2/3; }
 
 /* 포지션별 배치 — 5단계 85px 균등 간격, z-index: CF(1) < LF/RF(2) < SS/2B(3) < 3B/1B(4) < C/DH(5) */
 .hl-field-grid > div:nth-child(1) { transform: translateX(0)     translateY(90px);  z-index: 2; } /* LF  →90px  */

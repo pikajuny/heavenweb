@@ -74,10 +74,9 @@ const HitterTab = {
       const card = p ? makeCardLineup(p, 50, true, bojOverride, fs.pos === 'DH' ? 'DH' : null) : makeEmptyCard(fs.pos, 50);
       return `<div class="hl-field-slot${isActive ? ' hl-active' : ''}"
         style="grid-column:${fs.col};grid-row:${fs.row};"
-        data-pos="${fs.pos}"
-        onclick="HitterTab.onFieldSlotClick('${fs.pos}')">
+        data-pos="${fs.pos}">
         <span class="hl-pos-lbl">${fs.pos}</span>
-        ${card}
+        <div class="hl-field-card-hit" onclick="HitterTab.onFieldSlotClick('${fs.pos}')">${card}</div>
       </div>`;
     }).join('');
     const diamond = `<svg class="hl-diamond-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -3266,10 +3265,10 @@ const SummaryTab = {
       const sr = sheetRows[posIdx] || [];
       const bojOvr = (sr[7] !== '' && sr[7] != null) ? sr[7] : null;
       const card = p ? makeCardLineup(p, 50, true, bojOvr, fs.pos === 'DH' ? 'DH' : null) : makeEmptyCard(fs.pos, 50);
-      const click = p ? `onclick="PlayerInfoModal.open('${p[HITTER_COL.KEY]}',true,'${fs.pos}')"` : '';
+      const cardClick = p ? ` onclick="PlayerInfoModal.open('${p[HITTER_COL.KEY]}',true,'${fs.pos}')"` : '';
       return `<div class="hl-field-slot${p ? '' : ' sum-empty-slot'}"
-        style="grid-column:${fs.col};grid-row:${fs.row};" ${click}>
-        <span class="hl-pos-lbl">${fs.pos}</span>${card}
+        style="grid-column:${fs.col};grid-row:${fs.row};">
+        <span class="hl-pos-lbl">${fs.pos}</span><div class="hl-field-card-hit"${cardClick}>${card}</div>
       </div>`;
     }).join('');
     const diamond = `<svg class="hl-diamond-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -3694,9 +3693,9 @@ const ClubViewModal = {
     const cards = FIELD_SLOTS.map(fs => {
       const { p, bojOvr } = this._hitterAt(fs.pos);
       const card  = p ? makeCardLineup(p, 50, true, bojOvr, fs.pos === 'DH' ? 'DH' : null) : makeEmptyCard(fs.pos, 50);
-      const click = p ? `onclick="ClubViewModal.onCardClick('${fs.pos}',true)"` : '';
-      return `<div class="hl-field-slot${p ? '' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};" ${click}>
-        <span class="hl-pos-lbl">${fs.pos}</span>${card}</div>`;
+      const cardClick = p ? ` onclick="ClubViewModal.onCardClick('${fs.pos}',true)"` : '';
+      return `<div class="hl-field-slot${p ? '' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
+        <span class="hl-pos-lbl">${fs.pos}</span><div class="hl-field-card-hit"${cardClick}>${card}</div></div>`;
     }).join('');
     const diamond = `<svg class="hl-diamond-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
       <path d="M 0 22 Q 50 -8 100 22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
