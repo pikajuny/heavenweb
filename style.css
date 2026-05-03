@@ -1769,6 +1769,7 @@ input, select, textarea { font-family: inherit; }
   display:flex;
   justify-content:center;
 }
+.gg-pitcher-wrap { padding-top:48px; }
 .gg-pitcher-row {
   width:100%;
   display:grid;
@@ -1812,15 +1813,7 @@ input, select, textarea { font-family: inherit; }
   overflow:hidden;
   text-overflow:ellipsis;
 }
-.gg-sub-hd {
-  width:100%;
-  display:flex;
-  flex-direction:column;
-  gap:3px;
-  padding:6px 12px 8px;
-  box-sizing:border-box;
-  border-bottom:0.5px solid rgba(240,192,64,0.15);
-}
+
 .gg-section-label {
   position:absolute;
   top:8px;
