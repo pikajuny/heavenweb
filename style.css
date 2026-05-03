@@ -1719,7 +1719,7 @@ input, select, textarea { font-family: inherit; }
 .rank-club { flex:1; min-width:0; }
 .rank-names { display:flex; align-items:center; gap:7px; }
 .rank-team-logo {
-  width:44px; height:44px;
+  width:38px; height:38px;
   display:flex; align-items:center; justify-content:center;
   flex-shrink:0;
   border-radius:8px;
@@ -1727,7 +1727,10 @@ input, select, textarea { font-family: inherit; }
   color:var(--text-tertiary);
   font-size:25px;
 }
-.rank-team-logo img { width:100%; height:100%; object-fit:contain; border-radius:8px; }
+.rank-team-logo img {
+  width:100%; height:100%; object-fit:contain; border-radius:8px;
+  filter:none; mix-blend-mode:normal; color-scheme:light; forced-color-adjust:none;
+}
 .rank-team-logo-empty { opacity:.5; }
 .rank-club-name { font-size:15px; font-weight:700; color:var(--text-primary); }
 .rank-total {
@@ -2410,6 +2413,7 @@ input, select, textarea { font-family: inherit; }
 .sc-left { width:600px; display:flex; align-items:center; gap:10px; padding-right:16px; }
 .sc-logo-block { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
 .team-logo { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:25px; flex-shrink:0; }
+.team-logo img { filter:none; mix-blend-mode:normal; color-scheme:light; forced-color-adjust:none; }
 .sc-info { display:flex; flex-direction:column; gap:3px; }
 .team-name { font-size:10px; color:var(--text-tertiary); text-align:center; white-space:nowrap; }
 .team-org { font-size:17px; font-weight:700; color:var(--text-primary); white-space:nowrap; }
