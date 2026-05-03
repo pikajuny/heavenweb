@@ -1630,6 +1630,8 @@ input, select, textarea { font-family: inherit; }
 .lounge-sec--half:last-child { border-right:none; }
 .lounge-sec-hd {
   display:flex; align-items:center; justify-content:space-between;
+  min-height:48px;
+  box-sizing:border-box;
   padding:10px 16px;
   background:var(--bg-secondary);
   border-bottom:0.5px solid var(--border-light);
