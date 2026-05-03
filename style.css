@@ -1934,6 +1934,7 @@ input, select, textarea { font-family: inherit; }
   bottom: 20px;
   right: 16px;
   background: rgba(26,26,24,0.82);
+  border: 1px solid transparent;
   color: #fff;
   border-radius: 20px;
   padding: 7px 16px 7px 12px;
@@ -1945,6 +1946,11 @@ input, select, textarea { font-family: inherit; }
   z-index: 9998;
   backdrop-filter: blur(4px);
   animation: toastIn 0.2s ease;
+}
+#refresh-toast.refresh-toast--notice {
+  background: rgba(48, 18, 18, 0.94);
+  border-color: rgba(255, 93, 93, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 93, 93, 0.18), 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 @keyframes toastIn {

@@ -1529,17 +1529,21 @@ function showRefreshing(msg, options) {
     document.body.appendChild(el);
   }
   const showSpinner = !options || options.spinner !== false;
+  el.classList.toggle('refresh-toast--notice', !!(options && options.notice));
   el.innerHTML = `${showSpinner ? '<div class="refresh-spin"></div>' : ''}<span>${msg || '동기화 중...'}</span>`;
   el.style.display = 'flex';
 }
 
 function hideRefreshing() {
   const el = document.getElementById('refresh-toast');
-  if (el) el.style.display = 'none';
+  if (el) {
+    el.style.display = 'none';
+    el.classList.remove('refresh-toast--notice');
+  }
 }
 
 function showRefreshNotice(msg, durationMs) {
-  showRefreshing(msg, { spinner: false });
+  showRefreshing(msg, { spinner: false, notice: true });
   clearTimeout(showRefreshNotice._timer);
   showRefreshNotice._timer = setTimeout(hideRefreshing, durationMs || 2200);
 }
