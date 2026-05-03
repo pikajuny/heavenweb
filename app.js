@@ -3482,42 +3482,95 @@ function parseHtmlToGrid(html) {
 // ================================================================
 const LoungeRanking = {
   _loading: false,
+  _data: [],
+  _page: 0,
+  _pageSize: 6,
+  _maxPages: 4,
 
   load() {
     if (this._loading) return;
     this._loading = true;
+    this._page = 0;
     const body = document.getElementById('lounge-ranking-body');
-    if (!body) return;
+    if (!body) {
+      this._loading = false;
+      return;
+    }
+    this.updateControls();
     body.innerHTML = '<div class="lounge-sec-loading">순위 불러오는 중...</div>';
 
     Api.call('getRankings', []).then(res => {
         this._loading = false;
         if (!res.success) {
           body.innerHTML = `<div class="lounge-sec-err">${res.error || '데이터를 불러오지 못했습니다.'}</div>`;
+          this.updateControls();
           return;
         }
         this.render(res.data);
       }).catch(e => {
         this._loading = false;
         body.innerHTML = `<div class="lounge-sec-err">${e.message}</div>`;
+        this.updateControls();
       });
   },
 
   render(data) {
     const body = document.getElementById('lounge-ranking-body');
     if (!body) return;
+    this._data = Array.isArray(data) ? data : [];
+    this._page = 0;
+    this.updateControls();
+    this.renderPage();
+  },
+
+  getTotalPages() {
+    return Math.max(1, Math.min(this._maxPages, Math.ceil(this._data.length / this._pageSize)));
+  },
+
+  prevPage() {
+    if (this._page <= 0) return;
+    this._page--;
+    this.renderPage();
+  },
+
+  nextPage() {
+    if (this._page >= this.getTotalPages() - 1) return;
+    this._page++;
+    this.renderPage();
+  },
+
+  updateControls() {
+    const totalPages = this.getTotalPages();
+    const label = document.getElementById('rank-page-label');
+    const prev = document.getElementById('rank-prev-btn');
+    const next = document.getElementById('rank-next-btn');
+    if (label) label.textContent = `${this._page + 1} / ${totalPages}`;
+    if (prev) prev.disabled = this._loading || this._page <= 0 || !this._data.length;
+    if (next) next.disabled = this._loading || this._page >= totalPages - 1 || !this._data.length;
+  },
+
+  renderPage() {
+    const body = document.getElementById('lounge-ranking-body');
+    if (!body) return;
+    const data = this._data;
     if (!data || !data.length) {
       body.innerHTML = '<div class="lounge-sec-loading">등록된 구단이 없습니다.</div>';
+      this.updateControls();
       return;
     }
 
     const int = v => (v != null && v !== '' && !isNaN(v)) ? Math.round(Number(v)).toLocaleString() : '—';
     const numCls = (i) => i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    const start = this._page * this._pageSize;
+    const pageData = data.slice(start, start + this._pageSize);
+    this.updateControls();
 
-    body.innerHTML = '<div class="rank-list">' + data.map((d, i) => `
+    body.innerHTML = '<div class="rank-list">' + pageData.map((d, i) => {
+      const rankIndex = start + i;
+      return `
       <div class="rank-entry" style="cursor:pointer;" onclick="ClubViewModal.open('${d.clubId}')">
         <div class="rank-top">
-          <span class="rank-num ${numCls(i)}">${i + 1}</span>
+          <span class="rank-num ${numCls(rankIndex)}">${rankIndex + 1}</span>
           <div class="rank-club">
             <div class="rank-names">
               <span class="rank-club-name">${d.clubId}</span>
@@ -3543,7 +3596,8 @@ const LoungeRanking = {
             <div class="rank-detail-group"><span class="rank-detail-lbl">마무리</span><span class="rank-detail-val">${int(d.pCloser)}</span></div>
           </div>
         </div>
-      </div>`).join('') + '</div>';
+      </div>`;
+    }).join('') + '</div>';
   }
 };
 

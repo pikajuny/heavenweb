@@ -132,7 +132,14 @@
         <!-- [섹션] 덱파워 랭킹 -->
         <section class="lounge-sec lounge-sec--half" id="lounge-sec-ranking">
           <div class="lounge-sec-hd">
-            <span class="lounge-sec-title">덱파워 랭킹</span>
+            <div class="lounge-title-row">
+              <span class="lounge-sec-title">덱파워 랭킹</span>
+              <div class="rank-page-controls">
+                <button class="rank-page-btn" id="rank-prev-btn" onclick="LoungeRanking.prevPage()" aria-label="이전 랭킹 페이지">‹</button>
+                <span class="rank-page-label" id="rank-page-label">1 / 4</span>
+                <button class="rank-page-btn" id="rank-next-btn" onclick="LoungeRanking.nextPage()" aria-label="다음 랭킹 페이지">›</button>
+              </div>
+            </div>
             <button class="lounge-refresh-btn" onclick="LoungeRanking.load()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
               새로고침
