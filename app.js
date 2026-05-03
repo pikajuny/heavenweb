@@ -3558,14 +3558,19 @@ const LoungeRanking = {
     if (label) label.textContent = `${this._page + 1} / ${totalPages}`;
     if (prev) prev.disabled = this._loading || this._page <= 0 || !this._data.length;
     if (next) next.disabled = this._loading || this._page >= totalPages - 1 || !this._data.length;
-    if (updatedAt) updatedAt.textContent = this._updatedAt ? `갱신 ${this.formatUpdatedAt(this._updatedAt)}` : '';
+    if (updatedAt) updatedAt.textContent = this._updatedAt ? `최종갱신: ${this.formatUpdatedAt(this._updatedAt)}` : '';
   },
 
   formatUpdatedAt(value) {
     const text = String(value || '').trim();
     const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-    if (match) return `${match[2]}-${match[3]} ${match[4]}:${match[5]}`;
-    return text.replace(/^\d{4}-/, '').replace(/:\d{2}$/, '');
+    if (match) return `${match[2]}/${match[3]} ${match[4]}:${match[5]}`;
+    const parsed = new Date(text);
+    if (!isNaN(parsed.getTime())) {
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(parsed.getMonth() + 1)}/${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+    }
+    return text.replace(/^\d{4}-/, '').replace(/-/g, '/').replace(/:\d{2}$/, '');
   },
 
   renderPage() {
