@@ -3566,7 +3566,7 @@ const LoungeRanking = {
     if (!body) return;
     const data = this._data;
     if (!data || !data.length) {
-      body.innerHTML = '<div class="lounge-sec-loading">등록된 구단이 없습니다.</div>';
+      body.innerHTML = '<div class="lounge-sec-loading">랭킹 데이터가 없습니다. 새로고침을 눌러 갱신해주세요.</div>';
       this.updateControls();
       return;
     }
