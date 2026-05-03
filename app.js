@@ -3867,7 +3867,7 @@ const GoldenGlove = {
       <div class="gg-card-hit">${card}</div>
       <div class="gg-pitcher-meta">
         <div class="gg-slot-label">${pos}</div>
-        <div class="gg-club-label">${award ? award.clubId + "'s" : '-'}</div>
+        <div class="gg-club-label">${award ? award.clubId + "'s " + (award.dbRow[PITCHER_COL.NAME] || '') : '-'}</div>
       </div>
     </div>`;
   },
@@ -3880,7 +3880,7 @@ const GoldenGlove = {
     const click = award ? ` onclick="GoldenGlove.openCompare('${fs.pos}')"` : '';
     return `<div class="hl-field-slot gg-hitter-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
       <span class="hl-pos-lbl">${fs.pos}</span>
-      <div class="gg-hitter-club">${award ? award.clubId + "'s" : ''}</div>
+      <div class="gg-hitter-club">${award ? award.clubId + "'s " + (award.dbRow[HITTER_COL.NAME] || '') : ''}</div>
       <div class="hl-field-card-hit"${click}>${card}</div>
     </div>`;
   },

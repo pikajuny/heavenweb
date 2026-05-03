@@ -1794,14 +1794,16 @@ input, select, textarea { font-family: inherit; }
   letter-spacing:0.03em;
 }
 .gg-pitcher-meta {
-  min-width:34px;
+  flex:1;
+  min-width:0;
   display:flex;
   flex-direction:column;
   align-items:flex-start;
   gap:3px;
+  overflow:hidden;
 }
 .gg-club-label {
-  max-width:48px;
+  max-width:100%;
   color:var(--text-primary);
   font-size:12px;
   font-weight:700;
