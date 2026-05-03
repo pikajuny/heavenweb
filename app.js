@@ -3830,8 +3830,7 @@ const GoldenGlove = {
       return;
     }
 
-    const _ggStars = `<div class="gg-label-stars"><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040" opacity="0.8"/></svg><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040"/></svg><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040" opacity="0.8"/></svg></div>`;
-    const _ggLabel = (title) => `<div class="gg-section-label"><div class="gg-label-top">${_ggStars}<span class="gg-label-sub">Golden Glove</span></div><span class="gg-label-main">${title}</span><div class="gg-label-line"></div></div>`;
+    const _ggLabel = (title) => `<div class="gg-section-label"><div class="gg-label-top"><span class="gg-label-sub">Golden Glove</span></div><span class="gg-label-main">${title}</span><div class="gg-label-line"></div></div>`;
     body.innerHTML = `
       <div class="gg-layout">
         <div class="gg-pitcher-wrap" style="position:relative;">

@@ -1772,7 +1772,7 @@ input, select, textarea { font-family: inherit; }
 .gg-pitcher-row {
   width:100%;
   display:grid;
-  grid-template-columns:repeat(4, 1fr);
+  grid-template-columns:0.4fr 1fr 1fr 1fr;
   gap:4px;
   padding:0 8px 2px;
   box-sizing:border-box;
@@ -1826,10 +1826,6 @@ input, select, textarea { font-family: inherit; }
   display:flex;
   align-items:center;
   gap:5px;
-}
-.gg-label-stars {
-  display:flex;
-  gap:2px;
 }
 .gg-label-sub {
   font-size:9px;
