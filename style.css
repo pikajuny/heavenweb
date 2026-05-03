@@ -1852,7 +1852,10 @@ input, select, textarea { font-family: inherit; }
   border-left:none;
   border-right:none;
   border-radius:0;
+  padding-top:4px;
+  padding-bottom:4px;
 }
+.gg-hitter-field .hl-field-grid { margin-top:4px; }
 
 /* ================================================================
    구단 뷰 모달 (대형)
@@ -2570,6 +2573,7 @@ input, select, textarea { font-family: inherit; }
   .hl-upper { flex-direction: column; }
   .pl-layout { flex-direction: column; }
   .hl-field { overflow: hidden; flex: none; width: 480px; max-width: none; min-width: 0; }
+  .gg-hitter-field { width: 100%; }
   .hl-list  { flex: none; width: 480px; max-width: none; min-width: 0; }
   .pl-grid-wrap     { flex: none; width: 480px; max-width: none; min-width: 0; }
   .pl-lower-section { flex: none; width: 480px; max-width: none; min-width: 0; }
