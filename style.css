@@ -1581,9 +1581,16 @@ input, select, textarea { font-family: inherit; }
    라운지 공통 섹션 구조
 ================================================================ */
 .lounge-layout { display:flex; flex-direction:column; }
-.lounge-row { display:flex; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
+.lounge-row { display:flex; flex-wrap:wrap; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
 .lounge-sec { }
-.lounge-sec--half { width:600px; flex-shrink:0; border-right:0.5px solid var(--border-light); }
+.lounge-sec--half {
+  flex: 1 1 480px;
+  width: 100%;
+  max-width: 600px;
+  min-width: min(480px, 100%);
+  box-sizing: border-box;
+  border-right:0.5px solid var(--border-light);
+}
 .lounge-sec--half:last-child { border-right:none; }
 .lounge-sec-hd {
   display:flex; align-items:center; justify-content:space-between;
@@ -2363,10 +2370,13 @@ input, select, textarea { font-family: inherit; }
   .sum-row1 { flex-direction: column; }
   .sum-sec  { flex: none; width: 100%; max-width: none; min-width: 0; }
 
-  /* 라운지: 섹션 세로 스택 */
-  .lounge-row { flex-direction: column; }
+}
+
+@media (max-width: 960px) {
+  /* 라운지: 좌우 섹션이 더 줄어들기 어려울 때 아래로 스택 */
   .lounge-sec--half {
     width: 100%;
+    max-width: none;
     flex-shrink: 1;
     border-right: none;
     border-bottom: 0.5px solid var(--border-light);
