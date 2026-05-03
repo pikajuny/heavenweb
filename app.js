@@ -3513,8 +3513,7 @@ const LoungeRanking = {
   _loading: false,
   _data: [],
   _page: 0,
-  _pageSize: 6,
-  _maxPages: 4,
+  _pageSizes: [7, 7, 8],
   _updatedAt: '',
 
   load() {
@@ -3563,7 +3562,21 @@ const LoungeRanking = {
   },
 
   getTotalPages() {
-    return Math.max(1, Math.min(this._maxPages, Math.ceil(this._data.length / this._pageSize)));
+    if (!this._data.length) return 1;
+    let capacity = 0;
+    for (let i = 0; i < this._pageSizes.length; i++) {
+      capacity += this._pageSizes[i];
+      if (this._data.length <= capacity) return i + 1;
+    }
+    return this._pageSizes.length;
+  },
+
+  getPageStart(page) {
+    return this._pageSizes.slice(0, page).reduce((sum, size) => sum + size, 0);
+  },
+
+  getPageSize(page) {
+    return this._pageSizes[page] || this._pageSizes[this._pageSizes.length - 1];
   },
 
   prevPage() {
@@ -3614,8 +3627,9 @@ const LoungeRanking = {
 
     const int = v => (v != null && v !== '' && !isNaN(v)) ? Math.round(Number(v)).toLocaleString() : '—';
     const numCls = (i) => i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
-    const start = this._page * this._pageSize;
-    const pageData = data.slice(start, start + this._pageSize);
+    const start = this.getPageStart(this._page);
+    const pageSize = this.getPageSize(this._page);
+    const pageData = data.slice(start, start + pageSize);
     this.updateControls();
 
     body.innerHTML = '<div class="rank-list">' + pageData.map((d, i) => {
