@@ -680,7 +680,7 @@ const PitcherTab = {
     if (p) {
       const boj   = fmt1((sr[7]  !== '' && sr[7]  != null) ? sr[7]  : (p[PITCHER_COL.BOJ]  ?? ''));
       const s_ch  = fmt1((sr[8]  !== '' && sr[8]  != null) ? sr[8]  : (p[PITCHER_COL.S_CH] ?? ''));
-      const s_gw  = fmt1((sr[9]  !== '' && sr[9]  != null) ? sr[9]  : (p[PITCHER_COL.S_GW] ?? ''));
+      const s_gw  = fmt1((sr[10] !== '' && sr[10] != null) ? sr[10] : (p[PITCHER_COL.S_GW] ?? ''));
       const pot1  = sr[13] || p[PITCHER_COL.POT_JS] || '-';
       const pot2  = sr[14] || p[PITCHER_COL.POT_CM] || '-';
       const pot3  = sr[15] || p[PITCHER_COL.POT_CG] || '-';
@@ -3406,7 +3406,7 @@ const PlayerInfoModal = {
     const SC = isH ? HITTER_COL : PITCHER_COL;
     const stats = isH
       ? [['파워',this._intStat(lineupRow, 8, p[HITTER_COL.S_POW])],['정확',this._intStat(lineupRow, 9, p[HITTER_COL.S_ACC])],['선구',this._intStat(lineupRow, 10, p[HITTER_COL.S_SEL])],['인내',this._intStat(lineupRow, 11, p[HITTER_COL.S_PAT])]]
-      : [['변화',this._intStat(lineupRow, 8, p[PITCHER_COL.S_CH])],['구위',this._intStat(lineupRow, 9, p[PITCHER_COL.S_GW])]];
+      : [['변화',this._intStat(lineupRow, 8, p[PITCHER_COL.S_CH])],['구위',this._intStat(lineupRow, 10, p[PITCHER_COL.S_GW])]];
     const pots = isH
       ? [['풀스윙',this._lineupVal(lineupRow, 13, p[HITTER_COL.POT_FS])],['클러치',this._lineupVal(lineupRow, 14, p[HITTER_COL.POT_CL])],['송구',this._lineupVal(lineupRow, 15, p[HITTER_COL.POT_SO])],['각성잠재력',this._lineupVal(lineupRow, 16, p[HITTER_COL.POT_AW])]]
       : [['장타억제력',this._lineupVal(lineupRow, 13, p[PITCHER_COL.POT_JS])],['침착',this._lineupVal(lineupRow, 14, p[PITCHER_COL.POT_CM])],['변화구구종',this._lineupVal(lineupRow, 15, p[PITCHER_COL.POT_CG])],['각성잠재력',this._lineupVal(lineupRow, 16, p[PITCHER_COL.POT_AW])]];
