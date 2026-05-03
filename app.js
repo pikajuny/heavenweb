@@ -3380,7 +3380,8 @@ const PlayerInfoModal = {
     const bojOvr = (lineupRow[7] !== '' && lineupRow[7] != null) ? lineupRow[7] : null;
 
     const rawBoj = isHitter ? (p[HITTER_COL.BOJ] || 0) : (p[PITCHER_COL.BOJ] || 0);
-    const card = makeCardLineup(p, 88, isHitter, bojOvr, slotLabel, fmt1(rawBoj));
+    const cardPos = isHitter ? slotLabel : null;
+    const card = makeCardLineup(p, 88, isHitter, bojOvr, cardPos, fmt1(rawBoj));
     document.getElementById('pi-upper').innerHTML = `
       <div class="sw-player-row">${card}${this._statsHtml(p, isHitter, lineupRow)}</div>`;
 
