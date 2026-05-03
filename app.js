@@ -108,10 +108,15 @@ const HitterTab = {
 
       if (p) {
         const boj    = fmt1((sr[7]  !== '' && sr[7]  != null) ? sr[7]  : (p[HITTER_COL.BOJ]   ?? ''));
-        const s_pow  = fmt1((sr[8]  !== '' && sr[8]  != null) ? sr[8]  : (p[HITTER_COL.S_POW] ?? ''));
-        const s_acc  = fmt1((sr[9]  !== '' && sr[9]  != null) ? sr[9]  : (p[HITTER_COL.S_ACC] ?? ''));
-        const s_sel  = fmt1((sr[10] !== '' && sr[10] != null) ? sr[10] : (p[HITTER_COL.S_SEL] ?? ''));
-        const s_pat  = fmt1((sr[11] !== '' && sr[11] != null) ? sr[11] : (p[HITTER_COL.S_PAT] ?? ''));
+        const intStat = v => {
+          if (v === '' || v == null || v === '-') return '-';
+          const n = Number(v);
+          return Number.isFinite(n) ? String(Math.round(n)) : String(v);
+        };
+        const s_pow  = intStat((sr[8]  !== '' && sr[8]  != null) ? sr[8]  : (p[HITTER_COL.S_POW] ?? ''));
+        const s_acc  = intStat((sr[9]  !== '' && sr[9]  != null) ? sr[9]  : (p[HITTER_COL.S_ACC] ?? ''));
+        const s_sel  = intStat((sr[10] !== '' && sr[10] != null) ? sr[10] : (p[HITTER_COL.S_SEL] ?? ''));
+        const s_pat  = intStat((sr[11] !== '' && sr[11] != null) ? sr[11] : (p[HITTER_COL.S_PAT] ?? ''));
         const pot1 = sr[13] || p[HITTER_COL.POT_FS] || '-';
         const pot2 = sr[14] || p[HITTER_COL.POT_CL] || '-';
         const pot3 = sr[15] || p[HITTER_COL.POT_SO] || '-';
@@ -679,8 +684,13 @@ const PitcherTab = {
 
     if (p) {
       const boj   = fmt1((sr[7]  !== '' && sr[7]  != null) ? sr[7]  : (p[PITCHER_COL.BOJ]  ?? ''));
-      const s_ch  = fmt1((sr[8]  !== '' && sr[8]  != null) ? sr[8]  : (p[PITCHER_COL.S_CH] ?? ''));
-      const s_gw  = fmt1((sr[10] !== '' && sr[10] != null) ? sr[10] : (p[PITCHER_COL.S_GW] ?? ''));
+      const intStat = v => {
+        if (v === '' || v == null || v === '-') return '-';
+        const n = Number(v);
+        return Number.isFinite(n) ? String(Math.round(n)) : String(v);
+      };
+      const s_ch  = intStat((sr[8]  !== '' && sr[8]  != null) ? sr[8]  : (p[PITCHER_COL.S_CH] ?? ''));
+      const s_gw  = intStat((sr[10] !== '' && sr[10] != null) ? sr[10] : (p[PITCHER_COL.S_GW] ?? ''));
       const pot1  = sr[13] || p[PITCHER_COL.POT_JS] || '-';
       const pot2  = sr[14] || p[PITCHER_COL.POT_CM] || '-';
       const pot3  = sr[15] || p[PITCHER_COL.POT_CG] || '-';

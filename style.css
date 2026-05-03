@@ -1461,9 +1461,9 @@ input, select, textarea { font-family: inherit; }
 .hl-sl { font-size: 9px; line-height: 1.05; color: var(--text-tertiary); }
 .hl-sv { font-size: 9px; line-height: 1.05; font-weight: 500; }
 .hl-skills { width: 99px; flex-shrink: 1; min-width: 0; overflow: hidden; }
-.hl-sk { font-size: 9px; white-space: nowrap; overflow: visible; }
+.hl-sk { font-size: 9px; line-height: 1.05; white-space: nowrap; overflow: visible; }
 .hl-skl { color: var(--text-tertiary); }
-.hl-sk-score { font-size: 9px; color: var(--text-secondary); margin-top: 1px; }
+.hl-sk-score { font-size: 9px; line-height: 1.05; color: var(--text-secondary); margin-top: 1px; }
 .hl-empty-hint { font-size: 12px; color: var(--text-tertiary); font-style: italic; flex: 1; }
 
 .hl-order {
