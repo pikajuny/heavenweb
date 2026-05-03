@@ -3830,15 +3830,19 @@ const GoldenGlove = {
       return;
     }
 
+    const _ggStars = `<div class="gg-label-stars"><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040" opacity="0.8"/></svg><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040"/></svg><svg width="9" height="9" viewBox="0 0 10 10"><polygon points="5,0 6.2,3.5 10,3.5 7,5.8 8.1,9.5 5,7.2 1.9,9.5 3,5.8 0,3.5 3.8,3.5" fill="#f0c040" opacity="0.8"/></svg></div>`;
+    const _ggLabel = (title) => `<div class="gg-section-label"><div class="gg-label-top">${_ggStars}<span class="gg-label-sub">Golden Glove</span></div><span class="gg-label-main">${title}</span><div class="gg-label-line"></div></div>`;
     body.innerHTML = `
       <div class="gg-layout">
-        <div class="gg-pitcher-wrap">
+        <div class="gg-pitcher-wrap" style="position:relative;">
+          ${_ggLabel('투수부문')}
           <div class="gg-pitcher-row">
             <div class="gg-pitcher-slot gg-pitcher-slot--empty"></div>
             ${['SP', 'RP', 'CP'].map(pos => this.pitcherSlotHtml(pos)).join('')}
           </div>
         </div>
-        <div class="gg-field-wrap">
+        <div class="gg-field-wrap" style="position:relative;">
+          ${_ggLabel('타자부문')}
           <div class="hl-field gg-hitter-field">
             <div class="hl-field-grid" id="gg-hitter-grid">
               ${FIELD_SLOTS.map(fs => this.hitterSlotHtml(fs)).join('')}
@@ -3868,7 +3872,7 @@ const GoldenGlove = {
       <div class="gg-card-hit">${card}</div>
       <div class="gg-pitcher-meta">
         <div class="gg-slot-label">${pos}</div>
-        <div class="gg-club-label">${award ? award.clubId + "'s" : '-'}</div>
+        <div class="gg-club-label">${award ? `<span class="gg-club-id">${award.clubId}</span><span class="gg-club-apostrophe">'s</span>` : '-'}</div>
         <div class="gg-player-name">${award ? (award.dbRow[PITCHER_COL.NAME] || '') : ''}</div>
       </div>
     </div>`;
@@ -3883,7 +3887,7 @@ const GoldenGlove = {
     return `<div class="hl-field-slot gg-hitter-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
       <span class="hl-pos-lbl">${fs.pos}</span>
       <div class="hl-field-card-hit"${click}>${card}</div>
-      <div class="gg-hitter-club">${award ? award.clubId + "'s " + (award.dbRow[HITTER_COL.NAME] || '') : ''}</div>
+      <div class="gg-hitter-club">${award ? `<span class="gg-club-id">${award.clubId}</span><span class="gg-club-apostrophe">'s</span> <span class="gg-hitter-club-player">${award.dbRow[HITTER_COL.NAME] || ''}</span>` : ''}</div>
     </div>`;
   },
 

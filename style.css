@@ -1812,9 +1812,51 @@ input, select, textarea { font-family: inherit; }
   overflow:hidden;
   text-overflow:ellipsis;
 }
+.gg-section-label {
+  position:absolute;
+  top:8px;
+  left:12px;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  pointer-events:none;
+}
+.gg-label-top {
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.gg-label-stars {
+  display:flex;
+  gap:2px;
+}
+.gg-label-sub {
+  font-size:9px;
+  font-weight:600;
+  letter-spacing:0.14em;
+  color:rgba(240,192,64,0.65);
+  text-transform:uppercase;
+}
+.gg-label-main {
+  font-size:14px;
+  font-weight:900;
+  color:var(--text-primary);
+  letter-spacing:0.03em;
+  line-height:1;
+}
+.gg-label-line {
+  height:2px;
+  width:100%;
+  background:linear-gradient(90deg, #f0c040, rgba(240,192,64,0.08));
+  border-radius:2px;
+}
+.gg-club-id { color:#f0c040; font-weight:700; }
+.gg-club-apostrophe { color:var(--text-primary); font-weight:700; }
+.gg-hitter-club-player { color:var(--text-primary); font-weight:500; }
 .gg-player-name {
   max-width:100%;
-  color:var(--text-secondary);
+  color:var(--text-primary);
   font-size:11px;
   font-weight:500;
   line-height:1.15;
