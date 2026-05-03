@@ -3833,7 +3833,8 @@ const ClubCompareModal = {
 
     const mkCard = (p, boj, isH) => {
       const raw = isH ? (p?.[HITTER_COL.BOJ] || 0) : (p?.[PITCHER_COL.BOJ] || 0);
-      return p ? makeCardLineup(p, 88, isH, boj, posOrSlot, fmt1(raw)) : makeEmptyCard(posOrSlot, 88);
+      const cardPos = isH ? posOrSlot : null;
+      return p ? makeCardLineup(p, 88, isH, boj, cardPos, fmt1(raw)) : makeEmptyCard(posOrSlot, 88);
     };
     const empty = `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);">미배치</div>`;
     const stats = (p, isH, row) => p ? PlayerInfoModal._statsHtml(p, isH, row) : empty;
