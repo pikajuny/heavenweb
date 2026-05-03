@@ -3562,12 +3562,6 @@ const LoungeRanking = {
   },
 
   getTotalPages() {
-    if (!this._data.length) return 1;
-    let capacity = 0;
-    for (let i = 0; i < this._pageSizes.length; i++) {
-      capacity += this._pageSizes[i];
-      if (this._data.length <= capacity) return i + 1;
-    }
     return this._pageSizes.length;
   },
 
