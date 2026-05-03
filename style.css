@@ -1750,6 +1750,66 @@ input, select, textarea { font-family: inherit; }
 .rank-vsep { width:1px; height:9px; background:var(--border-light); margin:0 3px; flex-shrink:0; }
 
 /* ================================================================
+   헤븐 골든글러브 섹션
+================================================================ */
+.gg-layout {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:10px 8px 14px;
+}
+.gg-pitcher-wrap,
+.gg-field-wrap {
+  width:100%;
+  display:flex;
+  justify-content:center;
+  overflow:hidden;
+}
+.gg-pitcher-row {
+  width:480px;
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:6px;
+  padding:8px;
+  box-sizing:border-box;
+  background:var(--bg-secondary);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-lg);
+}
+.gg-pitcher-slot {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  cursor:pointer;
+}
+.gg-slot-label {
+  height:16px;
+  line-height:16px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--text-secondary);
+  letter-spacing:0.03em;
+}
+.gg-card-hit {
+  height:75px;
+  aspect-ratio:2/3;
+  display:flex;
+  justify-content:center;
+  border-radius:4px;
+}
+.gg-card-hit:hover,
+.gg-award-slot .hl-field-card-hit:hover {
+  background:rgba(201,162,39,0.12);
+}
+.gg-hitter-field {
+  flex:none;
+  width:480px;
+  max-width:none;
+}
+
+/* ================================================================
    구단 뷰 모달 (대형)
 ================================================================ */
 .cv-modal {

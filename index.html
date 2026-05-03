@@ -159,8 +159,14 @@
         <section class="lounge-sec lounge-sec--half" id="lounge-sec-golden-glove">
           <div class="lounge-sec-hd">
             <span class="lounge-sec-title">헤븐 골든글러브</span>
+            <div class="lounge-hd-actions">
+              <span class="rank-updated-at" id="gg-updated-at"></span>
+              <button class="lounge-refresh-btn" onclick="GoldenGlove.refresh()" aria-label="골든글러브 새로고침" title="새로고침">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              </button>
+            </div>
           </div>
-          <div class="lounge-sec-body">
+          <div id="golden-glove-body" class="lounge-sec-body">
             <div class="prep-screen" style="min-height:180px;">
               <div class="prep-icon" style="font-size:24px;">🏆</div>
               <div class="prep-title" style="font-size:14px;">준비중입니다</div>

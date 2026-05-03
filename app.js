@@ -3295,7 +3295,10 @@ function switchMenu(menuId, btn) {
     loadShortcutData();
     applyTabScale();
   }
-  if (menuId === 'lounge') LoungeRanking.load();
+  if (menuId === 'lounge') {
+    LoungeRanking.load();
+    GoldenGlove.load();
+  }
 }
 
 // ================================================================
@@ -3756,6 +3759,148 @@ const LoungeRanking = {
 };
 
 // ================================================================
+// [라운지 섹션] 헤븐 골든글러브 — GoldenGlove
+// ================================================================
+const GoldenGlove = {
+  _loading: false,
+  _data: [],
+  _updatedAt: '',
+  _refreshCooldownMs: 10 * 60 * 1000,
+
+  load() {
+    this._fetch('getGoldenGlove', '골든글러브 불러오는 중...');
+  },
+
+  refresh() {
+    const remainingSeconds = this.getRefreshCooldownRemainingSeconds();
+    if (remainingSeconds > 0) {
+      const remainingMinutes = Math.max(1, Math.ceil(remainingSeconds / 60));
+      showRefreshNotice(`다음 갱신까지 ${remainingMinutes}분`, 2600);
+      return;
+    }
+    this._fetch('refreshGoldenGlove', '골든글러브 갱신 중...', { toast: true });
+  },
+
+  _fetch(action, message, options) {
+    if (this._loading) return;
+    this._loading = true;
+    const body = document.getElementById('golden-glove-body');
+    if (!body) {
+      this._loading = false;
+      return;
+    }
+    body.innerHTML = `<div class="lounge-sec-loading">${message}</div>`;
+    this.updateControls();
+    if (options && options.toast) showRefreshing(message);
+
+    Api.call(action, []).then(res => {
+      this._loading = false;
+      if (options && options.toast) hideRefreshing();
+      if (!res.success) {
+        body.innerHTML = `<div class="lounge-sec-err">${res.error || '데이터를 불러오지 못했습니다.'}</div>`;
+        this.updateControls();
+        return;
+      }
+      this._updatedAt = res.updatedAt || '';
+      this.render(res.data);
+      if (res.cooldown) {
+        const remainingMinutes = Math.max(1, Math.ceil((res.cooldownRemainingSeconds || 0) / 60));
+        showRefreshNotice(`다음 갱신까지 ${remainingMinutes}분`, 2600);
+      }
+    }).catch(e => {
+      this._loading = false;
+      if (options && options.toast) hideRefreshing();
+      body.innerHTML = `<div class="lounge-sec-err">${e.message}</div>`;
+      this.updateControls();
+    });
+  },
+
+  render(data) {
+    const body = document.getElementById('golden-glove-body');
+    if (!body) return;
+    this._data = Array.isArray(data) ? data : [];
+    this.updateControls();
+
+    if (!this._data.length) {
+      body.innerHTML = `
+        <div class="prep-screen" style="min-height:180px;">
+          <div class="prep-icon" style="font-size:24px;">🏆</div>
+          <div class="prep-title" style="font-size:14px;">준비중입니다</div>
+        </div>`;
+      return;
+    }
+
+    body.innerHTML = `
+      <div class="gg-layout">
+        <div class="gg-pitcher-wrap">
+          <div class="gg-pitcher-row">
+            ${['SP', 'RP', 'CP'].map(pos => this.pitcherSlotHtml(pos)).join('')}
+          </div>
+        </div>
+        <div class="gg-field-wrap">
+          <div class="hl-field gg-hitter-field">
+            <div class="hl-field-grid" id="gg-hitter-grid">
+              ${FIELD_SLOTS.map(fs => this.hitterSlotHtml(fs)).join('')}
+              <svg class="hl-diamond-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M 0 22 Q 50 -8 100 22" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                <polygon points="50,90 82,65 50,40 18,65" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.9"/>
+                <circle cx="50" cy="65" r="3.5" fill="none" stroke="rgba(255,255,255,0.13)" stroke-width="0.5"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    requestAnimationFrame(applyGoldenGloveScale);
+  },
+
+  getAward(pos) {
+    return this._data.find(row => row.awardPosition === pos) || null;
+  },
+
+  pitcherSlotHtml(pos) {
+    const award = this.getAward(pos);
+    const card = award
+      ? makeCardLineup(award.dbRow, 50, false, award.overall, null, fmt1(award.dbRow[PITCHER_COL.BOJ] || 0))
+      : makeEmptyCard(pos, 50);
+    const click = award ? ` onclick="GoldenGlove.openCompare('${pos}')"` : '';
+    return `<div class="gg-pitcher-slot"${click}>
+      <div class="gg-slot-label">${pos}</div>
+      <div class="gg-card-hit">${card}</div>
+    </div>`;
+  },
+
+  hitterSlotHtml(fs) {
+    const award = this.getAward(fs.pos);
+    const card = award
+      ? makeCardLineup(award.dbRow, 50, true, award.overall, fs.pos === 'DH' ? 'DH' : fs.pos, fmt1(award.dbRow[HITTER_COL.BOJ] || 0))
+      : makeEmptyCard(fs.pos, 50);
+    const click = award ? ` onclick="GoldenGlove.openCompare('${fs.pos}')"` : '';
+    return `<div class="hl-field-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
+      <span class="hl-pos-lbl">${fs.pos}</span><div class="hl-field-card-hit"${click}>${card}</div>
+    </div>`;
+  },
+
+  openCompare(pos) {
+    const award = this.getAward(pos);
+    if (award) ClubCompareModal.openGoldenGlove(award);
+  },
+
+  updateControls() {
+    const updatedAt = document.getElementById('gg-updated-at');
+    if (updatedAt) updatedAt.textContent = this._updatedAt ? `최종갱신: ${LoungeRanking.formatUpdatedAt(this._updatedAt)}` : '';
+  },
+
+  getRefreshCooldownRemainingSeconds() {
+    const updatedAtMs = LoungeRanking.parseUpdatedAtMs(this._updatedAt);
+    if (!updatedAtMs) return 0;
+    const elapsedMs = Date.now() - updatedAtMs;
+    if (elapsedMs < 0) return Math.ceil(this._refreshCooldownMs / 1000);
+    if (elapsedMs >= this._refreshCooldownMs) return 0;
+    return Math.ceil((this._refreshCooldownMs - elapsedMs) / 1000);
+  },
+};
+
+// ================================================================
 // [라운지] 구단 뷰 모달 — ClubViewModal
 // ================================================================
 const ClubViewModal = {
@@ -3950,6 +4095,67 @@ const ClubCompareModal = {
       <div class="sw-player-row">${mkCard(myP, myBoj, isHitter)}${stats(myP, isHitter, myRow)}</div>`;
 
     document.getElementById('club-compare-modal').style.display = 'flex';
+  },
+
+  openGoldenGlove(award) {
+    const isHitter = award.sourceType === 'hitter';
+    const pos = award.awardPosition;
+    const winnerP = award.dbRow;
+    const winnerRow = award.lineupRow;
+    const mine = this._goldenMineFor(pos, isHitter);
+
+    document.getElementById('cc-hd').innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="sw-slot-badge">${pos}</span>
+        <span class="sw-title">골든글러브 비교</span>
+      </div>
+      <button class="sw-close-btn" onclick="ClubCompareModal.close()">✕</button>`;
+
+    const mkCard = (p, row, isH) => {
+      const raw = isH ? (p?.[HITTER_COL.BOJ] || 0) : (p?.[PITCHER_COL.BOJ] || 0);
+      const boj = row && row[7] !== '' && row[7] != null ? row[7] : null;
+      const cardPos = isH ? pos : null;
+      return p ? makeCardLineup(p, 88, isH, boj, cardPos, fmt1(raw)) : makeEmptyCard(pos, 88);
+    };
+    const empty = `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary);">미배치</div>`;
+    const stats = (p, isH, row) => p ? PlayerInfoModal._statsHtml(p, isH, row) : empty;
+
+    document.getElementById('cc-other').innerHTML = `
+      <div class="cc-sec-label">${award.clubId} 수상자</div>
+      <div class="sw-player-row">${mkCard(winnerP, winnerRow, isHitter)}${stats(winnerP, isHitter, winnerRow)}</div>`;
+
+    document.getElementById('cc-divider').textContent = `${State.clubId} 비교 대상`;
+
+    document.getElementById('cc-mine').innerHTML = `
+      <div class="sw-player-row">${mkCard(mine.p, mine.row, isHitter)}${stats(mine.p, isHitter, mine.row)}</div>`;
+
+    document.getElementById('club-compare-modal').style.display = 'flex';
+  },
+
+  _goldenMineFor(pos, isHitter) {
+    if (isHitter) {
+      const POS_ORDER = ['C','1B','2B','3B','SS','LF','CF','RF','DH'];
+      const idx = POS_ORDER.indexOf(pos);
+      const row = idx >= 0 ? (State.hitterLineup || [])[idx] || [] : [];
+      const p = row[6] ? State.hitters.find(h => h[HITTER_COL.NAME] === row[6]) : null;
+      return { p, row };
+    }
+
+    const groups = pos === 'SP'
+      ? [0, 1, 2, 3, 4]
+      : pos === 'RP'
+        ? [5, 6, 7, 8, 9, 10]
+        : [11];
+    let best = { p: null, row: [] };
+    groups.forEach(idx => {
+      const row = (State.pitcherLineup || [])[idx] || [];
+      const p = row[6] ? State.pitchers.find(pt => pt[PITCHER_COL.NAME] === row[6]) : null;
+      if (!p) return;
+      const overall = Number(row[7]) || 0;
+      const bestOverall = Number(best.row && best.row[7]) || 0;
+      if (!best.p || overall > bestOverall) best = { p, row };
+    });
+    return best;
   },
 
   close() { document.getElementById('club-compare-modal').style.display = 'none'; }
@@ -4173,6 +4379,19 @@ function applyFilterBarScale(barId) {
   bar.style.zoom = scale < 1 ? String(scale) : '';
 }
 
+function applyGoldenGloveScale() {
+  const BASE = 480;
+  const scaleFor = (el) => {
+    if (!el) return;
+    const parent = el.parentElement;
+    const available = parent ? parent.clientWidth : window.innerWidth;
+    const z = available > 0 && available < BASE ? available / BASE : 1;
+    el.style.zoom = z < 1 ? String(z) : '';
+  };
+  scaleFor(document.querySelector('.gg-pitcher-row'));
+  scaleFor(document.querySelector('.gg-hitter-field'));
+}
+
 function initOrderBarScale() {
   window.addEventListener('resize', () => {
     updateStickyHeights();
@@ -4182,6 +4401,7 @@ function initOrderBarScale() {
     applyOrderBarScaleById('sum-order-bar');
     applyFilterBarScale('hitter-filter-bar');
     applyFilterBarScale('pitcher-filter-bar');
+    applyGoldenGloveScale();
   });
 }
 
@@ -4219,6 +4439,8 @@ function applyLineupScale() {
     scaleFor(cvBody.querySelector('.hl-field'));
     scaleFor(cvBody.querySelector('.pl-grid-wrap'));
   }
+
+  applyGoldenGloveScale();
 }
 
 function initLineupScale() {
