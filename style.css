@@ -2396,7 +2396,7 @@ input, select, textarea { font-family: inherit; }
 .team-org { font-size:17px; font-weight:700; color:var(--text-primary); white-space:nowrap; }
 .sc-total-row { display:flex; align-items:center; gap:6px; margin-top:1px; }
 .sc-total-label { font-size: 9px; color:var(--text-tertiary); }
-.sc-total-value { font-family:'JetBrains Mono',monospace; font-size: 21px; font-weight:700; color:#f0c040; line-height:1; }
+.sc-total-value { font-size: 21px; font-weight:700; color:#f0c040; line-height:1; letter-spacing:0.01em; }
 .sc-detail-rows { display:flex; flex-direction:column; gap:2px; }
 .sc-detail-row { display:flex; align-items:center; gap:5px; }
 .sc-item { display:flex; align-items:baseline; gap:2px; }
