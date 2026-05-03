@@ -1520,20 +1520,28 @@ function hideLoading() {
 }
 
 // 비차단 토스트 — 다른 작업 가능, 우하단 고정
-function showRefreshing(msg) {
+function showRefreshing(msg, options) {
+  clearTimeout(showRefreshNotice._timer);
   let el = document.getElementById('refresh-toast');
   if (!el) {
     el = document.createElement('div');
     el.id = 'refresh-toast';
     document.body.appendChild(el);
   }
-  el.innerHTML = `<div class="refresh-spin"></div><span>${msg || '동기화 중...'}</span>`;
+  const showSpinner = !options || options.spinner !== false;
+  el.innerHTML = `${showSpinner ? '<div class="refresh-spin"></div>' : ''}<span>${msg || '동기화 중...'}</span>`;
   el.style.display = 'flex';
 }
 
 function hideRefreshing() {
   const el = document.getElementById('refresh-toast');
   if (el) el.style.display = 'none';
+}
+
+function showRefreshNotice(msg, durationMs) {
+  showRefreshing(msg, { spinner: false });
+  clearTimeout(showRefreshNotice._timer);
+  showRefreshNotice._timer = setTimeout(hideRefreshing, durationMs || 2200);
 }
 
 function showErr(id, msg) {
@@ -3554,10 +3562,10 @@ const LoungeRanking = {
   },
 
   refresh() {
-    this._fetch('refreshRankings', '랭킹 갱신 중...');
+    this._fetch('refreshRankings', '랭킹 갱신 중...', { toast: true });
   },
 
-  _fetch(action, message) {
+  _fetch(action, message, options) {
     if (this._loading) return;
     this._loading = true;
     this._page = 0;
@@ -3568,9 +3576,11 @@ const LoungeRanking = {
     }
     this.updateControls();
     body.innerHTML = `<div class="lounge-sec-loading">${message}</div>`;
+    if (options && options.toast) showRefreshing(message);
 
     Api.call(action, []).then(res => {
         this._loading = false;
+        if (options && options.toast) hideRefreshing();
         if (!res.success) {
           body.innerHTML = `<div class="lounge-sec-err">${res.error || '데이터를 불러오지 못했습니다.'}</div>`;
           this.updateControls();
@@ -3578,8 +3588,13 @@ const LoungeRanking = {
         }
         this._updatedAt = res.updatedAt || '';
         this.render(res.data);
+        if (res.cooldown) {
+          const remainingMinutes = Math.max(1, Math.ceil((res.cooldownRemainingSeconds || 0) / 60));
+          showRefreshNotice(`다음 갱신까지 ${remainingMinutes}분`, 2600);
+        }
       }).catch(e => {
         this._loading = false;
+        if (options && options.toast) hideRefreshing();
         body.innerHTML = `<div class="lounge-sec-err">${e.message}</div>`;
         this.updateControls();
       });
