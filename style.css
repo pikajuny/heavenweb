@@ -1600,6 +1600,7 @@ input, select, textarea { font-family: inherit; }
   gap:10px;
 }
 .lounge-title-row { display:flex; align-items:center; gap:10px; min-width:0; }
+.lounge-hd-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .lounge-sec-title {
   font-size:11px; font-weight:700; letter-spacing:0.07em;
   text-transform:uppercase; color:var(--text-tertiary);
@@ -1653,6 +1654,11 @@ input, select, textarea { font-family: inherit; }
   font-size:11px;
   color:var(--text-tertiary);
   font-family:Consolas,'Courier New',monospace;
+}
+.rank-updated-at {
+  font-size:10px;
+  color:var(--text-tertiary);
+  white-space:nowrap;
 }
 .rank-list { display:flex; flex-direction:column; }
 .rank-entry {

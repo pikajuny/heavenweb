@@ -140,10 +140,13 @@
                 <button class="rank-page-btn" id="rank-next-btn" onclick="LoungeRanking.nextPage()" aria-label="다음 랭킹 페이지">›</button>
               </div>
             </div>
-            <button class="lounge-refresh-btn" onclick="LoungeRanking.load()">
+            <div class="lounge-hd-actions">
+              <span class="rank-updated-at" id="rank-updated-at"></span>
+              <button class="lounge-refresh-btn" onclick="LoungeRanking.refresh()">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
               새로고침
-            </button>
+              </button>
+            </div>
           </div>
           <div id="lounge-ranking-body" class="lounge-sec-body">
             <div class="lounge-sec-loading">불러오는 중...</div>

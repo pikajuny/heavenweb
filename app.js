@@ -3486,8 +3486,17 @@ const LoungeRanking = {
   _page: 0,
   _pageSize: 6,
   _maxPages: 4,
+  _updatedAt: '',
 
   load() {
+    this._fetch('getRankings', '랭킹 불러오는 중...');
+  },
+
+  refresh() {
+    this._fetch('refreshRankings', '랭킹 갱신 중...');
+  },
+
+  _fetch(action, message) {
     if (this._loading) return;
     this._loading = true;
     this._page = 0;
@@ -3497,15 +3506,16 @@ const LoungeRanking = {
       return;
     }
     this.updateControls();
-    body.innerHTML = '<div class="lounge-sec-loading">순위 불러오는 중...</div>';
+    body.innerHTML = `<div class="lounge-sec-loading">${message}</div>`;
 
-    Api.call('getRankings', []).then(res => {
+    Api.call(action, []).then(res => {
         this._loading = false;
         if (!res.success) {
           body.innerHTML = `<div class="lounge-sec-err">${res.error || '데이터를 불러오지 못했습니다.'}</div>`;
           this.updateControls();
           return;
         }
+        this._updatedAt = res.updatedAt || '';
         this.render(res.data);
       }).catch(e => {
         this._loading = false;
@@ -3544,9 +3554,11 @@ const LoungeRanking = {
     const label = document.getElementById('rank-page-label');
     const prev = document.getElementById('rank-prev-btn');
     const next = document.getElementById('rank-next-btn');
+    const updatedAt = document.getElementById('rank-updated-at');
     if (label) label.textContent = `${this._page + 1} / ${totalPages}`;
     if (prev) prev.disabled = this._loading || this._page <= 0 || !this._data.length;
     if (next) next.disabled = this._loading || this._page >= totalPages - 1 || !this._data.length;
+    if (updatedAt) updatedAt.textContent = this._updatedAt ? `갱신 ${this._updatedAt}` : '';
   },
 
   renderPage() {
