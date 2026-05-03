@@ -3558,7 +3558,14 @@ const LoungeRanking = {
     if (label) label.textContent = `${this._page + 1} / ${totalPages}`;
     if (prev) prev.disabled = this._loading || this._page <= 0 || !this._data.length;
     if (next) next.disabled = this._loading || this._page >= totalPages - 1 || !this._data.length;
-    if (updatedAt) updatedAt.textContent = this._updatedAt ? `갱신 ${this._updatedAt}` : '';
+    if (updatedAt) updatedAt.textContent = this._updatedAt ? `갱신 ${this.formatUpdatedAt(this._updatedAt)}` : '';
+  },
+
+  formatUpdatedAt(value) {
+    const text = String(value || '').trim();
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (match) return `${match[2]}-${match[3]} ${match[4]}:${match[5]}`;
+    return text.replace(/^\d{4}-/, '').replace(/:\d{2}$/, '');
   },
 
   renderPage() {
