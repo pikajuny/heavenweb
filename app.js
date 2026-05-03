@@ -4100,39 +4100,37 @@ function initOrderBarScale() {
 
 function applyLineupScale() {
   const BASE = 480;
-  const w = window.innerWidth;
-  const z = w < BASE ? w / BASE : 1;
-  const zStr = z < 1 ? String(z) : '';
+  const scaleFor = (el) => {
+    if (!el) return;
+    const parent = el.parentElement;
+    const available = parent ? parent.clientWidth : window.innerWidth;
+    const z = available > 0 && available < BASE ? available / BASE : 1;
+    el.style.zoom = z < 1 ? String(z) : '';
+  };
 
   // 이전 방식 잔재 초기화 (이중 zoom 방지)
-  document.querySelectorAll('.hl-field, .hl-list, .pl-grid-wrap, .pl-lower-section').forEach(el => {
+  document.querySelectorAll('.hl-upper, .pl-layout, .hl-field, .hl-list, .pl-grid-wrap, .pl-lower-section').forEach(el => {
     el.style.zoom = '';
   });
 
   // 타자 라인업 탭: hl-upper 통째로 (그리드 + 선수행)
-  const hlUpper = document.querySelector('.hl-upper');
-  if (hlUpper) hlUpper.style.zoom = zStr;
+  scaleFor(document.querySelector('.hl-upper'));
 
   // 투수 라인업 탭: pl-layout 통째로 (그리드 + 선수행)
-  const plLayout = document.querySelector('.pl-layout');
-  if (plLayout) plLayout.style.zoom = zStr;
+  scaleFor(document.querySelector('.pl-layout'));
 
   // 요약탭: hl-upper/pl-layout 없으므로 개별 요소 직접 스케일
   const shortcutTab = document.getElementById('tab-shortcut');
   if (shortcutTab) {
-    const sumField = shortcutTab.querySelector('.hl-field');
-    if (sumField) sumField.style.zoom = zStr;
-    const sumGrid = shortcutTab.querySelector('.pl-grid-wrap');
-    if (sumGrid) sumGrid.style.zoom = zStr;
+    scaleFor(shortcutTab.querySelector('.hl-field'));
+    scaleFor(shortcutTab.querySelector('.pl-grid-wrap'));
   }
 
   // 구단 뷰 모달 (열려있을 때)
   const cvBody = document.getElementById('cv-body');
   if (cvBody) {
-    const cvField = cvBody.querySelector('.hl-field');
-    if (cvField) cvField.style.zoom = zStr;
-    const cvGrid = cvBody.querySelector('.pl-grid-wrap');
-    if (cvGrid) cvGrid.style.zoom = zStr;
+    scaleFor(cvBody.querySelector('.hl-field'));
+    scaleFor(cvBody.querySelector('.pl-grid-wrap'));
   }
 }
 

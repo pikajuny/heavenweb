@@ -2448,10 +2448,10 @@ input, select, textarea { font-family: inherit; }
 @media (max-width: 980px) {
   .hl-upper { flex-direction: column; }
   .pl-layout { flex-direction: column; }
-  .hl-field { overflow: hidden; flex: none; width: 100%; }
-  .hl-list  { flex: none; width: 100%; }
-  .pl-grid-wrap     { flex: none; width: 100%; }
-  .pl-lower-section { flex: none; width: 100%; }
+  .hl-field { overflow: hidden; flex: none; width: 480px; max-width: none; min-width: 0; }
+  .hl-list  { flex: none; width: 480px; max-width: none; min-width: 0; }
+  .pl-grid-wrap     { flex: none; width: 480px; max-width: none; min-width: 0; }
+  .pl-lower-section { flex: none; width: 480px; max-width: none; min-width: 0; }
   .sum-row1 { flex-direction: column; }
   .sum-sec  { flex: none; width: 100%; max-width: none; min-width: 0; }
 
