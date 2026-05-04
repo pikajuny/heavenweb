@@ -3048,8 +3048,8 @@ input, select, textarea { font-family: inherit; }
 /* ================================================================
    숏컷 바
 ================================================================ */
-.shortcut-bar { height:var(--shortcut-h, 100px); box-sizing:border-box; background:var(--bg-secondary); border-bottom:1px solid var(--border-medium); padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:0; position:sticky; top:var(--app-sticky-h, 88px); z-index:99; }
-.sc-left { width:600px; display:flex; align-items:center; gap:10px; padding-right:16px; }
+.shortcut-bar { height:var(--shortcut-h, 100px); box-sizing:border-box; background:var(--bg-secondary); border-bottom:1px solid var(--border-medium); padding:4px 16px 10px; display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; position:sticky; top:var(--app-sticky-h, 88px); z-index:99; }
+.sc-left { width:600px; display:flex; align-items:flex-start; gap:10px; padding-right:16px; transform:translateY(-2px); }
 .sc-logo-block { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
 .team-logo { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:25px; flex-shrink:0; }
 .team-logo img {
