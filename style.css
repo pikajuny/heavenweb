@@ -1791,7 +1791,7 @@ input, select, textarea { font-family: inherit; }
   line-height:1.1;
   font-size:13px;
   font-weight:700;
-  color:var(--text-secondary);
+  color:var(--text-primary);
   letter-spacing:0.03em;
 }
 .gg-pitcher-meta {
@@ -1915,6 +1915,9 @@ input, select, textarea { font-family: inherit; }
 .gg-hitter-slot {
   gap:0;
   padding:0;
+}
+.gg-hitter-slot .hl-pos-lbl {
+  color:var(--text-primary);
 }
 .gg-hitter-slot .hl-field-card-hit {
   height:calc(100% - 32px);
