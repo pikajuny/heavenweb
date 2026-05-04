@@ -131,85 +131,97 @@
   <div id="page-lounge" class="menu-page">
     <div class="lounge-layout">
 
-      <div class="lounge-row lounge-row-compact">
-        <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-home">
-          <div class="lounge-sec-hd">
-            <span class="lounge-sec-title">홈</span>
-          </div>
-          <div class="lounge-sec-body lounge-compact-body">
-            <div class="lounge-home-ready">준비중입니다</div>
-          </div>
-        </section>
+      <section class="lounge-shortcut-bar">
+        <div class="lounge-shortcut-ready">준비중입니다</div>
+      </section>
 
-        <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
-          <div class="lounge-sec-hd">
-            <div class="board-title-wrap">
-              <span class="lounge-sec-title">자유게시판</span>
-              <div class="board-page-controls">
-                <button class="rank-page-btn board-page-btn" id="board-prev-btn" onclick="Board.prevPage()" aria-label="이전 글 목록" title="이전">‹</button>
-                <button class="rank-page-btn board-page-btn" id="board-next-btn" onclick="Board.nextPage()" aria-label="다음 글 목록" title="다음">›</button>
-              </div>
-            </div>
-            <div class="lounge-hd-actions">
-              <button class="lounge-refresh-btn" onclick="Board.openWrite()">글쓰기</button>
-              <button class="lounge-refresh-btn" onclick="Board.load()" aria-label="자유게시판 새로고침" title="새로고침">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              </button>
-            </div>
-          </div>
-          <div id="board-list-body" class="lounge-sec-body lounge-compact-body">
-            <div class="lounge-sec-loading">불러오는 중...</div>
-          </div>
-        </section>
+      <div class="lounge-tabs">
+        <button class="lounge-tab on" id="lounge-tab-btn-home" onclick="switchLoungeTab('home',this)">홈</button>
+        <button class="lounge-tab" id="lounge-tab-btn-ranking" onclick="switchLoungeTab('ranking',this)">랭킹</button>
       </div>
 
-      <!-- 상단 2분할 행 -->
-      <div class="lounge-row">
+      <div id="lounge-tab-home" class="lounge-tab-content">
+        <div class="lounge-row lounge-row-compact">
+          <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-home">
+            <div class="lounge-sec-hd">
+              <span class="lounge-sec-title">홈</span>
+            </div>
+            <div class="lounge-sec-body lounge-compact-body">
+              <div class="lounge-home-ready">준비중입니다</div>
+            </div>
+          </section>
 
-        <!-- [섹션] 덱파워 랭킹 -->
-        <section class="lounge-sec lounge-sec--half" id="lounge-sec-ranking">
-          <div class="lounge-sec-hd">
-            <div class="lounge-title-row">
-              <span class="lounge-sec-title">덱파워 랭킹</span>
-              <div class="rank-page-controls">
-                <button class="rank-page-btn" id="rank-prev-btn" onclick="LoungeRanking.prevPage()" aria-label="이전 랭킹 페이지">‹</button>
-                <span class="rank-page-label" id="rank-page-label">1 / 3</span>
-                <button class="rank-page-btn" id="rank-next-btn" onclick="LoungeRanking.nextPage()" aria-label="다음 랭킹 페이지">›</button>
+          <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
+            <div class="lounge-sec-hd">
+              <div class="board-title-wrap">
+                <span class="lounge-sec-title">자유게시판</span>
+                <div class="board-page-controls">
+                  <button class="rank-page-btn board-page-btn" id="board-prev-btn" onclick="Board.prevPage()" aria-label="이전 글 목록" title="이전">‹</button>
+                  <button class="rank-page-btn board-page-btn" id="board-next-btn" onclick="Board.nextPage()" aria-label="다음 글 목록" title="다음">›</button>
+                </div>
+              </div>
+              <div class="lounge-hd-actions">
+                <button class="lounge-refresh-btn" onclick="Board.openWrite()">글쓰기</button>
+                <button class="lounge-refresh-btn" onclick="Board.load()" aria-label="자유게시판 새로고침" title="새로고침">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
               </div>
             </div>
-            <div class="lounge-hd-actions">
-              <span class="rank-updated-at" id="rank-updated-at"></span>
-              <button class="lounge-refresh-btn" onclick="LoungeRanking.refresh()" aria-label="덱파워랭킹 새로고침" title="새로고침">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              </button>
+            <div id="board-list-body" class="lounge-sec-body lounge-compact-body">
+              <div class="lounge-sec-loading">불러오는 중...</div>
             </div>
-          </div>
-          <div id="lounge-ranking-body" class="lounge-sec-body">
-            <div class="lounge-sec-loading">불러오는 중...</div>
-          </div>
-        </section>
-        <!-- /섹션 끝 -->
+          </section>
+        </div>
+      </div>
 
-        <!-- [섹션] 헤븐 골든글러브 -->
-        <section class="lounge-sec lounge-sec--half" id="lounge-sec-golden-glove">
-          <div class="lounge-sec-hd">
-            <span class="lounge-sec-title">헤븐 골든글러브</span>
-            <div class="lounge-hd-actions">
-              <span class="rank-updated-at" id="gg-updated-at"></span>
-              <button class="lounge-refresh-btn" onclick="GoldenGlove.refresh()" aria-label="골든글러브 새로고침" title="새로고침">
+      <div id="lounge-tab-ranking" class="lounge-tab-content" style="display:none;">
+        <div class="lounge-row">
+
+          <!-- [섹션] 덱파워 랭킹 -->
+          <section class="lounge-sec lounge-sec--half" id="lounge-sec-ranking">
+            <div class="lounge-sec-hd">
+              <div class="lounge-title-row">
+                <span class="lounge-sec-title">덱파워 랭킹</span>
+                <div class="rank-page-controls">
+                  <button class="rank-page-btn" id="rank-prev-btn" onclick="LoungeRanking.prevPage()" aria-label="이전 랭킹 페이지">‹</button>
+                  <span class="rank-page-label" id="rank-page-label">1 / 3</span>
+                  <button class="rank-page-btn" id="rank-next-btn" onclick="LoungeRanking.nextPage()" aria-label="다음 랭킹 페이지">›</button>
+                </div>
+              </div>
+              <div class="lounge-hd-actions">
+                <span class="rank-updated-at" id="rank-updated-at"></span>
+                <button class="lounge-refresh-btn" onclick="LoungeRanking.refresh()" aria-label="덱파워랭킹 새로고침" title="새로고침">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              </button>
+                </button>
+              </div>
             </div>
-          </div>
-          <div id="golden-glove-body" class="lounge-sec-body">
-            <div class="prep-screen" style="min-height:180px;">
-              <div class="prep-icon" style="font-size:24px;">🏆</div>
-              <div class="prep-title" style="font-size:14px;">준비중입니다</div>
+            <div id="lounge-ranking-body" class="lounge-sec-body">
+              <div class="lounge-sec-loading">불러오는 중...</div>
             </div>
-          </div>
-        </section>
-        <!-- /섹션 끝 -->
+          </section>
+          <!-- /섹션 끝 -->
 
+          <!-- [섹션] 헤븐 골든글러브 -->
+          <section class="lounge-sec lounge-sec--half" id="lounge-sec-golden-glove">
+            <div class="lounge-sec-hd">
+              <span class="lounge-sec-title">헤븐 골든글러브</span>
+              <div class="lounge-hd-actions">
+                <span class="rank-updated-at" id="gg-updated-at"></span>
+                <button class="lounge-refresh-btn" onclick="GoldenGlove.refresh()" aria-label="골든글러브 새로고침" title="새로고침">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
+              </div>
+            </div>
+            <div id="golden-glove-body" class="lounge-sec-body">
+              <div class="prep-screen" style="min-height:180px;">
+                <div class="prep-icon" style="font-size:24px;">🏆</div>
+                <div class="prep-title" style="font-size:14px;">준비중입니다</div>
+              </div>
+            </div>
+          </section>
+          <!-- /섹션 끝 -->
+
+        </div>
       </div>
 
     </div>

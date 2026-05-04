@@ -3309,9 +3309,23 @@ function switchMenu(menuId, btn) {
     applyTabScale();
   }
   if (menuId === 'lounge') {
+    switchLoungeTab('home', document.getElementById('lounge-tab-btn-home'));
+  }
+}
+
+function switchLoungeTab(tabId, btn) {
+  document.querySelectorAll('.lounge-tab').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  document.querySelectorAll('.lounge-tab-content').forEach(tab => {
+    tab.style.display = tab.id === 'lounge-tab-' + tabId ? 'block' : 'none';
+  });
+  if (tabId === 'home') {
     Board.load();
+  }
+  if (tabId === 'ranking') {
     LoungeRanking.load();
     GoldenGlove.load();
+    requestAnimationFrame(applyGoldenGloveScale);
   }
 }
 

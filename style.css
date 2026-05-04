@@ -1625,6 +1625,50 @@ input, select, textarea { font-family: inherit; }
    라운지 공통 섹션 구조
 ================================================================ */
 .lounge-layout { display:flex; flex-direction:column; }
+.lounge-shortcut-bar {
+  height:100px;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:8px 16px;
+  background:var(--bg-secondary);
+  border-bottom:1px solid var(--border-medium);
+}
+.lounge-shortcut-ready {
+  color:var(--text-tertiary);
+  font-size:13px;
+}
+.lounge-tabs {
+  display:flex;
+  align-items:center;
+  gap:0;
+  background:var(--bg-primary);
+  border-bottom:0.5px solid var(--border-light);
+}
+.lounge-tab {
+  min-width:96px;
+  height:38px;
+  padding:0 18px;
+  border:0;
+  border-bottom:2px solid transparent;
+  background:transparent;
+  color:var(--text-secondary);
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+.lounge-tab.on {
+  color:var(--text-primary);
+  border-bottom-color:var(--accent);
+}
+.lounge-tab:hover {
+  color:var(--text-primary);
+  background:var(--bg-secondary);
+}
+.lounge-tab-content {
+  width:100%;
+}
 .lounge-row { display:flex; flex-wrap:wrap; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
 .lounge-row-compact { min-height:125px; }
 .lounge-sec { }
