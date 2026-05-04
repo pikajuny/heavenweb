@@ -18,6 +18,8 @@
   --radius-md:     8px;
   --radius-lg:     12px;
   --accent:        #58a6ff;
+  --shortcut-h:    100px;
+  --subnav-h:      38px;
   --golden-bg: #8B6914;
   --golden-bd: #C9A227;
   --sig-bg:    #993556;
@@ -185,13 +187,21 @@ input, select, textarea { font-family: inherit; }
 ================================================================ */
 .app-tabs {
   display: flex;
+  height: var(--subnav-h, 38px);
+  box-sizing: border-box;
   border-bottom: 0.5px solid var(--border-light);
   padding: 0 8px;
+  position: sticky;
+  top: calc(var(--app-sticky-h, 88px) + var(--shortcut-h, 100px));
+  z-index: 98;
+  background: var(--bg-secondary);
 }
 
 .app-tab {
-  padding: 10px 16px;
-  font-size: 15px;
+  height: 100%;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 700;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -203,8 +213,7 @@ input, select, textarea { font-family: inherit; }
 
 .app-tab.on {
   color: var(--text-primary);
-  border-bottom-color: var(--text-primary);
-  font-weight: 500;
+  border-bottom-color: var(--accent);
 }
 
 .tab-content { padding: 10px 0; }
@@ -1307,8 +1316,8 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-secondary);
   gap: 8px;
   position: sticky;
-  top: calc(var(--app-sticky-h, 88px) + var(--shortcut-h, 52px));
-  z-index: 98;
+  top: calc(var(--app-sticky-h, 88px) + var(--shortcut-h, 100px) + var(--subnav-h, 38px));
+  z-index: 97;
 }
 
 /* 기본정보 드롭다운 3×2 그리드 */
@@ -1626,7 +1635,7 @@ input, select, textarea { font-family: inherit; }
 ================================================================ */
 .lounge-layout { display:flex; flex-direction:column; }
 .lounge-shortcut-bar {
-  height:100px;
+  height:var(--shortcut-h, 100px);
   box-sizing:border-box;
   display:flex;
   align-items:center;
@@ -1634,6 +1643,9 @@ input, select, textarea { font-family: inherit; }
   padding:8px 16px;
   background:var(--bg-secondary);
   border-bottom:1px solid var(--border-medium);
+  position:sticky;
+  top:var(--app-sticky-h, 88px);
+  z-index:99;
 }
 .lounge-shortcut-ready {
   color:var(--text-tertiary);
@@ -1643,12 +1655,17 @@ input, select, textarea { font-family: inherit; }
   display:flex;
   align-items:center;
   gap:0;
+  height:var(--subnav-h, 38px);
+  box-sizing:border-box;
   background:var(--bg-primary);
   border-bottom:0.5px solid var(--border-light);
+  position:sticky;
+  top:calc(var(--app-sticky-h, 88px) + var(--shortcut-h, 100px));
+  z-index:98;
 }
 .lounge-tab {
   min-width:96px;
-  height:38px;
+  height:100%;
   padding:0 18px;
   border:0;
   border-bottom:2px solid transparent;
@@ -3029,7 +3046,7 @@ input, select, textarea { font-family: inherit; }
 /* ================================================================
    숏컷 바
 ================================================================ */
-.shortcut-bar { background:var(--bg-secondary); border-bottom:1px solid var(--border-medium); padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:0; position:sticky; top:var(--app-sticky-h, 88px); z-index:99; }
+.shortcut-bar { height:var(--shortcut-h, 100px); box-sizing:border-box; background:var(--bg-secondary); border-bottom:1px solid var(--border-medium); padding:8px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:0; position:sticky; top:var(--app-sticky-h, 88px); z-index:99; }
 .sc-left { width:600px; display:flex; align-items:center; gap:10px; padding-right:16px; }
 .sc-logo-block { display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
 .team-logo { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:25px; flex-shrink:0; }

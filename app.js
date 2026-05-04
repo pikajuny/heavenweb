@@ -3210,6 +3210,7 @@ const App = {
     if (tab === 'shortcut') SummaryTab.render();
     applyLineupScale();
     applyTabScale();
+    updateStickyHeights();
   },
 
   // 팀정보 저장 후: 라인업 데이터만 재조회 → renderLineup
@@ -3303,10 +3304,12 @@ function switchMenu(menuId, btn) {
   document.querySelectorAll('.menu-page').forEach(p => p.style.display = 'none');
   const page = document.getElementById('page-' + menuId);
   if (page) page.style.display = 'block';
+  updateStickyHeights();
   if (menuId === 'myclub') {
     App.switchTab('shortcut', document.getElementById('tab-btn-shortcut'));
     loadShortcutData();
     applyTabScale();
+    updateStickyHeights();
   }
   if (menuId === 'lounge') {
     switchLoungeTab('home', document.getElementById('lounge-tab-btn-home'));
@@ -3319,6 +3322,7 @@ function switchLoungeTab(tabId, btn) {
   document.querySelectorAll('.lounge-tab-content').forEach(tab => {
     tab.style.display = tab.id === 'lounge-tab-' + tabId ? 'block' : 'none';
   });
+  updateStickyHeights();
   if (tabId === 'home') {
     Board.load();
   }
@@ -4633,8 +4637,14 @@ function updateStickyHeights() {
   applyHeaderScale();
   const h = document.querySelector('.app-sticky')?.offsetHeight || 0;
   if (h > 0) document.documentElement.style.setProperty('--app-sticky-h', h + 'px');
-  const sh = document.querySelector('.shortcut-bar')?.offsetHeight || 0;
-  if (sh > 0) document.documentElement.style.setProperty('--shortcut-h', sh + 'px');
+  const shortcut = Array.from(document.querySelectorAll('.shortcut-bar, .lounge-shortcut-bar'))
+    .find(el => el.offsetParent !== null);
+  const sh = shortcut?.offsetHeight || 100;
+  document.documentElement.style.setProperty('--shortcut-h', sh + 'px');
+  const subnav = Array.from(document.querySelectorAll('.app-tabs, .lounge-tabs'))
+    .find(el => el.offsetParent !== null);
+  const th = subnav?.offsetHeight || 38;
+  document.documentElement.style.setProperty('--subnav-h', th + 'px');
 }
 
 function applyOrderBarScaleById(barId) {
@@ -4690,8 +4700,8 @@ function applyGoldenGloveScale() {
 
 function initOrderBarScale() {
   window.addEventListener('resize', () => {
-    updateStickyHeights();
     applyTabScale();
+    updateStickyHeights();
     applyOrderBarScale();
     applyOrderBarScaleById('cv-order-bar');
     applyOrderBarScaleById('sum-order-bar');
