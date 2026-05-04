@@ -1876,6 +1876,7 @@ input, select, textarea { font-family: inherit; }
   display:flex;
   justify-content:center;
   border-radius:4px;
+  background:radial-gradient(circle at 50% 46%, rgba(240,192,64,0.18) 0%, rgba(240,192,64,0.08) 38%, rgba(240,192,64,0) 72%);
 }
 .gg-card-hit .select-card,
 .gg-card-hit .empty-card { width:auto !important; height:100% !important; aspect-ratio:2/3; }
