@@ -3610,10 +3610,31 @@ const Board = {
   },
 
   formatTime(value) {
+    return this.formatDateTime(value, { compact: true });
+  },
+
+  formatDateTime(value, options = {}) {
     const text = String(value || '').trim();
-    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-    if (match) return `${match[4]}:${match[5]}`;
-    return text;
+    if (!text) return '';
+    const date = new Date(text);
+    if (isNaN(date.getTime())) {
+      const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+      return match
+        ? (options.compact ? `${match[4]}:${match[5]}` : `${match[2]}/${match[3]} ${match[4]}:${match[5]}`)
+        : text;
+    }
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
   },
 
   openWrite() {
@@ -3626,7 +3647,7 @@ const Board = {
         <div id="board-write-err" class="err-msg" style="display:none;"></div>
         <div class="board-form-actions">
           <button class="bs" onclick="Board.close()">취소</button>
-          <button class="bp" onclick="Board.submitPost()">등록</button>
+          <button class="bp" id="board-write-submit" onclick="Board.submitPost()">등록</button>
         </div>
       </div>`;
     document.getElementById('board-modal-bg').style.display = 'flex';
@@ -3636,10 +3657,22 @@ const Board = {
   submitPost() {
     const title = document.getElementById('board-write-title')?.value || '';
     const body = document.getElementById('board-write-body')?.value || '';
+    const submitBtn = document.getElementById('board-write-submit');
+    const titleEl = document.getElementById('board-write-title');
+    const bodyEl = document.getElementById('board-write-body');
+    if (submitBtn?.disabled) return;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '등록 중...'; }
+    if (titleEl) titleEl.disabled = true;
+    if (bodyEl) bodyEl.disabled = true;
     BoardApi.call('createPost', [State.clubId, State.teamName || '', title, body]).then(() => {
       this.close();
       this.load();
-    }).catch(e => showErr('board-write-err', e.message));
+    }).catch(e => {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '등록'; }
+      if (titleEl) titleEl.disabled = false;
+      if (bodyEl) bodyEl.disabled = false;
+      showErr('board-write-err', e.message);
+    });
   },
 
   open(postId) {
@@ -3661,7 +3694,7 @@ const Board = {
       <div class="board-post-meta">
         <span>${escapeHtml(post.clubId || '-')}</span>
         <span>|</span>
-        <span>${escapeHtml(post.createdAt || '')}</span>
+        <span>${escapeHtml(this.formatDateTime(post.createdAt))}</span>
       </div>
       <div class="board-post-body">${escapeHtml(post.body || '')}</div>
       <div class="board-comment-title">댓글 ${comments.length}</div>
@@ -3671,7 +3704,7 @@ const Board = {
             <div class="board-comment-meta">
               <span>${escapeHtml(comment.clubId || '-')}</span>
               <span>|</span>
-              <span>${escapeHtml(comment.createdAt || '')}</span>
+              <span>${escapeHtml(this.formatDateTime(comment.createdAt))}</span>
             </div>
             <div class="board-comment-body">${escapeHtml(comment.body || '')}</div>
           </div>
@@ -3679,17 +3712,26 @@ const Board = {
       </div>
       <div class="board-comment-form">
         <textarea class="board-textarea" id="board-comment-body" maxlength="500" placeholder="댓글을 입력하세요"></textarea>
-        <button class="bp" onclick="Board.submitComment()">등록</button>
+        <button class="bp" id="board-comment-submit" onclick="Board.submitComment()">등록</button>
       </div>
       <div id="board-comment-err" class="err-msg" style="display:none;margin-top:8px;"></div>`;
   },
 
   submitComment() {
     const body = document.getElementById('board-comment-body')?.value || '';
+    const submitBtn = document.getElementById('board-comment-submit');
+    const bodyEl = document.getElementById('board-comment-body');
+    if (submitBtn?.disabled) return;
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '등록 중...'; }
+    if (bodyEl) bodyEl.disabled = true;
     BoardApi.call('addComment', [State.clubId, this._currentPostId, body]).then(data => {
       this.renderPost(data.post, data.comments || []);
       this.load();
-    }).catch(e => showErr('board-comment-err', e.message));
+    }).catch(e => {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '등록'; }
+      if (bodyEl) bodyEl.disabled = false;
+      showErr('board-comment-err', e.message);
+    });
   },
 
   close() {
