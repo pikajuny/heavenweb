@@ -1691,7 +1691,6 @@ input, select, textarea { font-family: inherit; }
   text-align:center;
   font-size:11px;
   color:var(--text-tertiary);
-  font-family:Consolas,'Courier New',monospace;
 }
 .rank-updated-at {
   font-size:10px;
@@ -1738,14 +1737,13 @@ input, select, textarea { font-family: inherit; }
 .rank-club-name { font-size:15px; font-weight:700; color:var(--text-primary); }
 .rank-total {
   font-size:22px; font-weight:800; color:#f0c040;
-  font-family:Consolas,'Courier New',monospace;
   flex-shrink:0;
 }
 .rank-details { display:flex; flex-direction:column; gap:3px; padding-left:38px; }
 .rank-detail-row { display:flex; align-items:baseline; gap:5px; flex-wrap:wrap; }
 .rank-detail-group { display:flex; align-items:baseline; gap:3px; }
 .rank-detail-lbl { font-size:10px; color:var(--text-tertiary); }
-.rank-detail-val { font-size:13px; font-weight:600; color:var(--text-secondary); font-family:Consolas,'Courier New',monospace; }
+.rank-detail-val { font-size:13px; font-weight:600; color:var(--text-secondary); }
 .rank-detail-val.hi { color:var(--text-primary); }
 .rank-vsep { width:1px; height:9px; background:var(--border-light); margin:0 3px; flex-shrink:0; }
 
@@ -2659,7 +2657,7 @@ input, select, textarea { font-family: inherit; }
 .sc-detail-row { display:flex; align-items:center; gap:5px; }
 .sc-item { display:flex; align-items:baseline; gap:2px; }
 .sc-item-label { font-size: 10px; color:var(--text-tertiary); white-space:nowrap; }
-.sc-item-value { font-size: 14px; font-weight:700; color:#e2e8f0; white-space:nowrap; font-family:Consolas,'Courier New',monospace; letter-spacing:0.02em; }
+.sc-item-value { font-size: 14px; font-weight:700; color:#e2e8f0; white-space:nowrap; letter-spacing:0.02em; }
 .sc-sep { width:1px; height:10px; background:var(--border-medium); flex-shrink:0; }
 .sc-right { width:600px; }
 .sc-export-btn {
