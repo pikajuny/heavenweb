@@ -1425,6 +1425,7 @@ function getTeamLogoSrc(teamName, fallbackUrl) {
 const State = {
   clubId: null,
   email: null,
+  teamName: '',
   hitters: [],
   pitchers: [],
   hitterLineup: [],
@@ -3252,7 +3253,10 @@ function loadShortcutData() {
   const set  = (id, v) => { document.getElementById(id).textContent = v; };
   Api.call('getShortcutData', [State.clubId]).then(function(data) {
       if (data.teamOrg)  set('teamOrg',  data.teamOrg);
-      if (data.teamName) set('teamName', data.teamName);
+      if (data.teamName) {
+        State.teamName = data.teamName;
+        set('teamName', data.teamName);
+      }
       const logoEl = document.getElementById('teamLogo');
       const logoSrc = getTeamLogoSrc(data.teamName, data.logoUrl);
       if (logoSrc) {
@@ -3576,13 +3580,9 @@ const Board = {
     if (!body || !State.clubId || this._loading) return;
     this._loading = true;
     body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
-    Api.call('getBoardPosts', [State.clubId, 3]).then(res => {
+    BoardApi.call('listPosts', [State.clubId, 3]).then(posts => {
       this._loading = false;
-      if (!res.success) {
-        body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(res.error || '게시판을 불러오지 못했습니다.')}</div>`;
-        return;
-      }
-      this.renderList(res.data || []);
+      this.renderList(posts || []);
     }).catch(e => {
       this._loading = false;
       body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
@@ -3636,11 +3636,7 @@ const Board = {
   submitPost() {
     const title = document.getElementById('board-write-title')?.value || '';
     const body = document.getElementById('board-write-body')?.value || '';
-    Api.call('createBoardPost', [State.clubId, title, body]).then(res => {
-      if (!res.success) {
-        showErr('board-write-err', res.error || '게시글을 저장하지 못했습니다.');
-        return;
-      }
+    BoardApi.call('createPost', [State.clubId, State.teamName || '', title, body]).then(() => {
       this.close();
       this.load();
     }).catch(e => showErr('board-write-err', e.message));
@@ -3651,12 +3647,8 @@ const Board = {
     document.getElementById('board-modal-title').textContent = '불러오는 중...';
     document.getElementById('board-modal-body').innerHTML = '<div class="lounge-sec-loading">게시글 불러오는 중...</div>';
     document.getElementById('board-modal-bg').style.display = 'flex';
-    Api.call('getBoardPost', [State.clubId, postId]).then(res => {
-      if (!res.success) {
-        document.getElementById('board-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(res.error || '게시글을 불러오지 못했습니다.')}</div>`;
-        return;
-      }
-      this.renderPost(res.post, res.comments || []);
+    BoardApi.call('getPost', [State.clubId, postId]).then(data => {
+      this.renderPost(data.post, data.comments || []);
       this.load();
     }).catch(e => {
       document.getElementById('board-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
@@ -3694,12 +3686,8 @@ const Board = {
 
   submitComment() {
     const body = document.getElementById('board-comment-body')?.value || '';
-    Api.call('addBoardComment', [State.clubId, this._currentPostId, body]).then(res => {
-      if (!res.success) {
-        showErr('board-comment-err', res.error || '댓글을 저장하지 못했습니다.');
-        return;
-      }
-      this.renderPost(res.post, res.comments || []);
+    BoardApi.call('addComment', [State.clubId, this._currentPostId, body]).then(data => {
+      this.renderPost(data.post, data.comments || []);
       this.load();
     }).catch(e => showErr('board-comment-err', e.message));
   },
