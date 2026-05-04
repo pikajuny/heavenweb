@@ -1625,7 +1625,7 @@ input, select, textarea { font-family: inherit; }
 ================================================================ */
 .lounge-layout { display:flex; flex-direction:column; }
 .lounge-row { display:flex; flex-wrap:wrap; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
-.lounge-row-compact { min-height:100px; }
+.lounge-row-compact { min-height:125px; }
 .lounge-sec { }
 .lounge-sec--half {
   flex: 1 1 480px;
@@ -1661,7 +1661,7 @@ input, select, textarea { font-family: inherit; }
 .lounge-refresh-btn:hover { color:var(--accent); background:var(--bg-tertiary); }
 .lounge-sec-body { padding:0; }
 .lounge-sec--compact {
-  height:100px;
+  height:125px;
   overflow:hidden;
 }
 .lounge-sec--compact .lounge-sec-hd {
@@ -1669,7 +1669,7 @@ input, select, textarea { font-family: inherit; }
   padding:0 16px;
 }
 .lounge-compact-body {
-  height:75px;
+  height:100px;
   overflow:hidden;
 }
 .lounge-home-ready {
