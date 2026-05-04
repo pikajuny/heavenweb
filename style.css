@@ -1871,12 +1871,29 @@ input, select, textarea { font-family: inherit; }
   cursor:default;
 }
 .gg-card-hit {
+  position:relative;
   height:117px;
   aspect-ratio:2/3;
   display:flex;
   justify-content:center;
   border-radius:4px;
-  background:radial-gradient(circle at 50% 46%, rgba(240,192,64,0.18) 0%, rgba(240,192,64,0.08) 38%, rgba(240,192,64,0) 72%);
+}
+.gg-card-hit::before,
+.gg-award-slot .hl-field-card-hit::before {
+  content:"";
+  position:absolute;
+  inset:-7px -9px;
+  border-radius:8px;
+  background:radial-gradient(circle at 50% 45%, rgba(240,192,64,0.38) 0%, rgba(240,192,64,0.18) 42%, rgba(240,192,64,0) 74%);
+  filter:blur(5px);
+  pointer-events:none;
+}
+.gg-card-hit .select-card,
+.gg-card-hit .empty-card,
+.gg-award-slot .hl-field-card-hit .select-card,
+.gg-award-slot .hl-field-card-hit .empty-card {
+  position:relative;
+  z-index:1;
 }
 .gg-card-hit .select-card,
 .gg-card-hit .empty-card { width:auto !important; height:100% !important; aspect-ratio:2/3; }
