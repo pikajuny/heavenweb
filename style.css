@@ -1794,8 +1794,11 @@ input, select, textarea { font-family: inherit; }
   z-index:0;
   inset:-7px 0;
   border-radius:10px;
-  background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.24) 0%, rgba(240,192,64,0.12) 42%, rgba(240,192,64,0) 76%);
-  box-shadow:0 0 14px rgba(240,192,64,0.12);
+  background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.3) 0%, rgba(240,192,64,0.19) 48%, rgba(240,192,64,0.06) 100%);
+  box-shadow:
+    0 0 0 1px rgba(240,192,64,0.2),
+    0 0 10px rgba(240,192,64,0.28),
+    inset 0 0 14px rgba(255,218,102,0.1);
   pointer-events:none;
 }
 .gg-hitter-slot.gg-award-slot::before {
