@@ -3601,6 +3601,7 @@ const Board = {
     const body = document.getElementById('board-list-body');
     if (!body || !State.clubId || this._loading) return;
     this._loading = true;
+    this._pageSize = this.getPageSize();
     this.updateControls();
     body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
     BoardApi.call('listPosts', [State.clubId, this._pageSize, this._page * this._pageSize]).then(data => {
@@ -3615,6 +3616,13 @@ const Board = {
       this.updateControls();
       body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
     });
+  },
+
+  getPageSize() {
+    const body = document.getElementById('board-list-body');
+    const height = body?.clientHeight || 0;
+    const rowHeight = 31;
+    return Math.max(3, Math.min(50, Math.floor(height / rowHeight) || 3));
   },
 
   prevPage() {
