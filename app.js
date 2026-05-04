@@ -3734,7 +3734,7 @@ const LoungeRanking = {
               <span class="rank-club-name">${isFilled ? d.clubId : '-'}</span>
             </div>
           </div>
-          <span class="rank-total">${isFilled ? int(d.totalPower) : '-'}</span>
+          <span class="rank-total"><span class="rank-total-label">DECKPOWER</span><span class="rank-total-value">${isFilled ? int(d.totalPower) : '-'}</span></span>
         </div>
         <div class="rank-details">
           <div class="rank-detail-row">

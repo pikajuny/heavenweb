@@ -1736,8 +1736,23 @@ input, select, textarea { font-family: inherit; }
 .rank-team-logo-empty { opacity:.5; }
 .rank-club-name { font-size:15px; font-weight:700; color:var(--text-primary); }
 .rank-total {
-  font-size:22px; font-weight:800; color:#f0c040;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:1px;
   flex-shrink:0;
+  line-height:1;
+}
+.rank-total-label {
+  font-size:8px;
+  font-weight:600;
+  letter-spacing:0.08em;
+  color:rgba(255,255,255,0.86);
+}
+.rank-total-value {
+  font-size:22px;
+  font-weight:600;
+  color:#f0c040;
 }
 .rank-details { display:flex; flex-direction:column; gap:3px; padding-left:38px; }
 .rank-detail-row { display:flex; align-items:baseline; gap:5px; flex-wrap:wrap; }
@@ -1760,12 +1775,14 @@ input, select, textarea { font-family: inherit; }
   gap:6px;
   padding:8px 0 10px;
   margin:0 auto;
+  overflow:visible;
 }
 .gg-pitcher-wrap,
 .gg-field-wrap {
   width:100%;
   display:flex;
   justify-content:center;
+  overflow:visible;
 }
 .gg-pitcher-wrap { padding-top:48px; }
 .gg-pitcher-row {
@@ -1967,6 +1984,7 @@ input, select, textarea { font-family: inherit; }
   padding-top:4px;
   padding-bottom:4px;
   background:var(--bg-primary);
+  overflow:visible;
 }
 .gg-hitter-field .hl-field-grid { margin-top:4px; }
 
@@ -2652,7 +2670,7 @@ input, select, textarea { font-family: inherit; }
 .team-org { font-size:17px; font-weight:700; color:var(--text-primary); white-space:nowrap; }
 .sc-total-row { display:flex; align-items:center; gap:6px; margin-top:1px; }
 .sc-total-label { font-size: 9px; color:var(--text-tertiary); }
-.sc-total-value { font-size: 21px; font-weight:700; color:#f0c040; line-height:1; letter-spacing:0.01em; }
+.sc-total-value { font-size: 21px; font-weight:600; color:#f0c040; line-height:1; letter-spacing:0.01em; }
 .sc-detail-rows { display:flex; flex-direction:column; gap:2px; }
 .sc-detail-row { display:flex; align-items:center; gap:5px; }
 .sc-item { display:flex; align-items:baseline; gap:2px; }
@@ -2705,4 +2723,15 @@ input, select, textarea { font-family: inherit; }
     border-bottom: 0.5px solid var(--border-light);
   }
   .lounge-sec--half:last-child { border-bottom: none; }
+}
+
+@media (max-width: 380px) {
+  .gg-pitcher-slot:not(.gg-pitcher-slot--empty)::before,
+  .gg-hitter-slot.gg-award-slot::before {
+    background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.42) 0%, rgba(240,192,64,0.28) 48%, rgba(240,192,64,0.1) 100%);
+    box-shadow:
+      0 0 0 1px rgba(240,192,64,0.34),
+      0 0 14px rgba(240,192,64,0.44),
+      inset 0 0 16px rgba(255,218,102,0.16);
+  }
 }
