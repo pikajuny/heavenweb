@@ -1872,17 +1872,22 @@ input, select, textarea { font-family: inherit; }
 }
 .gg-club-id { color:#f0c040; font-weight:700; }
 .gg-club-apostrophe { color:var(--text-primary); font-weight:700; }
-.gg-hitter-club-player { color:var(--text-primary); font-weight:700; }
+.gg-hitter-club-player { color:var(--text-primary); font-weight:500; }
 .gg-player-name {
   max-width:100%;
   color:var(--text-primary);
   font-size:11px;
-  font-weight:700;
+  font-weight:500;
   line-height:1.15;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
+.gg-player-name--golden { text-shadow:0 0 2px #C9A227, 0 1px 2px rgba(0,0,0,0.9), 0 -1px 2px rgba(0,0,0,0.8); }
+.gg-player-name--sig { text-shadow:0 0 2px #ED93B1, 0 1px 2px rgba(0,0,0,0.9), 0 -1px 2px rgba(0,0,0,0.8); }
+.gg-player-name--impact { text-shadow:0 0 2px #97C459, 0 1px 2px rgba(0,0,0,0.9), 0 -1px 2px rgba(0,0,0,0.8); }
+.gg-player-name--national { text-shadow:0 0 2px #85B7EB, 0 1px 2px rgba(0,0,0,0.9), 0 -1px 2px rgba(0,0,0,0.8); }
+.gg-player-name--live { text-shadow:0 0 2px #378ADD, 0 1px 2px rgba(0,0,0,0.9), 0 -1px 2px rgba(0,0,0,0.8); }
 .gg-pitcher-slot--empty {
   pointer-events:none;
   cursor:default;

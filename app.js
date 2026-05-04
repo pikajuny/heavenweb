@@ -3871,6 +3871,7 @@ const GoldenGlove = {
 
   pitcherSlotHtml(pos) {
     const award = this.getAward(pos);
+    const nameType = award ? (TYPE_COLOR[award.dbRow[PITCHER_COL.TYPE]] || 'sig') : '';
     const card = award
       ? makeCardLineup(award.dbRow, 50, false, award.overall, null, fmt1(award.dbRow[PITCHER_COL.BOJ] || 0))
       : makeEmptyCard(pos, 50);
@@ -3880,13 +3881,14 @@ const GoldenGlove = {
       <div class="gg-pitcher-meta">
         <div class="gg-slot-label">${pos}</div>
         <div class="gg-club-label">${award ? `<span class="gg-club-id">${award.clubId}</span><span class="gg-club-apostrophe">'s</span>` : '-'}</div>
-        <div class="gg-player-name">${award ? (award.dbRow[PITCHER_COL.NAME] || '') : ''}</div>
+        <div class="gg-player-name gg-player-name--${nameType}">${award ? (award.dbRow[PITCHER_COL.NAME] || '') : ''}</div>
       </div>
     </div>`;
   },
 
   hitterSlotHtml(fs) {
     const award = this.getAward(fs.pos);
+    const nameType = award ? (TYPE_COLOR[award.dbRow[HITTER_COL.TYPE]] || 'sig') : '';
     const card = award
       ? makeCardLineup(award.dbRow, 50, true, award.overall, fs.pos === 'DH' ? 'DH' : fs.pos, fmt1(award.dbRow[HITTER_COL.BOJ] || 0))
       : makeEmptyCard(fs.pos, 50);
@@ -3894,7 +3896,7 @@ const GoldenGlove = {
     return `<div class="hl-field-slot gg-hitter-slot${award ? ' gg-award-slot' : ' sum-empty-slot'}" style="grid-column:${fs.col};grid-row:${fs.row};">
       <span class="hl-pos-lbl">${fs.pos}</span>
       <div class="hl-field-card-hit"${click}>${card}</div>
-      <div class="gg-hitter-club">${award ? `<span class="gg-club-id">${award.clubId}</span><span class="gg-club-apostrophe">'s</span> <span class="gg-hitter-club-player">${award.dbRow[HITTER_COL.NAME] || ''}</span>` : ''}</div>
+      <div class="gg-hitter-club">${award ? `<span class="gg-club-id">${award.clubId}</span><span class="gg-club-apostrophe">'s</span> <span class="gg-hitter-club-player gg-player-name--${nameType}">${award.dbRow[HITTER_COL.NAME] || ''}</span>` : ''}</div>
     </div>`;
   },
 
