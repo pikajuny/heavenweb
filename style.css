@@ -1802,13 +1802,13 @@ input, select, textarea { font-family: inherit; }
   content:"";
   position:absolute;
   z-index:0;
-  top:0;
-  bottom:0;
-  left:calc(50% - 41px);
-  width:82px;
+  top:-4px;
+  bottom:-4px;
+  left:calc(50% - 46px);
+  width:92px;
   border-radius:9px;
-  background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.22) 0%, rgba(240,192,64,0.11) 42%, rgba(240,192,64,0) 76%);
-  box-shadow:0 0 10px rgba(240,192,64,0.1);
+  background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.24) 0%, rgba(240,192,64,0.12) 46%, rgba(240,192,64,0) 82%);
+  box-shadow:0 0 16px rgba(240,192,64,0.13);
   pointer-events:none;
 }
 .gg-pitcher-slot > *,
