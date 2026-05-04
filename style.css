@@ -1638,9 +1638,9 @@ input, select, textarea { font-family: inherit; }
 .lounge-sec--half:last-child { border-right:none; }
 .lounge-sec-hd {
   display:flex; align-items:center; justify-content:space-between;
-  min-height:48px;
+  min-height:25px;
   box-sizing:border-box;
-  padding:10px 16px;
+  padding:0 16px;
   background:var(--bg-secondary);
   border-bottom:0.5px solid var(--border-light);
   gap:10px;
@@ -1665,11 +1665,11 @@ input, select, textarea { font-family: inherit; }
   overflow:hidden;
 }
 .lounge-sec--compact .lounge-sec-hd {
-  min-height:38px;
-  padding:8px 16px;
+  min-height:25px;
+  padding:0 16px;
 }
 .lounge-compact-body {
-  height:62px;
+  height:75px;
   overflow:hidden;
 }
 .lounge-home-ready {
