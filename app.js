@@ -1556,6 +1556,15 @@ function showErr(id, msg) {
   setTimeout(() => { el.style.display = 'none'; }, 4000);
 }
 
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ================================================================
 // JS_Card.html — 선수 카드 HTML 생성 헬퍼
 // ================================================================
@@ -3296,6 +3305,7 @@ function switchMenu(menuId, btn) {
     applyTabScale();
   }
   if (menuId === 'lounge') {
+    Board.load();
     LoungeRanking.load();
     GoldenGlove.load();
   }
@@ -3553,6 +3563,152 @@ function parseHtmlToGrid(html) {
     return r.map(v => (v === undefined ? '' : v));
   });
 }
+
+// ================================================================
+// [라운지 섹션] 자유게시판 — Board
+// ================================================================
+const Board = {
+  _loading: false,
+  _currentPostId: '',
+
+  load() {
+    const body = document.getElementById('board-list-body');
+    if (!body || !State.clubId || this._loading) return;
+    this._loading = true;
+    body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
+    Api.call('getBoardPosts', [State.clubId, 3]).then(res => {
+      this._loading = false;
+      if (!res.success) {
+        body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(res.error || '게시판을 불러오지 못했습니다.')}</div>`;
+        return;
+      }
+      this.renderList(res.data || []);
+    }).catch(e => {
+      this._loading = false;
+      body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+    });
+  },
+
+  renderList(posts) {
+    const body = document.getElementById('board-list-body');
+    if (!body) return;
+    if (!posts.length) {
+      body.innerHTML = '<div class="board-empty">아직 작성된 글이 없습니다.</div>';
+      return;
+    }
+    body.innerHTML = `<div class="board-list">${posts.map(post => `
+      <div class="board-row" onclick="Board.open('${escapeHtml(post.postId)}')">
+        <div class="board-row-title">
+          <span class="board-row-title-text">${escapeHtml(post.title)}</span>
+          <span class="board-row-comments">[${Number(post.commentCount || 0)}]</span>
+          ${post.hasNewComment ? '<span class="board-new-badge">N</span>' : ''}
+        </div>
+        <div class="board-row-author">${escapeHtml(post.clubId || '-')}</div>
+        <div class="board-row-time">${escapeHtml(this.formatTime(post.createdAt))}</div>
+      </div>
+    `).join('')}</div>`;
+  },
+
+  formatTime(value) {
+    const text = String(value || '').trim();
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (match) return `${match[4]}:${match[5]}`;
+    return text;
+  },
+
+  openWrite() {
+    this._currentPostId = '';
+    document.getElementById('board-modal-title').textContent = '글쓰기';
+    document.getElementById('board-modal-body').innerHTML = `
+      <div class="board-form">
+        <input class="board-input" id="board-write-title" maxlength="80" placeholder="제목">
+        <textarea class="board-textarea" id="board-write-body" maxlength="2000" placeholder="내용"></textarea>
+        <div id="board-write-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="Board.close()">취소</button>
+          <button class="bp" onclick="Board.submitPost()">등록</button>
+        </div>
+      </div>`;
+    document.getElementById('board-modal-bg').style.display = 'flex';
+    setTimeout(() => document.getElementById('board-write-title')?.focus(), 0);
+  },
+
+  submitPost() {
+    const title = document.getElementById('board-write-title')?.value || '';
+    const body = document.getElementById('board-write-body')?.value || '';
+    Api.call('createBoardPost', [State.clubId, title, body]).then(res => {
+      if (!res.success) {
+        showErr('board-write-err', res.error || '게시글을 저장하지 못했습니다.');
+        return;
+      }
+      this.close();
+      this.load();
+    }).catch(e => showErr('board-write-err', e.message));
+  },
+
+  open(postId) {
+    this._currentPostId = postId;
+    document.getElementById('board-modal-title').textContent = '불러오는 중...';
+    document.getElementById('board-modal-body').innerHTML = '<div class="lounge-sec-loading">게시글 불러오는 중...</div>';
+    document.getElementById('board-modal-bg').style.display = 'flex';
+    Api.call('getBoardPost', [State.clubId, postId]).then(res => {
+      if (!res.success) {
+        document.getElementById('board-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(res.error || '게시글을 불러오지 못했습니다.')}</div>`;
+        return;
+      }
+      this.renderPost(res.post, res.comments || []);
+      this.load();
+    }).catch(e => {
+      document.getElementById('board-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+    });
+  },
+
+  renderPost(post, comments) {
+    document.getElementById('board-modal-title').textContent = post.title || '';
+    document.getElementById('board-modal-body').innerHTML = `
+      <div class="board-post-meta">
+        <span>${escapeHtml(post.clubId || '-')}</span>
+        <span>|</span>
+        <span>${escapeHtml(post.createdAt || '')}</span>
+      </div>
+      <div class="board-post-body">${escapeHtml(post.body || '')}</div>
+      <div class="board-comment-title">댓글 ${comments.length}</div>
+      <div class="board-comment-list">
+        ${comments.length ? comments.map(comment => `
+          <div class="board-comment">
+            <div class="board-comment-meta">
+              <span>${escapeHtml(comment.clubId || '-')}</span>
+              <span>|</span>
+              <span>${escapeHtml(comment.createdAt || '')}</span>
+            </div>
+            <div class="board-comment-body">${escapeHtml(comment.body || '')}</div>
+          </div>
+        `).join('') : '<div class="board-empty" style="height:42px;">아직 댓글이 없습니다.</div>'}
+      </div>
+      <div class="board-comment-form">
+        <textarea class="board-textarea" id="board-comment-body" maxlength="500" placeholder="댓글을 입력하세요"></textarea>
+        <button class="bp" onclick="Board.submitComment()">등록</button>
+      </div>
+      <div id="board-comment-err" class="err-msg" style="display:none;margin-top:8px;"></div>`;
+  },
+
+  submitComment() {
+    const body = document.getElementById('board-comment-body')?.value || '';
+    Api.call('addBoardComment', [State.clubId, this._currentPostId, body]).then(res => {
+      if (!res.success) {
+        showErr('board-comment-err', res.error || '댓글을 저장하지 못했습니다.');
+        return;
+      }
+      this.renderPost(res.post, res.comments || []);
+      this.load();
+    }).catch(e => showErr('board-comment-err', e.message));
+  },
+
+  close() {
+    const modal = document.getElementById('board-modal-bg');
+    if (modal) modal.style.display = 'none';
+  }
+};
 
 // ================================================================
 // [라운지 섹션] 덱파워 랭킹 — LoungeRanking

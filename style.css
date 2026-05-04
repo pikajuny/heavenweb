@@ -1625,6 +1625,7 @@ input, select, textarea { font-family: inherit; }
 ================================================================ */
 .lounge-layout { display:flex; flex-direction:column; }
 .lounge-row { display:flex; flex-wrap:wrap; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
+.lounge-row-compact { min-height:100px; }
 .lounge-sec { }
 .lounge-sec--half {
   flex: 1 1 480px;
@@ -1659,6 +1660,26 @@ input, select, textarea { font-family: inherit; }
 }
 .lounge-refresh-btn:hover { color:var(--accent); background:var(--bg-tertiary); }
 .lounge-sec-body { padding:0; }
+.lounge-sec--compact {
+  height:100px;
+  overflow:hidden;
+}
+.lounge-sec--compact .lounge-sec-hd {
+  min-height:38px;
+  padding:8px 16px;
+}
+.lounge-compact-body {
+  height:62px;
+  overflow:hidden;
+}
+.lounge-home-ready {
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  color:var(--text-tertiary);
+}
 .lounge-sec-loading {
   padding:24px; text-align:center;
   font-size:13px; color:var(--text-tertiary);
@@ -1768,6 +1789,218 @@ input, select, textarea { font-family: inherit; }
 .rank-detail-val { font-size:13px; font-weight:600; color:var(--text-secondary); }
 .rank-detail-val.hi { color:var(--text-primary); }
 .rank-vsep { width:1px; height:9px; background:var(--border-light); margin:0 3px; flex-shrink:0; }
+
+/* ================================================================
+   자유게시판 섹션
+================================================================ */
+.board-list {
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+.board-row {
+  min-height:31px;
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 94px 48px;
+  align-items:center;
+  gap:9px;
+  padding:0 16px;
+  border-bottom:0.5px solid var(--border-light);
+  cursor:pointer;
+  transition:background .12s;
+}
+.board-row:last-child { border-bottom:none; }
+.board-row:hover { background:var(--bg-secondary); }
+.board-row-title {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:var(--text-primary);
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.board-row-title-text {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.board-row-comments {
+  color:#f0c040;
+  font-size:11px;
+  flex-shrink:0;
+}
+.board-new-badge {
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:14px;
+  height:13px;
+  padding:0 3px;
+  border:1px solid rgba(248,81,73,0.52);
+  border-radius:2px;
+  background:rgba(248,81,73,0.14);
+  color:#ff7b72;
+  font-size:9px;
+  font-weight:800;
+  line-height:1;
+}
+.board-row-author,
+.board-row-time {
+  min-width:0;
+  border-left:1px solid var(--border-light);
+  padding-left:9px;
+  color:var(--text-secondary);
+  font-size:11px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.board-row-time {
+  color:var(--text-tertiary);
+  text-align:right;
+}
+.board-empty {
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-tertiary);
+  font-size:12px;
+}
+.board-modal-bg {
+  position:fixed;
+  inset:0;
+  z-index:310;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  background:rgba(0,0,0,0.74);
+  backdrop-filter:blur(4px);
+}
+.board-modal {
+  width:min(560px, 96vw);
+  max-height:min(760px, 92vh);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--bg-secondary);
+  border:1px solid var(--border-medium);
+  border-radius:12px;
+  box-shadow:0 24px 64px rgba(0,0,0,0.58);
+}
+.board-modal-hd {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--border-light);
+}
+.board-modal-kicker {
+  font-size:10px;
+  color:var(--text-tertiary);
+  letter-spacing:0.08em;
+  font-weight:700;
+}
+.board-modal-title {
+  margin-top:3px;
+  font-size:16px;
+  font-weight:700;
+  color:var(--text-primary);
+  line-height:1.3;
+}
+.board-modal-body {
+  padding:14px 16px 16px;
+  overflow-y:auto;
+}
+.board-form {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.board-input,
+.board-textarea {
+  width:100%;
+  border:1px solid var(--border-medium);
+  border-radius:6px;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  font:inherit;
+}
+.board-input { padding:8px 10px; font-size:14px; }
+.board-textarea {
+  min-height:150px;
+  padding:10px;
+  font-size:14px;
+  line-height:1.55;
+  resize:vertical;
+}
+.board-form-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+.board-post-meta {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--text-tertiary);
+  font-size:11px;
+  margin-bottom:12px;
+}
+.board-post-body {
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.65;
+  font-size:14px;
+  color:var(--text-primary);
+  padding-bottom:14px;
+  border-bottom:1px solid var(--border-light);
+}
+.board-comment-title {
+  margin:13px 0 8px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-secondary);
+}
+.board-comment-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.board-comment {
+  padding:8px 10px;
+  border:1px solid var(--border-light);
+  border-radius:6px;
+  background:rgba(255,255,255,0.025);
+}
+.board-comment-meta {
+  display:flex;
+  gap:7px;
+  margin-bottom:4px;
+  color:var(--text-tertiary);
+  font-size:10px;
+}
+.board-comment-body {
+  white-space:pre-wrap;
+  word-break:break-word;
+  line-height:1.45;
+  color:var(--text-primary);
+  font-size:13px;
+}
+.board-comment-form {
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+.board-comment-form textarea {
+  flex:1;
+  min-height:58px;
+  resize:vertical;
+}
 
 /* ================================================================
    헤븐 골든글러브 섹션

@@ -131,6 +131,32 @@
   <div id="page-lounge" class="menu-page">
     <div class="lounge-layout">
 
+      <div class="lounge-row lounge-row-compact">
+        <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-home">
+          <div class="lounge-sec-hd">
+            <span class="lounge-sec-title">홈</span>
+          </div>
+          <div class="lounge-sec-body lounge-compact-body">
+            <div class="lounge-home-ready">준비중입니다</div>
+          </div>
+        </section>
+
+        <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
+          <div class="lounge-sec-hd">
+            <span class="lounge-sec-title">자유게시판</span>
+            <div class="lounge-hd-actions">
+              <button class="lounge-refresh-btn" onclick="Board.openWrite()">글쓰기</button>
+              <button class="lounge-refresh-btn" onclick="Board.load()" aria-label="자유게시판 새로고침" title="새로고침">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+              </button>
+            </div>
+          </div>
+          <div id="board-list-body" class="lounge-sec-body lounge-compact-body">
+            <div class="lounge-sec-loading">불러오는 중...</div>
+          </div>
+        </section>
+      </div>
+
       <!-- 상단 2분할 행 -->
       <div class="lounge-row">
 
@@ -802,6 +828,21 @@
         <button class="bp" onclick="AddModal.submit()">추가 완료</button>
       </div>
     </div>
+  </div>
+</div>
+
+
+<!-- 자유게시판 모달 -->
+<div id="board-modal-bg" class="board-modal-bg" style="display:none;" onclick="if(event.target===this)Board.close()">
+  <div class="board-modal">
+    <div class="board-modal-hd">
+      <div>
+        <div class="board-modal-kicker">자유게시판</div>
+        <div class="board-modal-title" id="board-modal-title"></div>
+      </div>
+      <button class="modal-close" onclick="Board.close()">✕</button>
+    </div>
+    <div class="board-modal-body" id="board-modal-body"></div>
   </div>
 </div>
 
