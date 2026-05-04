@@ -1788,8 +1788,7 @@ input, select, textarea { font-family: inherit; }
   cursor:pointer;
   min-width:0;
 }
-.gg-pitcher-slot:not(.gg-pitcher-slot--empty)::before,
-.gg-hitter-slot.gg-award-slot::before {
+.gg-pitcher-slot:not(.gg-pitcher-slot--empty)::before {
   content:"";
   position:absolute;
   z-index:0;
@@ -1797,6 +1796,19 @@ input, select, textarea { font-family: inherit; }
   border-radius:10px;
   background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.24) 0%, rgba(240,192,64,0.12) 42%, rgba(240,192,64,0) 76%);
   box-shadow:0 0 14px rgba(240,192,64,0.12);
+  pointer-events:none;
+}
+.gg-hitter-slot.gg-award-slot::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  top:0;
+  bottom:0;
+  left:calc(50% - 41px);
+  width:82px;
+  border-radius:9px;
+  background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.22) 0%, rgba(240,192,64,0.11) 42%, rgba(240,192,64,0) 76%);
+  box-shadow:0 0 10px rgba(240,192,64,0.1);
   pointer-events:none;
 }
 .gg-pitcher-slot > *,
