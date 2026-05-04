@@ -1794,9 +1794,8 @@ input, select, textarea { font-family: inherit; }
   z-index:0;
   top:-7px;
   bottom:-7px;
-  left:50%;
+  left:2px;
   width:127px;
-  transform:translateX(-50%);
   border-radius:10px;
   background:radial-gradient(ellipse at 50% 48%, rgba(255,218,102,0.3) 0%, rgba(240,192,64,0.19) 48%, rgba(240,192,64,0.06) 100%);
   box-shadow:
