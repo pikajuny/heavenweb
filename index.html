@@ -143,7 +143,13 @@
 
         <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
           <div class="lounge-sec-hd">
-            <span class="lounge-sec-title">자유게시판</span>
+            <div class="board-title-wrap">
+              <span class="lounge-sec-title">자유게시판</span>
+              <div class="board-page-controls">
+                <button class="rank-page-btn board-page-btn" id="board-prev-btn" onclick="Board.prevPage()" aria-label="이전 글 목록" title="이전">‹</button>
+                <button class="rank-page-btn board-page-btn" id="board-next-btn" onclick="Board.nextPage()" aria-label="다음 글 목록" title="다음">›</button>
+              </div>
+            </div>
             <div class="lounge-hd-actions">
               <button class="lounge-refresh-btn" onclick="Board.openWrite()">글쓰기</button>
               <button class="lounge-refresh-btn" onclick="Board.load()" aria-label="자유게시판 새로고침" title="새로고침">
@@ -840,9 +846,24 @@
         <div class="board-modal-kicker">자유게시판</div>
         <div class="board-modal-title" id="board-modal-title"></div>
       </div>
-      <button class="modal-close" onclick="Board.close()">✕</button>
+      <div class="board-modal-actions">
+        <button class="board-delete-btn" id="board-delete-btn" onclick="Board.confirmDelete()" style="display:none;">삭제</button>
+        <button class="modal-close" onclick="Board.close()">✕</button>
+      </div>
     </div>
     <div class="board-modal-body" id="board-modal-body"></div>
+  </div>
+</div>
+
+<div id="board-delete-confirm" class="board-confirm-bg" style="display:none;" onclick="if(event.target===this)Board.closeDeleteConfirm()">
+  <div class="board-confirm-modal">
+    <div class="board-confirm-title">게시글 삭제</div>
+    <div class="board-confirm-text">삭제한 글은 목록에서 사라집니다. 계속할까요?</div>
+    <div id="board-delete-err" class="err-msg" style="display:none;margin-top:10px;"></div>
+    <div class="board-confirm-actions">
+      <button class="bs" onclick="Board.closeDeleteConfirm()">취소</button>
+      <button class="bp board-danger-btn" id="board-delete-confirm-btn" onclick="Board.deleteCurrentPost()">삭제</button>
+    </div>
   </div>
 </div>
 

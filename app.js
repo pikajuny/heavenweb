@@ -3574,25 +3574,59 @@ function parseHtmlToGrid(html) {
 const Board = {
   _loading: false,
   _currentPostId: '',
+  _currentPost: null,
+  _page: 0,
+  _pageSize: 3,
+  _hasNext: false,
 
   load() {
     const body = document.getElementById('board-list-body');
     if (!body || !State.clubId || this._loading) return;
     this._loading = true;
+    this.updateControls();
     body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
-    BoardApi.call('listPosts', [State.clubId, 3]).then(posts => {
+    BoardApi.call('listPosts', [State.clubId, this._pageSize, this._page * this._pageSize]).then(data => {
       this._loading = false;
-      this.renderList(posts || []);
+      const posts = Array.isArray(data) ? data : (data.posts || []);
+      this._hasNext = Array.isArray(data) ? posts.length >= this._pageSize : !!data.hasNext;
+      this.renderList(posts);
+      this.updateControls();
     }).catch(e => {
       this._loading = false;
+      this._hasNext = false;
+      this.updateControls();
       body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
     });
+  },
+
+  prevPage() {
+    if (this._loading || this._page <= 0) return;
+    this._page -= 1;
+    this.load();
+  },
+
+  nextPage() {
+    if (this._loading || !this._hasNext) return;
+    this._page += 1;
+    this.load();
+  },
+
+  updateControls() {
+    const prev = document.getElementById('board-prev-btn');
+    const next = document.getElementById('board-next-btn');
+    if (prev) prev.disabled = this._loading || this._page <= 0;
+    if (next) next.disabled = this._loading || !this._hasNext;
   },
 
   renderList(posts) {
     const body = document.getElementById('board-list-body');
     if (!body) return;
     if (!posts.length) {
+      if (this._page > 0) {
+        this._page -= 1;
+        this.load();
+        return;
+      }
       body.innerHTML = '<div class="board-empty">아직 작성된 글이 없습니다.</div>';
       return;
     }
@@ -3639,6 +3673,8 @@ const Board = {
 
   openWrite() {
     this._currentPostId = '';
+    this._currentPost = null;
+    this.setDeleteVisible(false);
     document.getElementById('board-modal-title').textContent = '글쓰기';
     document.getElementById('board-modal-body').innerHTML = `
       <div class="board-form">
@@ -3666,6 +3702,7 @@ const Board = {
     if (bodyEl) bodyEl.disabled = true;
     BoardApi.call('createPost', [State.clubId, State.teamName || '', title, body]).then(() => {
       this.close();
+      this._page = 0;
       this.load();
     }).catch(e => {
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '등록'; }
@@ -3677,6 +3714,8 @@ const Board = {
 
   open(postId) {
     this._currentPostId = postId;
+    this._currentPost = null;
+    this.setDeleteVisible(false);
     document.getElementById('board-modal-title').textContent = '불러오는 중...';
     document.getElementById('board-modal-body').innerHTML = '<div class="lounge-sec-loading">게시글 불러오는 중...</div>';
     document.getElementById('board-modal-bg').style.display = 'flex';
@@ -3689,7 +3728,9 @@ const Board = {
   },
 
   renderPost(post, comments) {
+    this._currentPost = post || null;
     document.getElementById('board-modal-title').textContent = post.title || '';
+    this.setDeleteVisible(post?.clubId === State.clubId);
     document.getElementById('board-modal-body').innerHTML = `
       <div class="board-post-meta">
         <span>${escapeHtml(post.clubId || '-')}</span>
@@ -3717,6 +3758,43 @@ const Board = {
       <div id="board-comment-err" class="err-msg" style="display:none;margin-top:8px;"></div>`;
   },
 
+  setDeleteVisible(visible) {
+    const btn = document.getElementById('board-delete-btn');
+    if (!btn) return;
+    btn.style.display = visible ? 'inline-flex' : 'none';
+    btn.disabled = false;
+  },
+
+  confirmDelete() {
+    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
+    const modal = document.getElementById('board-delete-confirm');
+    const err = document.getElementById('board-delete-err');
+    const btn = document.getElementById('board-delete-confirm-btn');
+    if (err) err.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
+    if (modal) modal.style.display = 'flex';
+  },
+
+  closeDeleteConfirm() {
+    const modal = document.getElementById('board-delete-confirm');
+    if (modal) modal.style.display = 'none';
+  },
+
+  deleteCurrentPost() {
+    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
+    const btn = document.getElementById('board-delete-confirm-btn');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '삭제 중...'; }
+    BoardApi.call('deletePost', [State.clubId, this._currentPostId]).then(() => {
+      this.closeDeleteConfirm();
+      this.close();
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
+      showErr('board-delete-err', e.message);
+    });
+  },
+
   submitComment() {
     const body = document.getElementById('board-comment-body')?.value || '';
     const submitBtn = document.getElementById('board-comment-submit');
@@ -3737,6 +3815,7 @@ const Board = {
   close() {
     const modal = document.getElementById('board-modal-bg');
     if (modal) modal.style.display = 'none';
+    this.closeDeleteConfirm();
   }
 };
 

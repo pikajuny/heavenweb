@@ -51,20 +51,22 @@ function mapComment(comment) {
   };
 }
 
-async function listPosts(clubId, limit = 20) {
+async function listPosts(clubId, limit = 20, offset = 0) {
   const db = requireSupabase();
   clubId = cleanText(clubId, 40, '구단명');
   const max = Math.max(1, Math.min(Number(limit) || 20, 50));
+  const start = Math.max(0, Number(offset) || 0);
 
   const { data: posts, error: postError } = await db
     .from('board_posts')
     .select('id, club_id, team_name, title, body, comment_count, last_comment_at, created_at, updated_at')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
-    .limit(max);
+    .range(start, start + max);
   if (postError) throw postError;
 
-  const postIds = (posts || []).map(post => post.id);
+  const visiblePosts = (posts || []).slice(0, max);
+  const postIds = visiblePosts.map(post => post.id);
   let readMap = {};
   if (postIds.length) {
     const { data: reads, error: readError } = await db
@@ -79,7 +81,12 @@ async function listPosts(clubId, limit = 20) {
     }, {});
   }
 
-  return (posts || []).map(post => mapPost(post, readMap));
+  return {
+    posts: visiblePosts.map(post => mapPost(post, readMap)),
+    hasNext: (posts || []).length > max,
+    offset: start,
+    limit: max,
+  };
 }
 
 async function createPost(clubId, teamName, title, body) {
@@ -152,11 +159,31 @@ async function addComment(clubId, postId, body) {
   return getPost(clubId, postId);
 }
 
+async function deletePost(clubId, postId) {
+  const db = requireSupabase();
+  clubId = cleanText(clubId, 40, '구단명');
+  postId = cleanText(postId, 80, '글ID');
+
+  const { data: post, error } = await db
+    .from('board_posts')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', postId)
+    .eq('club_id', clubId)
+    .is('deleted_at', null)
+    .select('id')
+    .maybeSingle();
+  if (error) throw error;
+  if (!post) throw new Error('삭제할 수 없는 글입니다.');
+
+  return { postId };
+}
+
 const handlers = {
   listPosts,
   createPost,
   getPost,
   addComment,
+  deletePost,
 };
 
 module.exports = async function handler(req, res) {
