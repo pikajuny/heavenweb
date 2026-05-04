@@ -1688,7 +1688,7 @@ input, select, textarea { font-family: inherit; }
 }
 .lounge-row { display:flex; flex-wrap:wrap; align-items:flex-start; border-bottom:0.5px solid var(--border-light); }
 .lounge-row-compact {
-  min-height:clamp(220px, calc(100vh - var(--app-sticky-h, 88px) - var(--shortcut-h, 100px) - var(--subnav-h, 38px)), 800px);
+  min-height:400px;
 }
 .lounge-sec { }
 .lounge-sec--half {
@@ -1725,7 +1725,7 @@ input, select, textarea { font-family: inherit; }
 .lounge-refresh-btn:hover { color:var(--accent); background:var(--bg-tertiary); }
 .lounge-sec-body { padding:0; }
 .lounge-sec--compact {
-  height:clamp(220px, calc(100vh - var(--app-sticky-h, 88px) - var(--shortcut-h, 100px) - var(--subnav-h, 38px)), 800px);
+  height:400px;
   overflow:hidden;
 }
 .lounge-sec--compact .lounge-sec-hd {
