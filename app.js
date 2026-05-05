@@ -3323,6 +3323,7 @@ function switchLoungeTab(tabId, btn) {
     tab.style.display = tab.id === 'lounge-tab-' + tabId ? 'block' : 'none';
   });
   updateStickyHeights();
+  updateLoungeCompactLayout();
   if (tabId === 'home') {
     LoungeHome.load();
     Board.load();
@@ -4938,6 +4939,15 @@ function updateStickyHeights() {
     .find(el => el.offsetParent !== null);
   const th = subnav?.offsetHeight || 38;
   document.documentElement.style.setProperty('--subnav-h', th + 'px');
+  updateLoungeCompactLayout();
+}
+
+function updateLoungeCompactLayout() {
+  const row = document.querySelector('#lounge-tab-home .lounge-row-compact');
+  if (!row) return;
+  const sections = Array.from(row.querySelectorAll('.lounge-sec--compact'));
+  if (sections.length < 2) return;
+  row.classList.toggle('is-stacked', sections[1].offsetTop > sections[0].offsetTop);
 }
 
 function applyOrderBarScaleById(barId) {

@@ -1759,6 +1759,9 @@ input, select, textarea { font-family: inherit; }
 .lounge-row-compact {
   min-height:400px;
 }
+.lounge-row-compact.is-stacked {
+  min-height:0;
+}
 .lounge-sec { }
 .lounge-sec--half {
   flex: 1 1 480px;
@@ -1796,6 +1799,9 @@ input, select, textarea { font-family: inherit; }
 .lounge-sec--compact {
   height:400px;
   overflow:hidden;
+}
+.lounge-row-compact.is-stacked .lounge-sec--compact {
+  height:clamp(220px, 38vh, 320px);
 }
 .lounge-sec--compact .lounge-sec-hd {
   min-height:25px;
@@ -3220,12 +3226,6 @@ input, select, textarea { font-family: inherit; }
 
 @media (max-width: 960px) {
   /* 라운지: 좌우 섹션이 더 줄어들기 어려울 때 아래로 스택 */
-  .lounge-row-compact {
-    min-height:0;
-  }
-  .lounge-sec--compact {
-    height:clamp(220px, 38vh, 320px);
-  }
   .lounge-sec--half {
     width: 100%;
     max-width: none;
