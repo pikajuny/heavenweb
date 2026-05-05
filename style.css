@@ -1803,6 +1803,9 @@ input, select, textarea { font-family: inherit; }
 .lounge-row-compact.is-stacked .lounge-sec--compact {
   height:auto;
 }
+.lounge-row-compact.is-stacked .lounge-compact-body {
+  overflow:hidden;
+}
 .lounge-sec--compact .lounge-sec-hd {
   min-height:25px;
   padding:0 16px;

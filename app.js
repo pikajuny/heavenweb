@@ -4982,7 +4982,7 @@ function getLoungeCompactSectionHeight(section) {
   const hasEmpty = !!section.querySelector('.board-empty, .lounge-sec-loading, .lounge-sec-err');
   const rows = rowCount || (hasEmpty ? 3 : 1);
   const visibleRows = Math.min(rows, getLoungeCompactMaxRows());
-  return 25 + visibleRows * 31;
+  return 27 + visibleRows * 32;
 }
 
 function applyOrderBarScaleById(barId) {
