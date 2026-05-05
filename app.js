@@ -952,6 +952,7 @@ const TeamTab = {
     this.renderLockerRow();
     this.renderCaptainArea();
     this.renderSetdeck();
+    this.renderYears();
     this.renderPostrain();
     this.renderTacticStatus();
   },
@@ -1119,6 +1120,7 @@ const TeamTab = {
     this.saveBasic();
     this.saveHitterSkills();
     this.savePitcherSkills();
+    this.saveYears();
   },
 
   renderSetdeck() {
@@ -1168,6 +1170,21 @@ const TeamTab = {
       signature: document.getElementById('syn-sig')?.checked   || false,
     };
     Api.call('saveSynergy', [State.clubId, synergy]).then(() => App.refreshLineups()).catch(e => alert('저장 실패: ' + e.message));
+  },
+
+  renderYears() {
+    if (!this.data?.years) return;
+    const y = this.data.years;
+    const batter = document.getElementById('year-batter');
+    const pitcher = document.getElementById('year-pitcher');
+    if (batter) batter.value = y.batter || '';
+    if (pitcher) pitcher.value = y.pitcher || '';
+  },
+
+  saveYears() {
+    const batter = parseInt(document.getElementById('year-batter')?.value) || '';
+    const pitcher = parseInt(document.getElementById('year-pitcher')?.value) || '';
+    Api.call('saveYears', [State.clubId, { batter, pitcher }]).catch(e => alert('저장 실패: ' + e.message));
   },
 
   renderPostrain() {
