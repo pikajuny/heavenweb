@@ -1157,6 +1157,9 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-primary);
   width: 130px;
 }
+.kv-edit[type="number"]::-webkit-inner-spin-button,
+.kv-edit[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.kv-edit[type="number"] { -moz-appearance: textfield; }
 
 .deck-row {
   display: flex;

@@ -520,17 +520,16 @@
     <!-- 시너지 -->
     <div style="margin-bottom:14px;">
       <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:6px;">시너지</div>
-      <div class="syn-row">
-        <span style="font-size:12px;color:var(--text-secondary);flex:1;">라이브</span>
-        <input type="checkbox" id="syn-live" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
-      </div>
-      <div class="syn-row">
-        <span style="font-size:12px;color:var(--text-secondary);flex:1;">임팩</span>
-        <input type="checkbox" id="syn-impact" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
-      </div>
-      <div class="syn-row">
-        <span style="font-size:12px;color:var(--text-secondary);flex:1;">시그</span>
-        <input type="checkbox" id="syn-sig" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">
+      <div class="syn-row" style="justify-content:space-between;">
+        <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="syn-live" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">라이브
+        </label>
+        <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="syn-impact" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">임팩
+        </label>
+        <label style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <input type="checkbox" id="syn-sig" style="width:16px;height:16px;cursor:pointer;" onchange="TeamTab.saveSynergy()">시그
+        </label>
       </div>
     </div>
 
@@ -543,13 +542,13 @@
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin:4px 0 6px;">
         <div style="display:flex;align-items:center;gap:4px;">
-          <span style="font-size:11px;color:var(--text-secondary);">타자연도:</span>
+          <span style="font-size:11px;color:#fff;">타자연도:</span>
           <input type="number" class="kv-edit" id="year-batter" min="1900" max="2099" style="width:60px;text-align:center;font-size:11px;">
         </div>
         <span style="font-size:11px;color:var(--text-tertiary);">/</span>
         <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:11px;color:#fff;">투수연도:</span>
           <input type="number" class="kv-edit" id="year-pitcher" min="1900" max="2099" style="width:60px;text-align:center;font-size:11px;">
-          <span style="font-size:11px;color:var(--text-secondary);">:투수연도</span>
         </div>
       </div>
       <div id="setdeck-list"></div>
