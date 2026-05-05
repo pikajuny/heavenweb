@@ -1996,7 +1996,7 @@ const EditModal = {
       `<div class="kv-row"><span class="kv-key">${lbl}</span><select class="kv-edit" id="${id}">${opts.map(o=>`<option value="${o}" ${val==o?'selected':''}>${o}</option>`).join('')}</select></div>`;
     const skillSel = (lbl, idName, idLv, nm, lv) => {
       const skills = isHitter ? State.hitterSkills : State.pitcherSkills;
-      const opts = ['-', ...skills].map(s => `<option value="${s}" ${nm===s?'selected':''}>${s}</option>`).join('');
+      const opts = ['-', ...[...skills].sort((a, b) => a.localeCompare(b, 'ko'))].map(s => `<option value="${s}" ${nm===s?'selected':''}>${s}</option>`).join('');
       return `<div class="kv-row"><span class="kv-key">${lbl}</span>
         <select class="kv-edit" id="${idName}" style="flex:2;">${opts}</select>
         <select class="kv-edit" id="${idLv}" style="width:60px;">${SKILL_LEVELS.map(v=>`<option value="${v}" ${String(lv)===v?'selected':''}>${v==='-'?'-':v+'렙'}</option>`).join('')}</select>
@@ -2443,18 +2443,17 @@ const AddModal = {
     modal.style.display = 'block';
     document.getElementById('add-modal-title').textContent = isHitter ? '타자 추가' : '투수 추가';
 
-    // 스킬 datalist 채우기
-    const skillListId = isHitter ? 'hitter-skill-list' : 'pitcher-skill-list';
+    // 스킬 select 옵션 채우기 (가나다순)
     const skills = isHitter ? State.hitterSkills : State.pitcherSkills;
-    const dl = document.getElementById(skillListId);
-    if (dl) {
-      dl.textContent = '';
-      ['-', ...skills].forEach(s => {
-        const option = document.createElement('option');
-        option.value = s;
-        dl.appendChild(option);
-      });
-    }
+    const sorted = ['-', ...[...skills].sort((a, b) => a.localeCompare(b, 'ko'))];
+    const skillOpts = sorted.map(s => `<option value="${s}">${s}</option>`).join('');
+    const skIds = isHitter
+      ? ['add-h-sk1n', 'add-h-sk2n', 'add-h-sk3n']
+      : ['add-p-sk1n', 'add-p-sk2n', 'add-p-sk3n'];
+    skIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = skillOpts;
+    });
     document.getElementById('add-tab-0-content').style.display = 'block';
     document.getElementById('add-tab-1-content').style.display = 'none';
     document.getElementById('add-tab-2-content').style.display = 'none';
