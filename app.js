@@ -3324,6 +3324,7 @@ function switchLoungeTab(tabId, btn) {
   });
   updateStickyHeights();
   if (tabId === 'home') {
+    LoungeHome.load();
     Board.load();
   }
   if (tabId === 'ranking') {
@@ -3585,6 +3586,282 @@ function parseHtmlToGrid(html) {
     return r.map(v => (v === undefined ? '' : v));
   });
 }
+
+// ================================================================
+// [라운지 섹션] 알림장/공지사항 — LoungeHome
+// ================================================================
+const LoungeHome = {
+  _loading: false,
+  _isAdmin: false,
+  _notepad: null,
+  _noticePage: 0,
+  _noticePageSize: 10,
+  _noticeHasNext: false,
+  _currentNoticeId: '',
+  _currentNotice: null,
+
+  load() {
+    const body = document.getElementById('notice-list-body');
+    if (!body || this._loading) return;
+    this._loading = true;
+    this.updateNoticeControls();
+    body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
+    LoungeApi.call('getHome', [State.email || '', this._noticePageSize, this._noticePage * this._noticePageSize]).then(data => {
+      this._loading = false;
+      this._isAdmin = !!data.isAdmin;
+      this._notepad = data.notepad || null;
+      const noticeData = data.notices || {};
+      this._noticeHasNext = !!noticeData.hasNext;
+      this.renderNotepad(this._notepad);
+      this.renderNotices(noticeData.notices || []);
+      this.updateAdminControls();
+      this.updateNoticeControls();
+    }).catch(e => {
+      this._loading = false;
+      this._noticeHasNext = false;
+      this.updateNoticeControls();
+      body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+      this.renderNotepad(null);
+      this.updateAdminControls();
+    });
+  },
+
+  renderNotepad(notepad) {
+    const dateEl = document.getElementById('notepad-date');
+    const opponentEl = document.getElementById('notepad-opponent');
+    const linesEl = document.getElementById('notepad-lines');
+    if (dateEl) dateEl.textContent = notepad?.dateLabel || '오늘 날짜';
+    if (opponentEl) opponentEl.textContent = notepad?.opponent || '-';
+    if (!linesEl) return;
+    const lines = (notepad?.lines || []).filter(line => String(line || '').trim());
+    linesEl.innerHTML = lines.length
+      ? lines.slice(0, 3).map((line, i) => `<div class="notepad-line"><span>${i + 1}</span>${escapeHtml(line)}</div>`).join('')
+      : '<div class="notepad-line notepad-line-empty">알림장이 비어 있습니다.</div>';
+  },
+
+  renderNotices(notices) {
+    const body = document.getElementById('notice-list-body');
+    if (!body) return;
+    if (!notices.length) {
+      if (this._noticePage > 0) {
+        this._noticePage -= 1;
+        this.load();
+        return;
+      }
+      body.innerHTML = '<div class="board-empty">아직 공지사항이 없습니다.</div>';
+      return;
+    }
+    body.innerHTML = `<div class="notice-list">${notices.map(notice => `
+      <div class="notice-row" onclick="LoungeHome.openNotice('${escapeHtml(notice.noticeId)}')">
+        <div class="notice-row-title">${escapeHtml(notice.title)}</div>
+        <div class="notice-row-author">${escapeHtml(notice.authorName || '-')}</div>
+        <div class="notice-row-time">${escapeHtml(this.formatTime(notice.createdAt))}</div>
+      </div>
+    `).join('')}</div>`;
+  },
+
+  updateAdminControls() {
+    const display = this._isAdmin ? 'inline-flex' : 'none';
+    const notepadBtn = document.getElementById('notepad-edit-btn');
+    const noticeBtn = document.getElementById('notice-write-btn');
+    if (notepadBtn) notepadBtn.style.display = display;
+    if (noticeBtn) noticeBtn.style.display = display;
+  },
+
+  updateNoticeControls() {
+    const prev = document.getElementById('notice-prev-btn');
+    const next = document.getElementById('notice-next-btn');
+    if (prev) prev.disabled = this._loading || this._noticePage <= 0;
+    if (next) next.disabled = this._loading || !this._noticeHasNext;
+  },
+
+  prevNoticePage() {
+    if (this._loading || this._noticePage <= 0) return;
+    this._noticePage -= 1;
+    this.load();
+  },
+
+  nextNoticePage() {
+    if (this._loading || !this._noticeHasNext) return;
+    this._noticePage += 1;
+    this.load();
+  },
+
+  openNotepadEdit() {
+    if (!this._isAdmin) return;
+    const lines = this._notepad?.lines || [];
+    document.getElementById('notepad-edit-opponent').value = this._notepad?.opponent || '';
+    document.getElementById('notepad-edit-line1').value = lines[0] || '';
+    document.getElementById('notepad-edit-line2').value = lines[1] || '';
+    document.getElementById('notepad-edit-line3').value = lines[2] || '';
+    document.getElementById('notepad-edit-err').style.display = 'none';
+    document.getElementById('notepad-modal-bg').style.display = 'flex';
+  },
+
+  closeNotepadEdit() {
+    const modal = document.getElementById('notepad-modal-bg');
+    if (modal) modal.style.display = 'none';
+  },
+
+  saveNotepad() {
+    if (!this._isAdmin) return;
+    const btn = document.getElementById('notepad-save-btn');
+    if (btn?.disabled) return;
+    const values = [
+      document.getElementById('notepad-edit-opponent')?.value || '',
+      document.getElementById('notepad-edit-line1')?.value || '',
+      document.getElementById('notepad-edit-line2')?.value || '',
+      document.getElementById('notepad-edit-line3')?.value || '',
+    ];
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+    LoungeApi.call('saveNotepad', [State.email || '', ...values]).then(data => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      this._notepad = data.notepad || null;
+      this._isAdmin = !!data.isAdmin;
+      this.renderNotepad(this._notepad);
+      this.updateAdminControls();
+      this.closeNotepadEdit();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      showErr('notepad-edit-err', e.message);
+    });
+  },
+
+  openNoticeWrite() {
+    if (!this._isAdmin) return;
+    this._currentNoticeId = '';
+    this._currentNotice = null;
+    this.setNoticeDeleteVisible(false);
+    document.getElementById('notice-modal-title').textContent = '공지 글쓰기';
+    document.getElementById('notice-modal-body').innerHTML = `
+      <div class="board-form">
+        <input class="board-input" id="notice-write-title" maxlength="100" placeholder="제목">
+        <textarea class="board-textarea" id="notice-write-body" maxlength="4000" placeholder="내용"></textarea>
+        <div id="notice-write-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="LoungeHome.closeNoticeModal()">취소</button>
+          <button class="bp" id="notice-write-submit" onclick="LoungeHome.submitNotice()">등록</button>
+        </div>
+      </div>`;
+    document.getElementById('notice-modal-bg').style.display = 'flex';
+    setTimeout(() => document.getElementById('notice-write-title')?.focus(), 0);
+  },
+
+  submitNotice() {
+    if (!this._isAdmin) return;
+    const title = document.getElementById('notice-write-title')?.value || '';
+    const body = document.getElementById('notice-write-body')?.value || '';
+    const btn = document.getElementById('notice-write-submit');
+    const titleEl = document.getElementById('notice-write-title');
+    const bodyEl = document.getElementById('notice-write-body');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '등록 중...'; }
+    if (titleEl) titleEl.disabled = true;
+    if (bodyEl) bodyEl.disabled = true;
+    LoungeApi.call('createNotice', [State.email || '', State.clubId || '', title, body]).then(() => {
+      this.closeNoticeModal();
+      this._noticePage = 0;
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '등록'; }
+      if (titleEl) titleEl.disabled = false;
+      if (bodyEl) bodyEl.disabled = false;
+      showErr('notice-write-err', e.message);
+    });
+  },
+
+  openNotice(noticeId) {
+    this._currentNoticeId = noticeId;
+    this._currentNotice = null;
+    this.setNoticeDeleteVisible(false);
+    document.getElementById('notice-modal-title').textContent = '불러오는 중...';
+    document.getElementById('notice-modal-body').innerHTML = '<div class="lounge-sec-loading">공지 불러오는 중...</div>';
+    document.getElementById('notice-modal-bg').style.display = 'flex';
+    LoungeApi.call('getNotice', [State.email || '', noticeId]).then(data => {
+      this._isAdmin = !!data.isAdmin;
+      this.renderNotice(data.notice);
+      this.updateAdminControls();
+    }).catch(e => {
+      document.getElementById('notice-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+    });
+  },
+
+  renderNotice(notice) {
+    this._currentNotice = notice || null;
+    document.getElementById('notice-modal-title').textContent = notice?.title || '';
+    this.setNoticeDeleteVisible(this._isAdmin && !!notice);
+    document.getElementById('notice-modal-body').innerHTML = `
+      <div class="board-post-meta notice-post-meta">
+        <span>${escapeHtml(notice?.authorName || '-')}</span>
+        <span>|</span>
+        <span>${escapeHtml(this.formatDateTime(notice?.createdAt))}</span>
+      </div>
+      <div class="board-post-body">${escapeHtml(notice?.body || '')}</div>`;
+  },
+
+  setNoticeDeleteVisible(visible) {
+    const btn = document.getElementById('notice-delete-btn');
+    if (!btn) return;
+    btn.style.display = visible ? 'inline-flex' : 'none';
+    btn.disabled = false;
+  },
+
+  confirmDeleteNotice() {
+    if (!this._isAdmin || !this._currentNoticeId) return;
+    const err = document.getElementById('notice-delete-err');
+    const btn = document.getElementById('notice-delete-confirm-btn');
+    if (err) err.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
+    document.getElementById('notice-delete-confirm').style.display = 'flex';
+  },
+
+  closeDeleteConfirm() {
+    const modal = document.getElementById('notice-delete-confirm');
+    if (modal) modal.style.display = 'none';
+  },
+
+  deleteCurrentNotice() {
+    if (!this._isAdmin || !this._currentNoticeId) return;
+    const btn = document.getElementById('notice-delete-confirm-btn');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '삭제 중...'; }
+    LoungeApi.call('deleteNotice', [State.email || '', this._currentNoticeId]).then(() => {
+      this.closeDeleteConfirm();
+      this.closeNoticeModal();
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
+      showErr('notice-delete-err', e.message);
+    });
+  },
+
+  closeNoticeModal() {
+    const modal = document.getElementById('notice-modal-bg');
+    if (modal) modal.style.display = 'none';
+    this.closeDeleteConfirm();
+  },
+
+  formatTime(value) {
+    return this.formatDateTime(value, { compact: true });
+  },
+
+  formatDateTime(value, options = {}) {
+    const date = new Date(String(value || ''));
+    if (isNaN(date.getTime())) return '';
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+    return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
+  },
+};
 
 // ================================================================
 // [라운지 섹션] 자유게시판 — Board

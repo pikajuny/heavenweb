@@ -132,7 +132,16 @@
     <div class="lounge-layout">
 
       <section class="lounge-shortcut-bar">
-        <div class="lounge-shortcut-ready">준비중입니다</div>
+        <div class="notepad-wrap">
+          <div class="notepad-top">
+            <div class="notepad-date" id="notepad-date">오늘 날짜</div>
+            <div class="notepad-opponent">클럽상대: <span id="notepad-opponent">-</span></div>
+            <button class="lounge-refresh-btn notepad-edit-btn" id="notepad-edit-btn" onclick="LoungeHome.openNotepadEdit()" style="display:none;">수정</button>
+          </div>
+          <div class="notepad-lines" id="notepad-lines">
+            <div class="notepad-line">알림장이 비어 있습니다.</div>
+          </div>
+        </div>
       </section>
 
       <div class="lounge-tabs">
@@ -144,10 +153,22 @@
         <div class="lounge-row lounge-row-compact">
           <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-home">
             <div class="lounge-sec-hd">
-              <span class="lounge-sec-title">공지사항</span>
+              <div class="board-title-wrap">
+                <span class="lounge-sec-title">공지사항</span>
+                <div class="board-page-controls">
+                  <button class="rank-page-btn board-page-btn" id="notice-prev-btn" onclick="LoungeHome.prevNoticePage()" aria-label="이전 공지 목록" title="이전">‹</button>
+                  <button class="rank-page-btn board-page-btn" id="notice-next-btn" onclick="LoungeHome.nextNoticePage()" aria-label="다음 공지 목록" title="다음">›</button>
+                </div>
+              </div>
+              <div class="lounge-hd-actions">
+                <button class="lounge-refresh-btn" id="notice-write-btn" onclick="LoungeHome.openNoticeWrite()" style="display:none;">글쓰기</button>
+                <button class="lounge-refresh-btn" onclick="LoungeHome.load()" aria-label="공지사항 새로고침" title="새로고침">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                </button>
+              </div>
             </div>
-            <div class="lounge-sec-body lounge-compact-body">
-              <div class="lounge-home-ready">준비중입니다</div>
+            <div id="notice-list-body" class="lounge-sec-body lounge-compact-body">
+              <div class="lounge-sec-loading">불러오는 중...</div>
             </div>
           </section>
 
@@ -879,13 +900,66 @@
   </div>
 </div>
 
+<div id="notepad-modal-bg" class="board-modal-bg" style="display:none;" onclick="if(event.target===this)LoungeHome.closeNotepadEdit()">
+  <div class="board-modal notice-edit-modal">
+    <div class="board-modal-hd">
+      <div>
+        <div class="board-modal-kicker">알림장</div>
+        <div class="board-modal-title">알림장 수정</div>
+      </div>
+      <button class="modal-close" onclick="LoungeHome.closeNotepadEdit()">✕</button>
+    </div>
+    <div class="board-modal-body">
+      <div class="board-form">
+        <input class="board-input" id="notepad-edit-opponent" maxlength="80" placeholder="클럽상대">
+        <input class="board-input" id="notepad-edit-line1" maxlength="120" placeholder="알림 1">
+        <input class="board-input" id="notepad-edit-line2" maxlength="120" placeholder="알림 2">
+        <input class="board-input" id="notepad-edit-line3" maxlength="120" placeholder="알림 3">
+        <div id="notepad-edit-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="LoungeHome.closeNotepadEdit()">취소</button>
+          <button class="bp" id="notepad-save-btn" onclick="LoungeHome.saveNotepad()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-<script src="api.js?v=1777810012132"></script>
+<div id="notice-modal-bg" class="board-modal-bg" style="display:none;" onclick="if(event.target===this)LoungeHome.closeNoticeModal()">
+  <div class="board-modal">
+    <div class="board-modal-hd">
+      <div>
+        <div class="board-modal-kicker">공지사항</div>
+        <div class="board-modal-title" id="notice-modal-title"></div>
+      </div>
+      <div class="board-modal-actions">
+        <button class="board-delete-btn" id="notice-delete-btn" onclick="LoungeHome.confirmDeleteNotice()" style="display:none;">삭제</button>
+        <button class="modal-close" onclick="LoungeHome.closeNoticeModal()">✕</button>
+      </div>
+    </div>
+    <div class="board-modal-body" id="notice-modal-body"></div>
+  </div>
+</div>
+
+<div id="notice-delete-confirm" class="board-confirm-bg" style="display:none;" onclick="if(event.target===this)LoungeHome.closeDeleteConfirm()">
+  <div class="board-confirm-modal">
+    <div class="board-confirm-title">공지 삭제</div>
+    <div class="board-confirm-text">삭제한 공지는 목록에서 사라집니다. 계속할까요?</div>
+    <div id="notice-delete-err" class="err-msg" style="display:none;margin-top:10px;"></div>
+    <div class="board-confirm-actions">
+      <button class="bs" onclick="LoungeHome.closeDeleteConfirm()">취소</button>
+      <button class="bp board-danger-btn" id="notice-delete-confirm-btn" onclick="LoungeHome.deleteCurrentNotice()">삭제</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="api.js?v=1777810012133"></script>
 
 
 
 
 
-<script src="app.js?v=1777810012132"></script>
+<script src="app.js?v=1777810012133"></script>
 </body>
 </html>

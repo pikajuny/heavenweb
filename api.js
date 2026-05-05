@@ -57,3 +57,33 @@ const BoardApi = {
     });
   }
 };
+
+const LoungeApi = {
+  endpoint: window.COMPYA_LOUNGE_API_ENDPOINT || '/api/lounge',
+
+  call(action, args = []) {
+    return fetch(this.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, args })
+    }).then(async res => {
+      const text = await res.text();
+      let payload;
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch (_) {
+        throw new Error('Lounge API returned non-JSON response: ' + text.slice(0, 300));
+      }
+      if (!res.ok) {
+        throw new Error((payload && payload.error) || ('Lounge API request failed: ' + res.status));
+      }
+      if (!payload || payload.ok !== true) {
+        throw new Error((payload && payload.error) || 'Lounge API request failed');
+      }
+      if (!payload.result || payload.result.success !== true) {
+        throw new Error((payload.result && payload.result.error) || 'Lounge API request failed');
+      }
+      return payload.result.data;
+    });
+  }
+};
