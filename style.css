@@ -1801,7 +1801,7 @@ input, select, textarea { font-family: inherit; }
   overflow:hidden;
 }
 .lounge-row-compact.is-stacked .lounge-sec--compact {
-  height:clamp(220px, 38vh, 320px);
+  height:auto;
 }
 .lounge-sec--compact .lounge-sec-hd {
   min-height:25px;

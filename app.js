@@ -3651,6 +3651,7 @@ const LoungeHome = {
         return;
       }
       body.innerHTML = '<div class="board-empty">아직 공지사항이 없습니다.</div>';
+      updateLoungeCompactLayout();
       return;
     }
     body.innerHTML = `<div class="notice-list">${notices.map(notice => `
@@ -3660,10 +3661,12 @@ const LoungeHome = {
         <div class="notice-row-time">${escapeHtml(this.formatTime(notice.createdAt))}</div>
       </div>
     `).join('')}</div>`;
+    updateLoungeCompactLayout();
   },
 
   getNoticePageSize() {
     const body = document.getElementById('notice-list-body');
+    if (isLoungeHomeStacked()) return getLoungeCompactMaxRows();
     const height = body?.clientHeight || 0;
     const rowHeight = 31;
     return Math.max(3, Math.min(10, Math.floor(height / rowHeight) || 3));
@@ -3906,6 +3909,7 @@ const Board = {
 
   getPageSize() {
     const body = document.getElementById('board-list-body');
+    if (isLoungeHomeStacked()) return getLoungeCompactMaxRows();
     const height = body?.clientHeight || 0;
     const rowHeight = 31;
     return Math.max(3, Math.min(50, Math.floor(height / rowHeight) || 3));
@@ -3940,6 +3944,7 @@ const Board = {
         return;
       }
       body.innerHTML = '<div class="board-empty">아직 작성된 글이 없습니다.</div>';
+      updateLoungeCompactLayout();
       return;
     }
     body.innerHTML = `<div class="board-list">${posts.map(post => `
@@ -3953,6 +3958,7 @@ const Board = {
         <div class="board-row-time">${escapeHtml(this.formatTime(post.createdAt))}</div>
       </div>
     `).join('')}</div>`;
+    updateLoungeCompactLayout();
   },
 
   formatTime(value) {
@@ -4947,7 +4953,36 @@ function updateLoungeCompactLayout() {
   if (!row) return;
   const sections = Array.from(row.querySelectorAll('.lounge-sec--compact'));
   if (sections.length < 2) return;
-  row.classList.toggle('is-stacked', sections[1].offsetTop > sections[0].offsetTop);
+  const wasStacked = row.classList.contains('is-stacked');
+  const isStacked = sections[1].offsetTop > sections[0].offsetTop;
+  row.classList.toggle('is-stacked', isStacked);
+  sections.forEach(section => {
+    section.style.height = isStacked ? getLoungeCompactSectionHeight(section) + 'px' : '';
+  });
+  if (wasStacked !== isStacked && row.offsetParent !== null) {
+    setTimeout(() => {
+      if (typeof LoungeHome !== 'undefined' && !LoungeHome._loading) LoungeHome.load();
+      if (typeof Board !== 'undefined' && !Board._loading) Board.load();
+    }, 0);
+  }
+}
+
+function isLoungeHomeStacked() {
+  const row = document.querySelector('#lounge-tab-home .lounge-row-compact');
+  return !!row && row.classList.contains('is-stacked');
+}
+
+function getLoungeCompactMaxRows() {
+  const maxBodyHeight = Math.min(window.innerHeight * 0.38, 320) - 25;
+  return Math.max(3, Math.min(10, Math.floor(maxBodyHeight / 31) || 3));
+}
+
+function getLoungeCompactSectionHeight(section) {
+  const rowCount = section.querySelectorAll('.notice-row, .board-row').length;
+  const hasEmpty = !!section.querySelector('.board-empty, .lounge-sec-loading, .lounge-sec-err');
+  const rows = rowCount || (hasEmpty ? 3 : 1);
+  const visibleRows = Math.min(rows, getLoungeCompactMaxRows());
+  return 25 + visibleRows * 31;
 }
 
 function applyOrderBarScaleById(barId) {
