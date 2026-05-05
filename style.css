@@ -1639,7 +1639,7 @@ input, select, textarea { font-family: inherit; }
   box-sizing:border-box;
   display:flex;
   align-items:flex-start;
-  justify-content:center;
+  justify-content:flex-start;
   padding:6px 16px 8px;
   background:var(--bg-secondary);
   border-bottom:1px solid var(--border-medium);
