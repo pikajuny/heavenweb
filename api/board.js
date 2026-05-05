@@ -112,6 +112,27 @@ async function createPost(clubId, teamName, title, body) {
   return mapPost(post);
 }
 
+async function updatePost(clubId, postId, title, body) {
+  const db = requireSupabase();
+  clubId = cleanText(clubId, 40, '구단명');
+  postId = cleanText(postId, 80, '글ID');
+  title = cleanText(title, 80, '제목');
+  body = cleanText(body, 3000, '내용');
+
+  const { data: post, error } = await db
+    .from('board_posts')
+    .update({ title, body })
+    .eq('id', postId)
+    .eq('club_id', clubId)
+    .is('deleted_at', null)
+    .select('id, club_id, team_name, title, body, comment_count, last_comment_at, created_at, updated_at')
+    .maybeSingle();
+  if (error) throw error;
+  if (!post) throw new Error('수정할 수 없는 글입니다.');
+
+  return getPost(clubId, post.id);
+}
+
 async function getPost(clubId, postId) {
   const db = requireSupabase();
   clubId = cleanText(clubId, 40, '구단명');
@@ -159,6 +180,54 @@ async function addComment(clubId, postId, body) {
   return getPost(clubId, postId);
 }
 
+async function refreshPostCommentSummary(db, postId) {
+  const { count, error: countError } = await db
+    .from('board_comments')
+    .select('id', { count: 'exact', head: true })
+    .eq('post_id', postId)
+    .is('deleted_at', null);
+  if (countError) throw countError;
+
+  const { data: latest, error: latestError } = await db
+    .from('board_comments')
+    .select('created_at')
+    .eq('post_id', postId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (latestError) throw latestError;
+
+  const { error: updateError } = await db
+    .from('board_posts')
+    .update({
+      comment_count: count || 0,
+      last_comment_at: latest?.created_at || null,
+    })
+    .eq('id', postId);
+  if (updateError) throw updateError;
+}
+
+async function deleteComment(clubId, commentId) {
+  const db = requireSupabase();
+  clubId = cleanText(clubId, 40, '구단명');
+  commentId = cleanText(commentId, 80, '댓글ID');
+
+  const { data: comment, error } = await db
+    .from('board_comments')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', commentId)
+    .eq('club_id', clubId)
+    .is('deleted_at', null)
+    .select('post_id')
+    .maybeSingle();
+  if (error) throw error;
+  if (!comment) throw new Error('삭제할 수 없는 댓글입니다.');
+
+  await refreshPostCommentSummary(db, comment.post_id);
+  return getPost(clubId, comment.post_id);
+}
+
 async function deletePost(clubId, postId) {
   const db = requireSupabase();
   clubId = cleanText(clubId, 40, '구단명');
@@ -181,8 +250,10 @@ async function deletePost(clubId, postId) {
 const handlers = {
   listPosts,
   createPost,
+  updatePost,
   getPost,
   addComment,
+  deleteComment,
   deletePost,
 };
 

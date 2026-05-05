@@ -174,6 +174,25 @@ async function createNotice(email, authorName, title, body) {
   return { notice: mapNotice(data), isAdmin: true };
 }
 
+async function updateNotice(email, noticeId, title, body) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  await requireAdmin(db, email);
+  noticeId = cleanText(noticeId, 80, '공지ID');
+  title = cleanText(title, 100, '제목');
+  body = cleanText(body, 4000, '내용');
+  const { data, error } = await db
+    .from('lounge_notices')
+    .update({ title, body })
+    .eq('id', noticeId)
+    .is('deleted_at', null)
+    .select('id, title, body, author_email, author_name, created_at, updated_at')
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('수정할 수 없는 공지입니다.');
+  return { notice: mapNotice(data), isAdmin: true };
+}
+
 async function getNotice(email, noticeId) {
   const db = requireSupabase();
   email = cleanEmail(email);
@@ -211,6 +230,7 @@ const handlers = {
   saveNotepad,
   listNotices,
   createNotice,
+  updateNotice,
   getNotice,
   deleteNotice,
 };

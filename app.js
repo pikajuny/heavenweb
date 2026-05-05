@@ -3743,7 +3743,7 @@ const LoungeHome = {
     if (!this._isAdmin) return;
     this._currentNoticeId = '';
     this._currentNotice = null;
-    this.setNoticeDeleteVisible(false);
+    this.setNoticeOwnerControls(false);
     document.getElementById('notice-modal-title').textContent = '공지 글쓰기';
     document.getElementById('notice-modal-body').innerHTML = `
       <div class="board-form">
@@ -3785,7 +3785,7 @@ const LoungeHome = {
   openNotice(noticeId) {
     this._currentNoticeId = noticeId;
     this._currentNotice = null;
-    this.setNoticeDeleteVisible(false);
+    this.setNoticeOwnerControls(false);
     document.getElementById('notice-modal-title').textContent = '불러오는 중...';
     document.getElementById('notice-modal-body').innerHTML = '<div class="lounge-sec-loading">공지 불러오는 중...</div>';
     document.getElementById('notice-modal-bg').style.display = 'flex';
@@ -3801,7 +3801,7 @@ const LoungeHome = {
   renderNotice(notice) {
     this._currentNotice = notice || null;
     document.getElementById('notice-modal-title').textContent = notice?.title || '';
-    this.setNoticeDeleteVisible(this._isAdmin && !!notice);
+    this.setNoticeOwnerControls(this._isAdmin && !!notice);
     document.getElementById('notice-modal-body').innerHTML = `
       <div class="board-post-meta notice-post-meta">
         <span>${escapeHtml(notice?.authorName || '-')}</span>
@@ -3811,11 +3811,47 @@ const LoungeHome = {
       <div class="board-post-body">${escapeHtml(notice?.body || '')}</div>`;
   },
 
-  setNoticeDeleteVisible(visible) {
-    const btn = document.getElementById('notice-delete-btn');
-    if (!btn) return;
-    btn.style.display = visible ? 'inline-flex' : 'none';
-    btn.disabled = false;
+  setNoticeOwnerControls(visible) {
+    ['notice-edit-btn', 'notice-delete-btn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.style.display = visible ? 'inline-flex' : 'none';
+      btn.disabled = false;
+    });
+  },
+
+  openNoticeEdit() {
+    if (!this._isAdmin || !this._currentNotice) return;
+    this.setNoticeOwnerControls(false);
+    document.getElementById('notice-modal-title').textContent = '공지 수정';
+    document.getElementById('notice-modal-body').innerHTML = `
+      <div class="board-form">
+        <input class="board-input" id="notice-edit-title" maxlength="100" placeholder="제목" value="${escapeHtml(this._currentNotice.title || '')}">
+        <textarea class="board-textarea" id="notice-edit-body" maxlength="4000" placeholder="내용">${escapeHtml(this._currentNotice.body || '')}</textarea>
+        <div id="notice-edit-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="LoungeHome.renderNotice(LoungeHome._currentNotice)">취소</button>
+          <button class="bp" id="notice-edit-submit" onclick="LoungeHome.submitNoticeEdit()">저장</button>
+        </div>
+      </div>`;
+  },
+
+  submitNoticeEdit() {
+    if (!this._isAdmin || !this._currentNoticeId) return;
+    const title = document.getElementById('notice-edit-title')?.value || '';
+    const body = document.getElementById('notice-edit-body')?.value || '';
+    const btn = document.getElementById('notice-edit-submit');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+    LoungeApi.call('updateNotice', [State.email || '', this._currentNoticeId, title, body]).then(data => {
+      this._currentNotice = data.notice || null;
+      this._isAdmin = !!data.isAdmin;
+      this.renderNotice(this._currentNotice);
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      showErr('notice-edit-err', e.message);
+    });
   },
 
   confirmDeleteNotice() {
@@ -3992,7 +4028,7 @@ const Board = {
   openWrite() {
     this._currentPostId = '';
     this._currentPost = null;
-    this.setDeleteVisible(false);
+    this.setOwnerControls(false);
     document.getElementById('board-modal-title').textContent = '글쓰기';
     document.getElementById('board-modal-body').innerHTML = `
       <div class="board-form">
@@ -4033,7 +4069,7 @@ const Board = {
   open(postId) {
     this._currentPostId = postId;
     this._currentPost = null;
-    this.setDeleteVisible(false);
+    this.setOwnerControls(false);
     document.getElementById('board-modal-title').textContent = '불러오는 중...';
     document.getElementById('board-modal-body').innerHTML = '<div class="lounge-sec-loading">게시글 불러오는 중...</div>';
     document.getElementById('board-modal-bg').style.display = 'flex';
@@ -4047,8 +4083,9 @@ const Board = {
 
   renderPost(post, comments) {
     this._currentPost = post || null;
+    this._currentComments = comments || [];
     document.getElementById('board-modal-title').textContent = post.title || '';
-    this.setDeleteVisible(post?.clubId === State.clubId);
+    this.setOwnerControls(post?.clubId === State.clubId);
     document.getElementById('board-modal-body').innerHTML = `
       <div class="board-post-meta">
         <span>${escapeHtml(post.clubId || '-')}</span>
@@ -4064,6 +4101,7 @@ const Board = {
               <span>${escapeHtml(comment.clubId || '-')}</span>
               <span>|</span>
               <span>${escapeHtml(this.formatDateTime(comment.createdAt))}</span>
+              ${comment.clubId === State.clubId ? `<button class="comment-delete-btn" onclick="Board.deleteComment(event,'${escapeHtml(comment.commentId)}')">삭제</button>` : ''}
             </div>
             <div class="board-comment-body">${escapeHtml(comment.body || '')}</div>
           </div>
@@ -4076,11 +4114,60 @@ const Board = {
       <div id="board-comment-err" class="err-msg" style="display:none;margin-top:8px;"></div>`;
   },
 
-  setDeleteVisible(visible) {
-    const btn = document.getElementById('board-delete-btn');
-    if (!btn) return;
-    btn.style.display = visible ? 'inline-flex' : 'none';
-    btn.disabled = false;
+  setOwnerControls(visible) {
+    ['board-edit-btn', 'board-delete-btn'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.style.display = visible ? 'inline-flex' : 'none';
+      btn.disabled = false;
+    });
+  },
+
+  openEditPost() {
+    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
+    this.setOwnerControls(false);
+    document.getElementById('board-modal-title').textContent = '글 수정';
+    document.getElementById('board-modal-body').innerHTML = `
+      <div class="board-form">
+        <input class="board-input" id="board-edit-title" maxlength="80" placeholder="제목" value="${escapeHtml(this._currentPost.title || '')}">
+        <textarea class="board-textarea" id="board-edit-body" maxlength="2000" placeholder="내용">${escapeHtml(this._currentPost.body || '')}</textarea>
+        <div id="board-edit-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="Board.renderPost(Board._currentPost, Board._currentComments || [])">취소</button>
+          <button class="bp" id="board-edit-submit" onclick="Board.submitPostEdit()">저장</button>
+        </div>
+      </div>`;
+  },
+
+  submitPostEdit() {
+    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
+    const title = document.getElementById('board-edit-title')?.value || '';
+    const body = document.getElementById('board-edit-body')?.value || '';
+    const btn = document.getElementById('board-edit-submit');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+    BoardApi.call('updatePost', [State.clubId, this._currentPostId, title, body]).then(data => {
+      this.renderPost(data.post, data.comments || []);
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      showErr('board-edit-err', e.message);
+    });
+  },
+
+  deleteComment(event, commentId) {
+    if (event) event.stopPropagation();
+    if (!commentId) return;
+    const btn = event?.currentTarget;
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '삭제 중'; }
+    BoardApi.call('deleteComment', [State.clubId, commentId]).then(data => {
+      this.renderPost(data.post, data.comments || []);
+      this.load();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
+      showErr('board-comment-err', e.message);
+    });
   },
 
   confirmDelete() {

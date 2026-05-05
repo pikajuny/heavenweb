@@ -2126,6 +2126,7 @@ input, select, textarea { font-family: inherit; }
   gap:7px;
   flex-shrink:0;
 }
+.board-edit-btn,
 .board-delete-btn {
   min-height:26px;
   display:inline-flex;
@@ -2139,6 +2140,15 @@ input, select, textarea { font-family: inherit; }
   font-size:11px;
   font-weight:700;
   cursor:pointer;
+}
+.board-edit-btn {
+  border-color:rgba(88,166,255,0.42);
+  background:rgba(88,166,255,0.1);
+  color:var(--accent);
+}
+.board-edit-btn:hover:not(:disabled) {
+  border-color:var(--accent);
+  background:rgba(88,166,255,0.18);
 }
 .board-delete-btn:hover:not(:disabled) {
   border-color:#ff7b72;
@@ -2211,10 +2221,25 @@ input, select, textarea { font-family: inherit; }
 }
 .board-comment-meta {
   display:flex;
+  align-items:center;
   gap:7px;
   margin-bottom:4px;
   color:var(--text-tertiary);
   font-size:10px;
+}
+.comment-delete-btn {
+  margin-left:auto;
+  padding:0 5px;
+  border:1px solid rgba(248,81,73,0.36);
+  border-radius:4px;
+  background:rgba(248,81,73,0.08);
+  color:#ff7b72;
+  font-size:10px;
+  line-height:17px;
+  cursor:pointer;
+}
+.comment-delete-btn:hover:not(:disabled) {
+  background:rgba(248,81,73,0.16);
 }
 .board-comment-body {
   white-space:pre-wrap;
