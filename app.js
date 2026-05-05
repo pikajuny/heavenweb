@@ -2829,9 +2829,20 @@ const SwapModal = {
       if (!slot || !newP) { hideLoading(); return; }
       const needsStorageSwap = currentP && currentP[HITTER_COL.NAME] === newP[HITTER_COL.NAME];
       if (!slot.pid) {
-        const usedOrders = HitterTab.lineup.filter(s => s.order).map(s => s.order);
+        const usedOrders = new Set();
+        (State.hitterLineup || []).forEach(r => {
+          const n = Number(r?.order ?? r?.[1]);
+          if (n >= 1 && n <= 9) usedOrders.add(n);
+        });
+        HitterTab.lineup.forEach(s => {
+          const n = Number(s.order);
+          if (n >= 1 && n <= 9) usedOrders.add(n);
+        });
         for (let i = 1; i <= 9; i++) {
-          if (!usedOrders.includes(i)) { slot.order = i; break; }
+          if (!usedOrders.has(i)) {
+            slot.order = i;
+            break;
+          }
         }
       }
       const slotIndex = ['C','1B','2B','3B','SS','LF','CF','RF','DH'].indexOf(slotKey) + 1;
