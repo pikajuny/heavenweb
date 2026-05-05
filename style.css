@@ -1653,7 +1653,7 @@ input, select, textarea { font-family: inherit; }
 }
 .notepad-wrap {
   width:100%;
-  max-width:1160px;
+  max-width:360px;
   display:flex;
   flex-direction:column;
   gap:4px;
