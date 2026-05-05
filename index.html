@@ -541,6 +541,17 @@
         <span class="deck-desc">라올기용 <span style="font-size:12px;color:var(--text-tertiary);">(스페셜 대신 선택팀)</span></span>
         <button class="toggle-btn" id="deck-raol" onclick="TeamTab.toggleRaol(this)">OFF</button>
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin:4px 0 6px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:11px;color:var(--text-secondary);">타자연도:</span>
+          <input type="number" class="kv-edit" id="year-batter" min="1900" max="2099" style="width:60px;text-align:center;font-size:11px;">
+        </div>
+        <span style="font-size:11px;color:var(--text-tertiary);">/</span>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input type="number" class="kv-edit" id="year-pitcher" min="1900" max="2099" style="width:60px;text-align:center;font-size:11px;">
+          <span style="font-size:11px;color:var(--text-secondary);">:투수연도</span>
+        </div>
+      </div>
       <div id="setdeck-list"></div>
     </div>
   </div>
