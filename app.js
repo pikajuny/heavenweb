@@ -2888,7 +2888,6 @@ const DragConfirmModal = {
     modal = document.createElement('div');
     modal.id = 'drag-confirm-modal';
     modal.className = 'drag-confirm-bg';
-    modal.onclick = e => { if (e.target === modal) DragConfirmModal.close(); };
     modal.innerHTML = `
       <div class="drag-confirm-modal" onclick="event.stopPropagation()">
         <div class="drag-confirm-hd">
