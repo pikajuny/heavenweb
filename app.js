@@ -3604,6 +3604,7 @@ const LoungeHome = {
     const body = document.getElementById('notice-list-body');
     if (!body || this._loading) return;
     this._loading = true;
+    this._noticePageSize = this.getNoticePageSize();
     this.updateNoticeControls();
     body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
     LoungeApi.call('getHome', [State.email || '', this._noticePageSize, this._noticePage * this._noticePageSize]).then(data => {
@@ -3658,6 +3659,13 @@ const LoungeHome = {
         <div class="notice-row-time">${escapeHtml(this.formatTime(notice.createdAt))}</div>
       </div>
     `).join('')}</div>`;
+  },
+
+  getNoticePageSize() {
+    const body = document.getElementById('notice-list-body');
+    const height = body?.clientHeight || 0;
+    const rowHeight = 31;
+    return Math.max(3, Math.min(10, Math.floor(height / rowHeight) || 3));
   },
 
   updateAdminControls() {

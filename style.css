@@ -3220,6 +3220,12 @@ input, select, textarea { font-family: inherit; }
 
 @media (max-width: 960px) {
   /* 라운지: 좌우 섹션이 더 줄어들기 어려울 때 아래로 스택 */
+  .lounge-row-compact {
+    min-height:0;
+  }
+  .lounge-sec--compact {
+    height:clamp(220px, 38vh, 320px);
+  }
   .lounge-sec--half {
     width: 100%;
     max-width: none;
