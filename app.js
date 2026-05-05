@@ -1880,9 +1880,23 @@ function onPotmChange(key, checked, isHitter) {
 function onSetpoChange(input) {
   const key = input.dataset.key;
   const isHitter = input.dataset.ishitter !== 'false';
-  const checkboxes = document.querySelectorAll(`.setpo-chk[data-key="${key}"][data-ishitter="${input.dataset.ishitter}"]`);
-  const vals = Array.from(checkboxes).map(c => c.checked);
-  Api.call('saveSetpo', [State.clubId, key, vals[0], vals[1], vals[2], isHitter]).then(() => App.refreshPlayers(isHitter)).catch(err => alert('저장 실패: ' + err.message));
+
+  const scope =
+    input.closest('#hsd-checks') ||
+    input.closest('#psd-checks') ||
+    input.closest('.storage-row') ||
+    input.closest('.storage-item') ||
+    document;
+
+  const checkboxes = scope.querySelectorAll(
+    `.setpo-chk[data-key="${key}"][data-ishitter="${input.dataset.ishitter}"]`
+  );
+
+  const vals = Array.from(checkboxes).slice(0, 3).map(c => c.checked);
+
+  Api.call('saveSetpo', [State.clubId, key, vals[0], vals[1], vals[2], isHitter])
+    .then(() => App.refreshPlayers(isHitter))
+    .catch(err => alert('저장 실패: ' + err.message));
 }
 
 function onDeletePlayer(key, isHitter) {
