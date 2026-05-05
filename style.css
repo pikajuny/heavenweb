@@ -1638,9 +1638,9 @@ input, select, textarea { font-family: inherit; }
   height:var(--shortcut-h, 100px);
   box-sizing:border-box;
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:center;
-  padding:8px 16px;
+  padding:6px 16px 8px;
   background:var(--bg-secondary);
   border-bottom:1px solid var(--border-medium);
   position:sticky;
@@ -1656,7 +1656,7 @@ input, select, textarea { font-family: inherit; }
   max-width:1160px;
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:4px;
 }
 .notepad-top {
   display:flex;
@@ -1684,19 +1684,19 @@ input, select, textarea { font-family: inherit; }
   flex-shrink:0;
 }
 .notepad-lines {
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:8px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
 }
 .notepad-line {
   min-width:0;
   display:flex;
   align-items:center;
   gap:7px;
-  padding:7px 10px;
-  border:1px solid var(--border-light);
-  border-radius:6px;
-  background:rgba(255,255,255,0.025);
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
   color:var(--text-primary);
   font-size:12px;
   font-weight:600;
@@ -1705,20 +1705,18 @@ input, select, textarea { font-family: inherit; }
   text-overflow:ellipsis;
 }
 .notepad-line span {
-  width:16px;
-  height:16px;
+  width:14px;
+  height:14px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   flex-shrink:0;
-  border-radius:4px;
-  background:var(--bg-tertiary);
+  border-radius:3px;
+  background:rgba(255,255,255,0.045);
   color:var(--text-tertiary);
   font-size:10px;
 }
 .notepad-line-empty {
-  grid-column:1 / -1;
-  justify-content:center;
   color:var(--text-tertiary);
   font-weight:500;
 }
@@ -3222,9 +3220,6 @@ input, select, textarea { font-family: inherit; }
 
 @media (max-width: 960px) {
   /* 라운지: 좌우 섹션이 더 줄어들기 어려울 때 아래로 스택 */
-  .notepad-lines {
-    grid-template-columns:1fr;
-  }
   .lounge-sec--half {
     width: 100%;
     max-width: none;
