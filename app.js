@@ -904,7 +904,7 @@ const SETDECK_ITEMS = [
   { key:'d70',  cell:'V7',  desc:'[70] 선발+1 vs 불펜+2' },
   { key:'d75',  cell:'V8',  desc:'[75] 연도 파정+3 vs 연도 구+3' },
   { key:'d80',  cell:'V9',  desc:'[80] 타자+1 vs 투수+1' },
-  { key:'d90',  cell:'V10', desc:'[90] 내포 인+2 vs 외지 선+2' },
+  { key:'d90',  cell:'V10', desc:'[95] 내포 인+2 vs 외지 선+2' },
   { key:'d100', cell:'X5',  desc:'[100] 타자+1 vs 투수+1' },
   { key:'d115', cell:'X6',  desc:'[115] 하위 정+2 vs 불펜 구+2' },
   { key:'d120', cell:'X7',  desc:'[120] 중심+2 vs 선발+1' },
