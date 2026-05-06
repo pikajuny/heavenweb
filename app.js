@@ -4038,7 +4038,32 @@ const Board = {
   },
 
   formatTime(value) {
-    return this.formatDateTime(value, { compact: true });
+    const text = String(value || '').trim();
+    if (!text) return '';
+
+    const date = new Date(text);
+    if (isNaN(date.getTime())) {
+      return this.formatDateTime(value, { compact: true });
+    }
+
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    if (diff < 172800) return '어제';
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${parts.month}.${parts.day}`;
   },
 
   formatDateTime(value, options = {}) {
