@@ -84,6 +84,56 @@ function mapNotice(row) {
   };
 }
 
+function mapHeavenLink(row) {
+  return {
+    slotIndex: Number(row.slot_index || 0),
+    name: row.name || '',
+    description: row.description || '',
+    url: row.url || '',
+    isActive: !!row.is_active,
+    updatedAt: row.updated_at || '',
+  };
+}
+
+function normalizeHeavenLinkUrl(url, isActive) {
+  const text = cleanText(url, 500, 'URL', false);
+  if (!text) {
+    if (isActive) throw new Error('활성화된 링크는 URL을 입력해주세요.');
+    return '';
+  }
+  let parsed;
+  try {
+    parsed = new URL(text);
+  } catch (_) {
+    throw new Error('URL 형식이 올바르지 않습니다.');
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('URL은 http 또는 https로 시작해야 합니다.');
+  }
+  return parsed.toString();
+}
+
+function normalizeHeavenLinks(links) {
+  const input = Array.isArray(links) ? links : [];
+  const bySlot = new Map(input.map(link => [Number(link?.slotIndex || link?.slot_index || 0), link]));
+  return [1, 2, 3, 4].map(slotIndex => {
+    const link = bySlot.get(slotIndex) || {};
+    const isActive = !!(link.isActive ?? link.is_active);
+    const name = cleanText(link.name, 80, '이름', false);
+    const description = cleanText(link.description, 160, '설명', false);
+    const url = normalizeHeavenLinkUrl(link.url, isActive);
+    if (isActive && !name) throw new Error('활성화된 링크는 이름을 입력해주세요.');
+    return {
+      slot_index: slotIndex,
+      name,
+      description,
+      url,
+      is_active: isActive,
+      updated_at: new Date().toISOString(),
+    };
+  });
+}
+
 async function getTodayNotepad(db, today) {
   const { data, error } = await db
     .from('lounge_notepad')
@@ -113,16 +163,53 @@ async function listNoticePage(db, limit = 10, offset = 0) {
   };
 }
 
+async function listHeavenLinkRows(db) {
+  const { data, error } = await db
+    .from('heaven_links')
+    .select('slot_index, name, description, url, is_active, updated_at')
+    .order('slot_index', { ascending: true });
+  if (error) throw error;
+  return [1, 2, 3, 4].map(slotIndex => {
+    const row = (data || []).find(link => Number(link.slot_index) === slotIndex);
+    return mapHeavenLink(row || { slot_index: slotIndex });
+  });
+}
+
 async function getHome(email, limit = 10, offset = 0) {
   const db = requireSupabase();
   email = cleanEmail(email);
   const today = todayKst();
-  const [isAdmin, notepad, notices] = await Promise.all([
+  const [isAdmin, notepad, notices, heavenLinks] = await Promise.all([
     isAdminEmail(db, email),
     getTodayNotepad(db, today),
     listNoticePage(db, limit, offset),
+    listHeavenLinkRows(db),
   ]);
-  return { isAdmin, notepad, notices };
+  return { isAdmin, notepad, notices, heavenLinks };
+}
+
+async function listHeavenLinks(email) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  const [isAdmin, heavenLinks] = await Promise.all([
+    isAdminEmail(db, email),
+    listHeavenLinkRows(db),
+  ]);
+  return { isAdmin, heavenLinks };
+}
+
+async function saveHeavenLinks(email, links) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  await requireAdmin(db, email);
+  const payload = normalizeHeavenLinks(links);
+  const { data, error } = await db
+    .from('heaven_links')
+    .upsert(payload, { onConflict: 'slot_index' })
+    .select('slot_index, name, description, url, is_active, updated_at')
+    .order('slot_index', { ascending: true });
+  if (error) throw error;
+  return { isAdmin: true, heavenLinks: (data || []).map(mapHeavenLink) };
 }
 
 async function saveNotepad(email, opponent, line1, line2, line3) {
@@ -227,6 +314,8 @@ async function deleteNotice(email, noticeId) {
 
 const handlers = {
   getHome,
+  listHeavenLinks,
+  saveHeavenLinks,
   saveNotepad,
   listNotices,
   createNotice,

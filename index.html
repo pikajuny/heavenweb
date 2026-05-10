@@ -151,26 +151,42 @@
 
       <div id="lounge-tab-home" class="lounge-tab-content">
         <div class="lounge-row lounge-row-compact">
-          <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-home">
-            <div class="lounge-sec-hd">
-              <div class="board-title-wrap">
-                <span class="lounge-sec-title">공지사항</span>
-                <div class="board-page-controls">
-                  <button class="rank-page-btn board-page-btn" id="notice-prev-btn" onclick="LoungeHome.prevNoticePage()" aria-label="이전 공지 목록" title="이전">‹</button>
-                  <button class="rank-page-btn board-page-btn" id="notice-next-btn" onclick="LoungeHome.nextNoticePage()" aria-label="다음 공지 목록" title="다음">›</button>
+          <div class="lounge-left-column lounge-sec--half">
+            <section class="lounge-sec lounge-sec--compact lounge-sec--heaven" id="lounge-sec-heaven">
+              <div class="lounge-sec-hd">
+                <div class="board-title-wrap">
+                  <span class="lounge-sec-title">HEAVEN LINK</span>
+                </div>
+                <div class="lounge-hd-actions">
+                  <button class="lounge-refresh-btn" id="heaven-link-edit-btn" onclick="LoungeHome.openHeavenLinkEdit()" style="display:none;">수정</button>
                 </div>
               </div>
-              <div class="lounge-hd-actions">
-                <button class="lounge-refresh-btn" id="notice-write-btn" onclick="LoungeHome.openNoticeWrite()" style="display:none;">글쓰기</button>
-                <button class="lounge-refresh-btn" onclick="LoungeHome.load()" aria-label="공지사항 새로고침" title="새로고침">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                </button>
+              <div id="heaven-link-list-body" class="lounge-sec-body lounge-compact-body">
+                <div class="lounge-sec-loading">불러오는 중...</div>
               </div>
-            </div>
-            <div id="notice-list-body" class="lounge-sec-body lounge-compact-body">
-              <div class="lounge-sec-loading">불러오는 중...</div>
-            </div>
-          </section>
+            </section>
+
+            <section class="lounge-sec lounge-sec--compact lounge-sec--notice" id="lounge-sec-home">
+              <div class="lounge-sec-hd">
+                <div class="board-title-wrap">
+                  <span class="lounge-sec-title">공지사항</span>
+                  <div class="board-page-controls">
+                    <button class="rank-page-btn board-page-btn" id="notice-prev-btn" onclick="LoungeHome.prevNoticePage()" aria-label="이전 공지 목록" title="이전">‹</button>
+                    <button class="rank-page-btn board-page-btn" id="notice-next-btn" onclick="LoungeHome.nextNoticePage()" aria-label="다음 공지 목록" title="다음">›</button>
+                  </div>
+                </div>
+                <div class="lounge-hd-actions">
+                  <button class="lounge-refresh-btn" id="notice-write-btn" onclick="LoungeHome.openNoticeWrite()" style="display:none;">글쓰기</button>
+                  <button class="lounge-refresh-btn" onclick="LoungeHome.load()" aria-label="공지사항 새로고침" title="새로고침">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                  </button>
+                </div>
+              </div>
+              <div id="notice-list-body" class="lounge-sec-body lounge-compact-body">
+                <div class="lounge-sec-loading">불러오는 중...</div>
+              </div>
+            </section>
+          </div>
 
           <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
             <div class="lounge-sec-hd">
@@ -928,6 +944,40 @@
         <div class="board-form-actions">
           <button class="bs" onclick="LoungeHome.closeNotepadEdit()">취소</button>
           <button class="bp" id="notepad-save-btn" onclick="LoungeHome.saveNotepad()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="heaven-link-modal-bg" class="board-modal-bg" style="display:none;">
+  <div class="board-modal notice-edit-modal">
+    <div class="board-modal-hd">
+      <div>
+        <div class="board-modal-kicker">HEAVEN LINK</div>
+        <div class="board-modal-title">HEAVEN LINK 수정</div>
+      </div>
+      <button class="modal-close" onclick="LoungeHome.closeHeavenLinkEdit()">✕</button>
+    </div>
+    <div class="board-modal-body">
+      <div class="heaven-link-tabs" role="tablist" aria-label="HEAVEN LINK 슬롯">
+        <button class="heaven-link-tab on" id="heaven-link-tab-1" onclick="LoungeHome.switchHeavenLinkSlot(1)" type="button">링크 1</button>
+        <button class="heaven-link-tab" id="heaven-link-tab-2" onclick="LoungeHome.switchHeavenLinkSlot(2)" type="button">링크 2</button>
+        <button class="heaven-link-tab" id="heaven-link-tab-3" onclick="LoungeHome.switchHeavenLinkSlot(3)" type="button">링크 3</button>
+        <button class="heaven-link-tab" id="heaven-link-tab-4" onclick="LoungeHome.switchHeavenLinkSlot(4)" type="button">링크 4</button>
+      </div>
+      <div class="board-form heaven-link-form">
+        <input class="board-input" id="heaven-link-name" maxlength="80" placeholder="이름">
+        <input class="board-input" id="heaven-link-description" maxlength="160" placeholder="설명">
+        <input class="board-input" id="heaven-link-url" maxlength="500" placeholder="URL">
+        <label class="heaven-link-active">
+          <input type="checkbox" id="heaven-link-active">
+          <span>활성화</span>
+        </label>
+        <div id="heaven-link-edit-err" class="err-msg" style="display:none;"></div>
+        <div class="board-form-actions">
+          <button class="bs" onclick="LoungeHome.closeHeavenLinkEdit()">취소</button>
+          <button class="bp" id="heaven-link-save-btn" onclick="LoungeHome.saveHeavenLinks()">저장</button>
         </div>
       </div>
     </div>

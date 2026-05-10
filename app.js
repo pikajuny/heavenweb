@@ -3624,6 +3624,9 @@ const LoungeHome = {
   _loading: false,
   _isAdmin: false,
   _notepad: null,
+  _heavenLinks: [],
+  _heavenDraft: [],
+  _heavenEditSlot: 1,
   _noticePage: 0,
   _noticePageSize: 10,
   _noticeHasNext: false,
@@ -3641,9 +3644,11 @@ const LoungeHome = {
       this._loading = false;
       this._isAdmin = !!data.isAdmin;
       this._notepad = data.notepad || null;
+      this._heavenLinks = this.normalizeHeavenLinks(data.heavenLinks || []);
       const noticeData = data.notices || {};
       this._noticeHasNext = !!noticeData.hasNext;
       this.renderNotepad(this._notepad);
+      this.renderHeavenLinks(this._heavenLinks);
       this.renderNotices(noticeData.notices || []);
       this.updateAdminControls();
       this.updateNoticeControls();
@@ -3652,6 +3657,8 @@ const LoungeHome = {
       this._noticeHasNext = false;
       this.updateNoticeControls();
       body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+      const heavenBody = document.getElementById('heaven-link-list-body');
+      if (heavenBody) heavenBody.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
       this.renderNotepad(null);
       this.updateAdminControls();
     });
@@ -3668,6 +3675,44 @@ const LoungeHome = {
     linesEl.innerHTML = lines.length
       ? lines.slice(0, 3).map((line, i) => `<div class="notepad-line"><span>${i + 1}</span>${escapeHtml(line)}</div>`).join('')
       : '<div class="notepad-line notepad-line-empty">알림장이 비어 있습니다.</div>';
+  },
+
+  normalizeHeavenLinks(links) {
+    const source = Array.isArray(links) ? links : [];
+    return [1, 2, 3, 4].map(slotIndex => {
+      const link = source.find(item => Number(item?.slotIndex || item?.slot_index) === slotIndex) || {};
+      return {
+        slotIndex,
+        name: String(link.name || ''),
+        description: String(link.description || ''),
+        url: String(link.url || ''),
+        isActive: !!(link.isActive ?? link.is_active),
+      };
+    });
+  },
+
+  renderHeavenLinks(links) {
+    const body = document.getElementById('heaven-link-list-body');
+    if (!body) return;
+    const activeLinks = this.normalizeHeavenLinks(links).filter(link => link.isActive && link.url).slice(0, 4);
+    if (!activeLinks.length) {
+      body.innerHTML = '<div class="board-empty">등록된 링크가 없습니다.</div>';
+      updateLoungeCompactLayout();
+      return;
+    }
+    body.innerHTML = `<div class="heaven-link-list">${activeLinks.map(link => `
+      <div class="heaven-link-row" data-url="${escapeHtml(link.url)}" onclick="LoungeHome.openHeavenLink(this.dataset.url)">
+        <div class="heaven-link-name">${link.name ? `${escapeHtml(link.name)} ↗` : '↗'}</div>
+        <div class="heaven-link-desc">${escapeHtml(link.description || '-')}</div>
+      </div>
+    `).join('')}</div>`;
+    updateLoungeCompactLayout();
+  },
+
+  openHeavenLink(url) {
+    const text = String(url || '').trim();
+    if (!text) return;
+    window.open(text, '_blank', 'noopener,noreferrer');
   },
 
   renderNotices(notices) {
@@ -3694,18 +3739,17 @@ const LoungeHome = {
   },
 
   getNoticePageSize() {
-    const body = document.getElementById('notice-list-body');
     if (isLoungeHomeStacked()) return getLoungeCompactMaxRows();
-    const height = body?.clientHeight || 0;
-    const rowHeight = 31;
-    return Math.max(3, Math.min(10, Math.floor(height / rowHeight) || 3));
+    return 5;
   },
 
   updateAdminControls() {
     const display = this._isAdmin ? 'inline-flex' : 'none';
     const notepadBtn = document.getElementById('notepad-edit-btn');
+    const heavenBtn = document.getElementById('heaven-link-edit-btn');
     const noticeBtn = document.getElementById('notice-write-btn');
     if (notepadBtn) notepadBtn.style.display = display;
+    if (heavenBtn) heavenBtn.style.display = display;
     if (noticeBtn) noticeBtn.style.display = display;
   },
 
@@ -3765,6 +3809,77 @@ const LoungeHome = {
     }).catch(e => {
       if (btn) { btn.disabled = false; btn.textContent = '저장'; }
       showErr('notepad-edit-err', e.message);
+    });
+  },
+
+  openHeavenLinkEdit() {
+    if (!this._isAdmin) return;
+    this._heavenDraft = this.normalizeHeavenLinks(this._heavenLinks).map(link => ({ ...link }));
+    this._heavenEditSlot = 1;
+    const err = document.getElementById('heaven-link-edit-err');
+    if (err) err.style.display = 'none';
+    this.renderHeavenLinkSlot();
+    document.getElementById('heaven-link-modal-bg').style.display = 'flex';
+    setTimeout(() => document.getElementById('heaven-link-name')?.focus(), 0);
+  },
+
+  closeHeavenLinkEdit() {
+    const modal = document.getElementById('heaven-link-modal-bg');
+    if (modal) modal.style.display = 'none';
+  },
+
+  switchHeavenLinkSlot(slotIndex) {
+    const slot = Math.max(1, Math.min(4, Number(slotIndex) || 1));
+    this.captureHeavenLinkSlot();
+    this._heavenEditSlot = slot;
+    this.renderHeavenLinkSlot();
+  },
+
+  captureHeavenLinkSlot() {
+    if (!this._heavenDraft.length) return;
+    const index = this._heavenEditSlot - 1;
+    if (!this._heavenDraft[index]) return;
+    this._heavenDraft[index] = {
+      slotIndex: this._heavenEditSlot,
+      name: document.getElementById('heaven-link-name')?.value || '',
+      description: document.getElementById('heaven-link-description')?.value || '',
+      url: document.getElementById('heaven-link-url')?.value || '',
+      isActive: !!document.getElementById('heaven-link-active')?.checked,
+    };
+  },
+
+  renderHeavenLinkSlot() {
+    const link = this._heavenDraft[this._heavenEditSlot - 1] || { name: '', description: '', url: '', isActive: false };
+    ['1', '2', '3', '4'].forEach(slot => {
+      const tab = document.getElementById('heaven-link-tab-' + slot);
+      if (tab) tab.classList.toggle('on', Number(slot) === this._heavenEditSlot);
+    });
+    const name = document.getElementById('heaven-link-name');
+    const description = document.getElementById('heaven-link-description');
+    const url = document.getElementById('heaven-link-url');
+    const active = document.getElementById('heaven-link-active');
+    if (name) name.value = link.name || '';
+    if (description) description.value = link.description || '';
+    if (url) url.value = link.url || '';
+    if (active) active.checked = !!link.isActive;
+  },
+
+  saveHeavenLinks() {
+    if (!this._isAdmin) return;
+    this.captureHeavenLinkSlot();
+    const btn = document.getElementById('heaven-link-save-btn');
+    if (btn?.disabled) return;
+    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
+    LoungeApi.call('saveHeavenLinks', [State.email || '', this._heavenDraft]).then(data => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      this._isAdmin = !!data.isAdmin;
+      this._heavenLinks = this.normalizeHeavenLinks(data.heavenLinks || []);
+      this.renderHeavenLinks(this._heavenLinks);
+      this.updateAdminControls();
+      this.closeHeavenLinkEdit();
+    }).catch(e => {
+      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
+      showErr('heaven-link-edit-err', e.message);
     });
   },
 
@@ -5067,11 +5182,15 @@ function updateStickyHeights() {
 function updateLoungeCompactLayout() {
   const row = document.querySelector('#lounge-tab-home .lounge-row-compact');
   if (!row) return;
+  const columns = getLoungeCompactColumns(row);
   const sections = Array.from(row.querySelectorAll('.lounge-sec--compact'));
-  if (sections.length < 2) return;
+  if (columns.length < 2 || sections.length < 2) return;
   const wasStacked = row.classList.contains('is-stacked');
-  const isStacked = sections[1].offsetTop > sections[0].offsetTop;
+  const isStacked = columns[1].offsetTop > columns[0].offsetTop;
   row.classList.toggle('is-stacked', isStacked);
+  columns.forEach(column => {
+    column.style.height = isStacked ? 'auto' : '';
+  });
   sections.forEach(section => {
     section.style.height = isStacked ? getLoungeCompactSectionHeight(section) + 'px' : '';
   });
@@ -5081,6 +5200,12 @@ function updateLoungeCompactLayout() {
       if (typeof Board !== 'undefined' && !Board._loading) Board.load();
     }, 0);
   }
+}
+
+function getLoungeCompactColumns(row) {
+  return Array.from(row.children).filter(child => {
+    return child.classList?.contains('lounge-left-column') || child.classList?.contains('lounge-sec--compact');
+  });
 }
 
 function isLoungeHomeStacked() {
@@ -5094,7 +5219,7 @@ function getLoungeCompactMaxRows() {
 }
 
 function getLoungeCompactSectionHeight(section) {
-  const rowCount = section.querySelectorAll('.notice-row, .board-row').length;
+  const rowCount = section.querySelectorAll('.heaven-link-row, .notice-row, .board-row').length;
   const hasEmpty = !!section.querySelector('.board-empty, .lounge-sec-loading, .lounge-sec-err');
   const rows = rowCount || (hasEmpty ? 3 : 1);
   const visibleRows = Math.min(rows, getLoungeCompactMaxRows());
