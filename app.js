@@ -3107,7 +3107,7 @@ const App = {
           const inviteInput = document.getElementById('invite-code-input');
           if (inviteInput) inviteInput.value = '';
           showScreen('login-screen');
-          showErr('login-err', '가입 정보가 삭제되었습니다. 초대코드로 다시 가입해주세요.');
+          showErr('login-err', '가입 정보가 삭제되었습니다.\n초대코드로 다시 가입해주세요.');
         } else if (res.needsSheet) {
           Api.call('getOrCreateUserSheet', [State.clubId]).then(() => showScreen('onboarding-screen')).catch(err => showErr('login-err', err.message));
         } else if (!res.hasData) {

@@ -45,8 +45,8 @@
 
     <!-- 신규 유저: 구단명 입력 -->
     <div id="login-new" style="display:none;">
-      <div class="login-sub">처음 오셨군요!<br>팀 정보와 구단명을 입력해주세요.</div>
-      <select class="login-select" id="kbo-team-select" style="margin-bottom:8px;">
+      <div class="login-sub login-new-sub">처음 오셨군요!<br>팀 정보와 구단명을 입력해주세요.</div>
+      <select class="login-select" id="kbo-team-select">
         <option value="">KBO 팀 선택</option>
         <option>두산 베어스</option>
         <option>삼성 라이온즈</option>
@@ -68,7 +68,6 @@
         placeholder="초대코드 6자리"
         style="text-align:left;padding:0 12px;margin-top:8px;"
         onkeydown="if(event.key==='Enter') App.register()">
-      <div style="height:8px;"></div>
       <button class="login-btn" onclick="App.register()">구단 등록</button>
     </div>
 

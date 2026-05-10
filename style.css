@@ -90,6 +90,14 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-secondary);
 }
 
+.login-new-sub {
+  margin-bottom: 16px;
+}
+
+#login-new .login-btn {
+  margin-top: 16px;
+}
+
 .onboarding-desc {
   font-size: 14px;
   color: var(--text-secondary);
@@ -279,6 +287,7 @@ input, select, textarea { font-family: inherit; }
   border-radius: var(--radius-md);
   width: 100%;
   text-align: center;
+  white-space: pre-line;
 }
 
 /* ================================================================

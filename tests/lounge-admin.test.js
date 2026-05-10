@@ -81,7 +81,9 @@ async function run() {
   const gasAuth = fs.readFileSync(path.join(__dirname, '..', '..', 'gas', 'Code_Auth.js'), 'utf8');
   assert.ok(gasAuth.includes('accountMissing'));
   assert.ok(appJs.includes('res.accountMissing'));
-  assert.ok(appJs.includes('가입 정보가 삭제되었습니다. 초대코드로 다시 가입해주세요.'));
+  assert.ok(appJs.includes('가입 정보가 삭제되었습니다.\\n초대코드로 다시 가입해주세요.'));
+  assert.ok(indexHtml.includes('login-sub login-new-sub'));
+  assert.ok(!indexHtml.includes('<div style="height:8px;"></div>'));
 }
 
 run().catch(err => {
