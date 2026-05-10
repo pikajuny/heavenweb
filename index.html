@@ -63,6 +63,11 @@
         placeholder="구단명 (예: 이정용)" maxlength="20"
         style="text-align:left;padding:0 12px;"
         onkeydown="if(event.key==='Enter') App.register()">
+      <input class="login-select" id="invite-code-input" type="text"
+        inputmode="numeric" pattern="[0-9]*" maxlength="6"
+        placeholder="초대코드 6자리"
+        style="text-align:left;padding:0 12px;margin-top:8px;"
+        onkeydown="if(event.key==='Enter') App.register()">
       <div style="height:8px;"></div>
       <button class="login-btn" onclick="App.register()">구단 등록</button>
     </div>
@@ -137,6 +142,7 @@
             <div class="notepad-date" id="notepad-date">오늘 날짜</div>
             <div class="notepad-opponent">클대: vs <span id="notepad-opponent">-</span></div>
             <button class="lounge-refresh-btn notepad-edit-btn" id="notepad-edit-btn" onclick="LoungeHome.openNotepadEdit()" style="display:none;">수정</button>
+            <button class="lounge-refresh-btn" id="lounge-admin-btn" onclick="LoungeAdmin.open()" style="display:none;">관리</button>
           </div>
           <div class="notepad-lines" id="notepad-lines">
             <div class="notepad-line">알림장이 비어 있습니다.</div>
@@ -980,6 +986,48 @@
           <button class="bp" id="heaven-link-save-btn" onclick="LoungeHome.saveHeavenLinks()">저장</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="admin-modal-bg" class="board-modal-bg" style="display:none;">
+  <div class="board-modal admin-modal">
+    <div class="board-modal-hd">
+      <div>
+        <div class="board-modal-kicker">관리자</div>
+        <div class="board-modal-title">가입 코드 · 유저 관리</div>
+      </div>
+      <button class="modal-close" onclick="LoungeAdmin.close()">✕</button>
+    </div>
+    <div class="board-modal-body admin-modal-body">
+      <section class="admin-panel-section">
+        <div class="admin-panel-label">오늘의 초대코드</div>
+        <div class="admin-invite-code" id="admin-invite-code">------</div>
+        <div class="admin-panel-help" id="admin-invite-date">KST 기준 매일 00:00에 바뀝니다.</div>
+        <div class="lounge-sec-err" id="admin-invite-err" style="display:none;"></div>
+      </section>
+      <section class="admin-panel-section">
+        <div class="admin-panel-label">유저 목록</div>
+        <div id="admin-user-list" class="admin-user-list">
+          <div class="lounge-sec-loading">불러오는 중...</div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="admin-eject-confirm" class="board-confirm-bg" style="display:none;">
+  <div class="board-confirm-modal admin-eject-confirm">
+    <div class="board-confirm-title">유저 퇴출</div>
+    <div class="board-confirm-text">
+      <b id="admin-eject-club-label"></b> 구단을 퇴출하려면 구단명을 다시 입력하세요.
+    </div>
+    <input class="board-input" id="admin-eject-input" type="text" placeholder="구단명 입력"
+      oninput="LoungeAdmin.updateEjectConfirm()">
+    <div id="admin-eject-err" class="err-msg" style="display:none;margin-top:10px;"></div>
+    <div class="board-confirm-actions">
+      <button class="bs" onclick="LoungeAdmin.closeEjectConfirm()">취소</button>
+      <button class="bp board-danger-btn" id="admin-eject-confirm-btn" onclick="LoungeAdmin.confirmEject()" disabled>퇴출</button>
     </div>
   </div>
 </div>

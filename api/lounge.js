@@ -61,6 +61,21 @@ async function requireAdmin(db, email) {
   if (!(await isAdminEmail(db, email))) throw new Error('권한이 없습니다.');
 }
 
+async function callGas(action, args = []) {
+  const gasUrl = process.env.GAS_API_URL || process.env.GAS_WEB_APP_URL;
+  if (!gasUrl) throw new Error('GAS_API_URL is not configured');
+  const res = await fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, args }),
+  });
+  const payload = await res.json();
+  if (!payload || payload.ok !== true) throw new Error(payload?.error || 'GAS request failed');
+  const result = payload.result;
+  if (!result || result.success !== true) throw new Error(result?.error || 'GAS action failed');
+  return result;
+}
+
 function mapNotepad(row, today) {
   return {
     dateKey: today.dateKey,
@@ -198,6 +213,28 @@ async function listHeavenLinks(email) {
   return { isAdmin, heavenLinks };
 }
 
+async function getTodayInviteCode(email) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  await requireAdmin(db, email);
+  return callGas('getTodayInviteCode', []);
+}
+
+async function listUsers(email) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  await requireAdmin(db, email);
+  return callGas('listUsers', []);
+}
+
+async function ejectUser(email, targetClubId) {
+  const db = requireSupabase();
+  email = cleanEmail(email);
+  targetClubId = cleanText(targetClubId, 40, '구단명');
+  await requireAdmin(db, email);
+  return callGas('deleteAccount', [targetClubId]);
+}
+
 async function saveHeavenLinks(email, links) {
   const db = requireSupabase();
   email = cleanEmail(email);
@@ -315,6 +352,9 @@ async function deleteNotice(email, noticeId) {
 const handlers = {
   getHome,
   listHeavenLinks,
+  getTodayInviteCode,
+  listUsers,
+  ejectUser,
   saveHeavenLinks,
   saveNotepad,
   listNotices,
@@ -324,7 +364,7 @@ const handlers = {
   deleteNotice,
 };
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -345,4 +385,8 @@ module.exports = async function handler(req, res) {
   } catch (err) {
     fail(res, err.message || String(err));
   }
-};
+}
+
+handler._internal = { callGas };
+
+module.exports = handler;

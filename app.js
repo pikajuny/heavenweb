@@ -3108,10 +3108,12 @@ const App = {
   register() {
     const teamName = document.getElementById('kbo-team-select').value;
     const clubId = document.getElementById('club-name-input').value.trim();
+    const inviteCode = document.getElementById('invite-code-input').value.trim();
     if (!teamName) { showErr('login-err', 'KBO 팀을 선택해주세요.'); return; }
     if (!clubId) { showErr('login-err', '구단명을 입력해주세요.'); return; }
+    if (!inviteCode) { showErr('login-err', '초대코드를 입력해주세요.'); return; }
     showLoading('구단 등록 중...');
-    Api.call('registerUser', [State.email, clubId, teamName]).then(res => {
+    Api.call('registerUser', [State.email, clubId, teamName, inviteCode]).then(res => {
         hideLoading();
         if (res.success) {
           State.clubId = res.clubId;
@@ -3759,9 +3761,11 @@ const LoungeHome = {
     const notepadBtn = document.getElementById('notepad-edit-btn');
     const heavenBtn = document.getElementById('heaven-link-edit-btn');
     const noticeBtn = document.getElementById('notice-write-btn');
+    const adminBtn = document.getElementById('lounge-admin-btn');
     if (notepadBtn) notepadBtn.style.display = display;
     if (heavenBtn) heavenBtn.style.display = display;
     if (noticeBtn) noticeBtn.style.display = display;
+    if (adminBtn) adminBtn.style.display = display;
   },
 
   updateNoticeControls() {
@@ -4088,6 +4092,125 @@ const LoungeHome = {
       return acc;
     }, {});
     return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
+  },
+};
+
+const LoungeAdmin = {
+  _targetClubId: '',
+
+  open() {
+    if (!LoungeHome._isAdmin) return;
+    const modal = document.getElementById('admin-modal-bg');
+    if (modal) modal.style.display = 'flex';
+    this.loadInviteCode();
+    this.loadUsers();
+  },
+
+  close() {
+    const modal = document.getElementById('admin-modal-bg');
+    if (modal) modal.style.display = 'none';
+    this.closeEjectConfirm();
+  },
+
+  loadInviteCode() {
+    const codeEl = document.getElementById('admin-invite-code');
+    const dateEl = document.getElementById('admin-invite-date');
+    const errEl = document.getElementById('admin-invite-err');
+    if (codeEl) codeEl.textContent = '------';
+    if (dateEl) dateEl.textContent = 'KST 기준 매일 00:00에 바뀝니다.';
+    if (errEl) errEl.style.display = 'none';
+    LoungeApi.call('getTodayInviteCode', [State.email || '']).then(data => {
+      if (codeEl) codeEl.textContent = data.code || '------';
+      if (dateEl) dateEl.textContent = `${data.dateKey || '오늘'} KST 암구호`;
+    }).catch(e => {
+      if (errEl) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+      }
+    });
+  },
+
+  loadUsers() {
+    const el = document.getElementById('admin-user-list');
+    if (!el) return;
+    el.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
+    LoungeApi.call('listUsers', [State.email || '']).then(data => {
+      this.renderUsers(data.users || []);
+    }).catch(e => {
+      el.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
+    });
+  },
+
+  renderUsers(users) {
+    const el = document.getElementById('admin-user-list');
+    if (!el) return;
+    if (!users.length) {
+      el.innerHTML = '<div class="admin-empty">등록된 유저가 없습니다.</div>';
+      return;
+    }
+    el.innerHTML = `<table class="admin-user-table">
+      <thead>
+        <tr><th>구단명</th><th>KBO팀</th><th>이메일</th><th>가입일</th><th></th></tr>
+      </thead>
+      <tbody>${users.map(u => `
+        <tr>
+          <td>${escapeHtml(u.clubId)}</td>
+          <td>${escapeHtml(u.teamName || '-')}</td>
+          <td>${escapeHtml(u.email || '-')}</td>
+          <td>${escapeHtml((u.registeredAt || '').slice(0, 10) || '-')}</td>
+          <td><button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">퇴출</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+    el.querySelectorAll('[data-club-id]').forEach(btn => {
+      btn.addEventListener('click', () => this.openEjectConfirm(btn.dataset.clubId || ''));
+    });
+  },
+
+  openEjectConfirm(clubId) {
+    this._targetClubId = clubId;
+    const modal = document.getElementById('admin-eject-confirm');
+    const label = document.getElementById('admin-eject-club-label');
+    const input = document.getElementById('admin-eject-input');
+    const err = document.getElementById('admin-eject-err');
+    if (label) label.textContent = clubId;
+    if (input) input.value = '';
+    if (err) err.style.display = 'none';
+    this.updateEjectConfirm();
+    if (modal) modal.style.display = 'flex';
+    setTimeout(() => input?.focus(), 0);
+  },
+
+  closeEjectConfirm() {
+    const modal = document.getElementById('admin-eject-confirm');
+    if (modal) modal.style.display = 'none';
+    this._targetClubId = '';
+  },
+
+  updateEjectConfirm() {
+    const input = document.getElementById('admin-eject-input');
+    const btn = document.getElementById('admin-eject-confirm-btn');
+    if (btn) btn.disabled = !this._targetClubId || (input?.value || '').trim() !== this._targetClubId;
+  },
+
+  confirmEject() {
+    const btn = document.getElementById('admin-eject-confirm-btn');
+    if (!this._targetClubId || btn?.disabled) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '퇴출 중...';
+    }
+    LoungeApi.call('ejectUser', [State.email || '', this._targetClubId]).then(() => {
+      if (btn) btn.textContent = '퇴출';
+      this.closeEjectConfirm();
+      this.loadUsers();
+    }).catch(e => {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '퇴출';
+      }
+      showErr('admin-eject-err', e.message);
+    });
   },
 };
 
