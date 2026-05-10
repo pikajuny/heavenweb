@@ -4150,15 +4150,13 @@ const LoungeAdmin = {
     }
     el.innerHTML = `<table class="admin-user-table">
       <thead>
-        <tr><th>구단명</th><th>KBO팀</th><th>이메일</th><th>가입일</th><th></th></tr>
+        <tr><th>구단명</th><th>KBO팀</th><th></th></tr>
       </thead>
       <tbody>${users.map(u => `
         <tr>
           <td>${escapeHtml(u.clubId)}</td>
           <td>${escapeHtml(u.teamName || '-')}</td>
-          <td>${escapeHtml(u.email || '-')}</td>
-          <td>${escapeHtml((u.registeredAt || '').slice(0, 10) || '-')}</td>
-          <td><button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">퇴출</button></td>
+          <td><button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">탈퇴</button></td>
         </tr>`).join('')}
       </tbody>
     </table>`;
@@ -4198,16 +4196,16 @@ const LoungeAdmin = {
     if (!this._targetClubId || btn?.disabled) return;
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '퇴출 중...';
+      btn.textContent = '탈퇴 중...';
     }
     LoungeApi.call('ejectUser', [State.email || '', this._targetClubId]).then(() => {
-      if (btn) btn.textContent = '퇴출';
+      if (btn) btn.textContent = '탈퇴';
       this.closeEjectConfirm();
       this.loadUsers();
     }).catch(e => {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = '퇴출';
+        btn.textContent = '탈퇴';
       }
       showErr('admin-eject-err', e.message);
     });

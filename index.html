@@ -1018,16 +1018,16 @@
 
 <div id="admin-eject-confirm" class="board-confirm-bg" style="display:none;">
   <div class="board-confirm-modal admin-eject-confirm">
-    <div class="board-confirm-title">유저 퇴출</div>
+    <div class="board-confirm-title">유저 탈퇴</div>
     <div class="board-confirm-text">
-      <b id="admin-eject-club-label"></b> 구단을 퇴출하려면 구단명을 다시 입력하세요.
+      <b id="admin-eject-club-label"></b> 구단을 탈퇴시키려면 구단명을 다시 입력하세요.
     </div>
     <input class="board-input" id="admin-eject-input" type="text" placeholder="구단명 입력"
       oninput="LoungeAdmin.updateEjectConfirm()">
     <div id="admin-eject-err" class="err-msg" style="display:none;margin-top:10px;"></div>
     <div class="board-confirm-actions">
       <button class="bs" onclick="LoungeAdmin.closeEjectConfirm()">취소</button>
-      <button class="bp board-danger-btn" id="admin-eject-confirm-btn" onclick="LoungeAdmin.confirmEject()" disabled>퇴출</button>
+      <button class="bp board-danger-btn" id="admin-eject-confirm-btn" onclick="LoungeAdmin.confirmEject()" disabled>탈퇴</button>
     </div>
   </div>
 </div>
