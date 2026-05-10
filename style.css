@@ -1829,6 +1829,7 @@ input, select, textarea { font-family: inherit; }
   overflow:hidden;
 }
 .lounge-row-compact.is-stacked .lounge-sec--compact {
+  flex:0 0 auto;
   height:auto;
   display:flex;
   flex-direction:column;
