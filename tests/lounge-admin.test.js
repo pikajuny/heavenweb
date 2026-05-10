@@ -84,12 +84,11 @@ async function run() {
   assert.ok(appJs.includes('가입 정보가 삭제되었습니다.\\n초대코드로 다시 가입해주세요.'));
   assert.ok(indexHtml.includes('login-sub login-new-sub'));
   assert.ok(!indexHtml.includes('<div style="height:8px;"></div>'));
-  assert.ok(indexHtml.includes('onclick="App.toggleTheme()"'));
-  assert.ok(appJs.includes('_themeKey'));
-  assert.ok(appJs.includes('applyTheme'));
-  assert.ok(appJs.includes('toggleTheme'));
   const styleCss = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
-  assert.ok(styleCss.includes('body.light-mode'));
+  assert.ok(!indexHtml.includes('App.toggleTheme'));
+  assert.ok(!appJs.includes('_themeKey'));
+  assert.ok(!appJs.includes('toggleTheme'));
+  assert.ok(!styleCss.includes('body.light-mode'));
 }
 
 run().catch(err => {
