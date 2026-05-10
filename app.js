@@ -3095,7 +3095,20 @@ const App = {
     showLoading('데이터 확인 중...');
     Api.call('checkOnboarding', [State.clubId]).then(res => {
         hideLoading();
-        if (res.needsSheet) {
+        if (res.accountMissing) {
+          App._clearSession();
+          State.clubId = null;
+          State.hitters = []; State.pitchers = [];
+          State.hitterLineup = []; State.pitcherLineup = [];
+          document.getElementById('login-existing').style.display = 'none';
+          document.getElementById('login-google').style.display = State.email ? 'none' : 'flex';
+          document.getElementById('login-new').style.display = State.email ? 'block' : 'none';
+          document.getElementById('club-name-input').value = '';
+          const inviteInput = document.getElementById('invite-code-input');
+          if (inviteInput) inviteInput.value = '';
+          showScreen('login-screen');
+          showErr('login-err', '가입 정보가 삭제되었습니다. 초대코드로 다시 가입해주세요.');
+        } else if (res.needsSheet) {
           Api.call('getOrCreateUserSheet', [State.clubId]).then(() => showScreen('onboarding-screen')).catch(err => showErr('login-err', err.message));
         } else if (!res.hasData) {
           showScreen('onboarding-screen');

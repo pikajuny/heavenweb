@@ -77,6 +77,11 @@ async function run() {
   assert.ok(indexHtml.includes('<div class="board-confirm-title">유저 탈퇴</div>'));
   assert.ok(indexHtml.includes('구단을 탈퇴시키려면 구단명을 다시 입력하세요.'));
   assert.ok(indexHtml.includes('disabled>탈퇴</button>'));
+
+  const gasAuth = fs.readFileSync(path.join(__dirname, '..', '..', 'gas', 'Code_Auth.js'), 'utf8');
+  assert.ok(gasAuth.includes('accountMissing'));
+  assert.ok(appJs.includes('res.accountMissing'));
+  assert.ok(appJs.includes('가입 정보가 삭제되었습니다. 초대코드로 다시 가입해주세요.'));
 }
 
 run().catch(err => {
