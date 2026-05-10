@@ -2058,6 +2058,7 @@ input, select, textarea { font-family: inherit; }
 }
 .heaven-link-name {
   font-weight:800;
+  color:#f0c040;
 }
 .heaven-link-desc {
   border-left:1px solid var(--border-light);
