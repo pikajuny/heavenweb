@@ -32,6 +32,23 @@
   --live-bd:   #378ADD;
 }
 
+body.light-mode {
+  --bg-primary:    #f7f9fc;
+  --bg-secondary:  #ffffff;
+  --bg-tertiary:   #edf2f7;
+  --text-primary:  #18202b;
+  --text-secondary:#5d6878;
+  --text-tertiary: #7b8796;
+  --border-light:  rgba(24,32,43,0.09);
+  --border-medium: rgba(24,32,43,0.16);
+  --border-strong: rgba(24,32,43,0.28);
+  --success-bg:    #e8f7ee;
+  --success-text:  #1f7a3d;
+  --danger-bg:     #fff0f0;
+  --danger-text:   #c73434;
+  --accent:        #0969da;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

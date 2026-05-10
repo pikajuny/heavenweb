@@ -3006,9 +3006,11 @@ const DragConfirmModal = {
 const App = {
   _loginPopup: null,
   _sessionKey: 'compya.login.v1',
+  _themeKey: 'compya.theme.v1',
   _sessionMaxAgeMs: 30 * 24 * 60 * 60 * 1000,
 
   init() {
+    this.applyTheme();
     window.addEventListener('message', e => {
       if (!e.data || (e.data.type !== 'gsi_success' && e.data.type !== 'gsi_error')) return;
       if (App._loginPopup) { try { App._loginPopup.close(); } catch(_) {} App._loginPopup = null; }
@@ -3042,6 +3044,21 @@ const App = {
     });
     if (this._restoreSession()) return;
     document.getElementById('login-google').style.display = 'flex';
+  },
+
+  applyTheme(theme) {
+    let nextTheme = theme;
+    if (!nextTheme) {
+      try { nextTheme = localStorage.getItem(this._themeKey) || 'dark'; } catch (_) { nextTheme = 'dark'; }
+    }
+    const isLight = nextTheme === 'light';
+    document.body.classList.toggle('light-mode', isLight);
+    try { localStorage.setItem(this._themeKey, isLight ? 'light' : 'dark'); } catch (_) {}
+  },
+
+  toggleTheme() {
+    const nextTheme = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+    this.applyTheme(nextTheme);
   },
 
   // Convenience-only auto-entry cache. This is not authentication or authorization.
