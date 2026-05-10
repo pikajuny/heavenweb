@@ -904,7 +904,7 @@ const SETDECK_ITEMS = [
   { key:'d70',  cell:'V7',  desc:'[70] 선발+1 vs 불펜+2' },
   { key:'d75',  cell:'V8',  desc:'[75] 연도 파정+3 vs 연도 구+3' },
   { key:'d80',  cell:'V9',  desc:'[80] 타자+1 vs 투수+1' },
-  { key:'d90',  cell:'V10', desc:'[90] 내포 인+2 vs 외지 선+2' },
+  { key:'d90',  cell:'V10', desc:'[95] 내포 인+2 vs 외지 선+2' },
   { key:'d100', cell:'X5',  desc:'[100] 타자+1 vs 투수+1' },
   { key:'d115', cell:'X6',  desc:'[115] 하위 정+2 vs 불펜 구+2' },
   { key:'d120', cell:'X7',  desc:'[120] 중심+2 vs 선발+1' },
@@ -2829,9 +2829,20 @@ const SwapModal = {
       if (!slot || !newP) { hideLoading(); return; }
       const needsStorageSwap = currentP && currentP[HITTER_COL.NAME] === newP[HITTER_COL.NAME];
       if (!slot.pid) {
-        const usedOrders = HitterTab.lineup.filter(s => s.order).map(s => s.order);
+        const usedOrders = new Set();
+        (State.hitterLineup || []).forEach(r => {
+          const n = Number(r?.order ?? r?.[1]);
+          if (n >= 1 && n <= 9) usedOrders.add(n);
+        });
+        HitterTab.lineup.forEach(s => {
+          const n = Number(s.order);
+          if (n >= 1 && n <= 9) usedOrders.add(n);
+        });
         for (let i = 1; i <= 9; i++) {
-          if (!usedOrders.includes(i)) { slot.order = i; break; }
+          if (!usedOrders.has(i)) {
+            slot.order = i;
+            break;
+          }
         }
       }
       const slotIndex = ['C','1B','2B','3B','SS','LF','CF','RF','DH'].indexOf(slotKey) + 1;
@@ -4034,7 +4045,32 @@ const LoungeHome = {
   },
 
   formatTime(value) {
-    return this.formatDateTime(value, { compact: true });
+    const text = String(value || '').trim();
+    if (!text) return '';
+
+    const date = new Date(text);
+    if (isNaN(date.getTime())) {
+      return this.formatDateTime(value, { compact: true });
+    }
+
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    if (diff < 172800) return '어제';
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${parts.month}.${parts.day}`;
   },
 
   formatDateTime(value, options = {}) {
@@ -4142,7 +4178,32 @@ const Board = {
   },
 
   formatTime(value) {
-    return this.formatDateTime(value, { compact: true });
+    const text = String(value || '').trim();
+    if (!text) return '';
+
+    const date = new Date(text);
+    if (isNaN(date.getTime())) {
+      return this.formatDateTime(value, { compact: true });
+    }
+
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    if (diff < 172800) return '어제';
+
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Seoul',
+      month: '2-digit',
+      day: '2-digit'
+    }).formatToParts(date).reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+    return `${parts.month}.${parts.day}`;
   },
 
   formatDateTime(value, options = {}) {
