@@ -2442,26 +2442,45 @@ input, select, textarea { font-family: inherit; }
   margin-top:10px;
   overflow-x:auto;
 }
-.admin-user-table {
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
+.admin-user-grid {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:8px;
 }
-.admin-user-table th,
-.admin-user-table td {
-  padding:6px 8px;
-  border-bottom:1px solid var(--border-light);
-  text-align:left;
+.admin-user-card {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px;
+  border:1px solid var(--border-light);
+  border-radius:7px;
+  background:rgba(255,255,255,0.025);
+}
+.admin-user-card-main {
+  min-width:0;
+}
+.admin-user-club {
+  color:var(--text-primary);
+  font-size:13px;
+  font-weight:800;
+  overflow:hidden;
+  text-overflow:ellipsis;
   white-space:nowrap;
 }
-.admin-user-table th {
+.admin-user-team {
+  margin-top:2px;
   color:var(--text-secondary);
-  font-weight:700;
+  font-size:11px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
-.admin-user-table th:last-child,
-.admin-user-table td:last-child {
-  width:52px;
-  text-align:right;
+.admin-user-card .board-delete-btn {
+  flex-shrink:0;
+  min-height:24px;
+  padding:0 8px;
 }
 .admin-empty {
   padding:14px;
@@ -2471,6 +2490,16 @@ input, select, textarea { font-family: inherit; }
 }
 .admin-eject-confirm .board-input {
   margin-top:12px;
+}
+@media (max-width: 720px) {
+  .admin-user-grid {
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .admin-user-grid {
+    grid-template-columns:1fr;
+  }
 }
 
 /* ================================================================

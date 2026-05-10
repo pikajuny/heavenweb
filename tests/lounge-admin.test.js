@@ -67,7 +67,8 @@ async function run() {
   const renderStart = appJs.indexOf('  renderUsers(users) {');
   const renderEnd = appJs.indexOf('  openEjectConfirm(clubId) {', renderStart);
   const renderUsersBody = appJs.slice(renderStart, renderEnd);
-  assert.ok(renderUsersBody.includes('<tr><th>구단명</th><th>KBO팀</th><th></th></tr>'));
+  assert.ok(renderUsersBody.includes('admin-user-grid'));
+  assert.ok(renderUsersBody.includes('admin-user-card'));
   assert.ok(!renderUsersBody.includes('<th>이메일</th>'));
   assert.ok(!renderUsersBody.includes('<th>가입일</th>'));
   assert.ok(!renderUsersBody.includes('u.email'));

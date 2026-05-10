@@ -4148,18 +4148,14 @@ const LoungeAdmin = {
       el.innerHTML = '<div class="admin-empty">등록된 유저가 없습니다.</div>';
       return;
     }
-    el.innerHTML = `<table class="admin-user-table">
-      <thead>
-        <tr><th>구단명</th><th>KBO팀</th><th></th></tr>
-      </thead>
-      <tbody>${users.map(u => `
-        <tr>
-          <td>${escapeHtml(u.clubId)}</td>
-          <td>${escapeHtml(u.teamName || '-')}</td>
-          <td><button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">탈퇴</button></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>`;
+    el.innerHTML = `<div class="admin-user-grid">${users.map(u => `
+      <div class="admin-user-card">
+        <div class="admin-user-card-main">
+          <div class="admin-user-club">${escapeHtml(u.clubId)}</div>
+          <div class="admin-user-team">${escapeHtml(u.teamName || '-')}</div>
+        </div>
+        <button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">탈퇴</button>
+      </div>`).join('')}</div>`;
     el.querySelectorAll('[data-club-id]').forEach(btn => {
       btn.addEventListener('click', () => this.openEjectConfirm(btn.dataset.clubId || ''));
     });
