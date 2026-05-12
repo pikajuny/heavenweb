@@ -4131,6 +4131,8 @@ const SkillCalcTab = {
   slotA: [{}, {}, {}],
   slotB: [{}, {}, {}],
   slotBPlayer: null,
+  page: 0,
+  pageSize: 6,
   _loaded: false,
 
   init() {
@@ -4163,7 +4165,21 @@ const SkillCalcTab = {
     this.slotA = [{}, {}, {}];
     this.slotB = [{}, {}, {}];
     this.slotBPlayer = null;
+    this.page = 0;
     this.render();
+  },
+
+  prevPage() {
+    if (this.page <= 0) return;
+    this.page -= 1;
+    this.renderPlayerList();
+  },
+
+  nextPage() {
+    const totalPages = this.getTotalPages();
+    if (this.page >= totalPages - 1) return;
+    this.page += 1;
+    this.renderPlayerList();
   },
 
   resetSlot(slotKey) {
@@ -4217,6 +4233,11 @@ const SkillCalcTab = {
       const result = SkillCalcCore.calcComboScore(combo, rows);
       return { player, combo, result };
     }).sort((a, b) => b.result.total - a.result.total);
+  },
+
+  getTotalPages() {
+    const total = this.getSortedPlayers().length;
+    return Math.max(1, Math.ceil(total / this.pageSize));
   },
 
   render() {
@@ -4333,13 +4354,23 @@ const SkillCalcTab = {
       return;
     }
     const players = this.getSortedPlayers();
+    const totalPages = Math.max(1, Math.ceil(players.length / this.pageSize));
+    this.page = Math.min(this.page, totalPages - 1);
+    const pagePlayers = players.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize);
+    const pageLabel = document.getElementById('skillcalc-page-label');
+    const prevBtn = document.getElementById('skillcalc-prev-btn');
+    const nextBtn = document.getElementById('skillcalc-next-btn');
     if (count) count.textContent = `${players.length}명`;
+    if (pageLabel) pageLabel.textContent = `${this.page + 1} / ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = this.page <= 0;
+    if (nextBtn) nextBtn.disabled = this.page >= totalPages - 1;
     if (!players.length) {
       list.innerHTML = '<div class="lounge-sec-loading">보관함 선수가 없습니다.</div>';
       return;
     }
     const C = this.getColumns();
-    list.innerHTML = players.map((item, idx) => {
+    list.innerHTML = pagePlayers.map((item, idx) => {
+      const globalIdx = this.page * this.pageSize + idx;
       const p = item.player;
       const typeKey = TYPE_COLOR[p[C.TYPE]] || 'sig';
       const bd = CARD_BD[typeKey] || CARD_BD.sig;
@@ -4350,7 +4381,7 @@ const SkillCalcTab = {
           <b>Lv.${escapeHtml(skill.level || '-')}</b>
         </div>`).join('');
       return `
-        <button class="skill-player-row${isSelected ? ' is-selected' : ''}" type="button" style="border-left-color:${bd};" onclick="SkillCalcTab.loadPlayerToSlotB(${idx})">
+        <button class="skill-player-row${isSelected ? ' is-selected' : ''}" type="button" style="border-left-color:${bd};" onclick="SkillCalcTab.loadPlayerToSlotB(${globalIdx})">
           <div class="skill-player-main">
             <div class="skill-player-name">${escapeHtml(p[C.YEAR] || '-')} ${escapeHtml(p[C.NAME] || '-')}</div>
             <div class="skill-player-meta">${escapeHtml(TYPE_MAP[p[C.TYPE]] || p[C.TYPE] || '-')} · ${escapeHtml(p[C.AWAKEN] || '-')}</div>

@@ -3452,6 +3452,9 @@ input, select, textarea { font-family: inherit; }
 .skillcalc-sec {
   min-width: 0;
   background: var(--bg-primary);
+  height: 500px;
+  display: flex;
+  flex-direction: column;
 }
 .skillcalc-sec--left {
   width: 58%;
@@ -3479,8 +3482,51 @@ input, select, textarea { font-family: inherit; }
   font-size: 11px;
   color: var(--text-tertiary);
 }
+.skillcalc-list-tools {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+.skillcalc-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.skillcalc-page-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-medium);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+}
+.skillcalc-page-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+}
+.skillcalc-page-btn:disabled {
+  opacity: .35;
+}
+.skillcalc-page-label {
+  min-width: 38px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+}
 .skillcalc-sec-body {
+  flex: 1;
+  min-height: 0;
   padding: 10px;
+  overflow: hidden;
 }
 .skill-slot-card {
   border: 1px solid var(--border-light);
@@ -3629,6 +3675,7 @@ input, select, textarea { font-family: inherit; }
   display: flex;
   flex-direction: column;
   gap: 6px;
+  height: 100%;
 }
 .skill-player-row {
   width: 100%;
@@ -3643,6 +3690,7 @@ input, select, textarea { font-family: inherit; }
   background: var(--bg-secondary);
   color: var(--text-primary);
   text-align: left;
+  min-height: 67px;
 }
 .skill-player-row:hover,
 .skill-player-row.is-selected {
