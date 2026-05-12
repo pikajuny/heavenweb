@@ -1112,7 +1112,18 @@ const TeamTab = {
 
     return new Promise((resolve, reject) => {
       showLoading('저장 중...');
-      Api.call('saveTeamBasic', [State.clubId, basic]).then(() => { hideLoading(); App.refreshLineups(); resolve(); }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); reject(e); });
+      Api.call('saveTeamBasic', [State.clubId, basic]).then(res => {
+        if (res?.tacticStatus !== undefined) {
+          if (!State.teamInfo) State.teamInfo = {};
+          State.teamInfo.tacticStatus = res.tacticStatus;
+          if (this.data) this.data.tacticStatus = res.tacticStatus;
+          this.renderTacticStatus();
+          PitcherTab._renderTacticBanner();
+        }
+        hideLoading();
+        App.refreshLineups();
+        resolve();
+      }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); reject(e); });
     });
   },
 
