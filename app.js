@@ -1461,6 +1461,7 @@ const State = {
   teamInfo: null, // { tacticStatus, ... }
   hitterSkills: [],
   pitcherSkills: [],
+  skillScoreTable: null,
   photoCache: {},
 };
 
@@ -3380,6 +3381,9 @@ function switchMenu(menuId, btn) {
   if (menuId === 'lounge') {
     switchLoungeTab('home', document.getElementById('lounge-tab-btn-home'));
   }
+  if (menuId === 'skill') {
+    SkillCalcTab.init();
+  }
 }
 
 function switchLoungeTab(tabId, btn) {
@@ -4116,6 +4120,245 @@ const LoungeHome = {
       return acc;
     }, {});
     return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
+  },
+};
+
+// ================================================================
+// 스킬계산기
+// ================================================================
+const SkillCalcTab = {
+  kind: 'hitter',
+  slotA: [{}, {}, {}],
+  slotB: [{}, {}, {}],
+  slotBPlayer: null,
+  _loaded: false,
+
+  init() {
+    this.ensureShell();
+    this.render();
+    if (State.skillScoreTable) return;
+
+    const list = document.getElementById('skillcalc-player-list');
+    if (list) list.innerHTML = '<div class="lounge-sec-loading">스킬점수표 불러오는 중...</div>';
+
+    Api.call('getSkillScoreTable', []).then(res => {
+      if (!res.success) throw new Error(res.error || '스킬점수표를 불러오지 못했습니다.');
+      State.skillScoreTable = res.data || { hitter: [], pitcher: [] };
+      this._loaded = true;
+      this.render();
+    }).catch(err => {
+      if (list) list.innerHTML = `<div class="lounge-sec-err">${escapeHtml(err.message)}</div>`;
+    });
+  },
+
+  ensureShell() {
+    this.renderSlot('A');
+    this.renderSlot('B');
+  },
+
+  switchKind(kind, btn) {
+    this.kind = kind === 'pitcher' ? 'pitcher' : 'hitter';
+    document.querySelectorAll('.skillcalc-tab').forEach(tab => tab.classList.remove('on'));
+    if (btn) btn.classList.add('on');
+    this.slotA = [{}, {}, {}];
+    this.slotB = [{}, {}, {}];
+    this.slotBPlayer = null;
+    this.render();
+  },
+
+  resetSlot(slotKey) {
+    if (slotKey === 'A') this.slotA = [{}, {}, {}];
+    else {
+      this.slotB = [{}, {}, {}];
+      this.slotBPlayer = null;
+    }
+    this.render();
+  },
+
+  setSlotValue(slotKey, idx, field, value) {
+    const slot = slotKey === 'A' ? this.slotA : this.slotB;
+    slot[idx] = { ...(slot[idx] || {}), [field]: value };
+    if (field === 'skillName') slot[idx].level = '';
+    this.render();
+  },
+
+  loadPlayerToSlotB(playerIndex) {
+    const players = this.getSortedPlayers();
+    const item = players[playerIndex];
+    if (!item) return;
+    this.slotB = item.combo.map(skill => ({ ...skill }));
+    while (this.slotB.length < 3) this.slotB.push({});
+    this.slotBPlayer = item.player;
+    this.render();
+  },
+
+  getScoreRows() {
+    return State.skillScoreTable?.[this.kind] || [];
+  },
+
+  getColumns() {
+    return this.kind === 'hitter' ? HITTER_COL : PITCHER_COL;
+  },
+
+  comboFromPlayer(player) {
+    const C = this.getColumns();
+    return [
+      { skillName: player[C.SK1N] || '', level: player[C.SK1L] || '' },
+      { skillName: player[C.SK2N] || '', level: player[C.SK2L] || '' },
+      { skillName: player[C.SK3N] || '', level: player[C.SK3L] || '' },
+    ];
+  },
+
+  getSortedPlayers() {
+    const players = this.kind === 'hitter' ? (State.hitters || []) : (State.pitchers || []);
+    const rows = this.getScoreRows();
+    return players.map(player => {
+      const combo = this.comboFromPlayer(player);
+      const result = SkillCalcCore.calcComboScore(combo, rows);
+      return { player, combo, result };
+    }).sort((a, b) => b.result.total - a.result.total);
+  },
+
+  render() {
+    const updated = document.getElementById('skillcalc-updated');
+    if (updated) {
+      const value = State.skillScoreTable?.updatedAt;
+      updated.textContent = value ? `최신화 ${value}` : '';
+    }
+    this.renderSlot('A');
+    this.renderSlot('B');
+    this.renderCompare();
+    this.renderPlayerList();
+  },
+
+  renderSlot(slotKey) {
+    const root = document.getElementById(slotKey === 'A' ? 'skillcalc-slot-a' : 'skillcalc-slot-b');
+    if (!root) return;
+    const slot = slotKey === 'A' ? this.slotA : this.slotB;
+    const rows = this.getScoreRows();
+    const result = SkillCalcCore.calcComboScore(slot, rows);
+    const skillNames = SkillCalcCore.getSkillNames(rows);
+
+    const selectHtml = (idx, field, options, value, placeholder) => {
+      const opts = [`<option value="">${placeholder}</option>`]
+        .concat(options.map(opt => {
+          const raw = typeof opt === 'object' ? opt.value : opt;
+          const label = typeof opt === 'object' ? opt.label : opt;
+          return `<option value="${escapeHtml(raw)}" ${String(value || '') === String(raw) ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+        }));
+      return `<select class="skillcalc-select" data-slot="${slotKey}" data-idx="${idx}" data-field="${field}">${opts.join('')}</select>`;
+    };
+
+    const heads = ['스킬1', '레벨', '스킬2', '레벨', '스킬3', '레벨', '총합']
+      .map(text => `<div class="skill-combo-head">${text}</div>`).join('');
+    const controls = [0, 1, 2].map(idx => {
+      const item = slot[idx] || {};
+      const levels = item.skillName ? SkillCalcCore.getLevelsForSkill(rows, item.skillName) : [];
+      return [
+        `<div class="skill-combo-cell skill-combo-cell--skill">${selectHtml(idx, 'skillName', skillNames, item.skillName, '스킬 선택')}</div>`,
+        `<div class="skill-combo-cell skill-combo-cell--level">${selectHtml(idx, 'level', levels.map(lv => ({ value: lv, label: lv })), item.level, 'Lv')}</div>`,
+      ].join('');
+    }).join('');
+    const scoreCells = [0, 1, 2].map(idx =>
+      `<div class="skill-combo-score" style="grid-column:${idx * 2 + 1} / span 2;">${fmt2(result.scores[idx])}</div>`
+    ).join('');
+
+    root.innerHTML = `
+      <div class="skill-combo-grid">
+        ${heads}
+        ${controls}
+        <div class="skill-combo-total" style="grid-row:2 / span 2;grid-column:7;">${fmt2(result.total)}</div>
+        ${scoreCells}
+      </div>`;
+
+    root.querySelectorAll('.skillcalc-select').forEach(sel => {
+      sel.addEventListener('change', e => {
+        this.setSlotValue(e.currentTarget.dataset.slot, Number(e.currentTarget.dataset.idx), e.currentTarget.dataset.field, e.currentTarget.value);
+      });
+    });
+
+    if (slotKey === 'B') this.renderSlotBBadge();
+  },
+
+  renderSlotBBadge() {
+    const badge = document.getElementById('skillcalc-slot-b-badge');
+    if (!badge) return;
+    if (!this.slotBPlayer) {
+      badge.style.display = 'none';
+      badge.textContent = '';
+      badge.removeAttribute('style');
+      badge.style.display = 'none';
+      return;
+    }
+    const C = this.getColumns();
+    const typeKey = TYPE_COLOR[this.slotBPlayer[C.TYPE]] || 'sig';
+    const bg = CARD_BG[typeKey] || CARD_BG.sig;
+    const bd = CARD_BD[typeKey] || CARD_BD.sig;
+    badge.textContent = `${this.slotBPlayer[C.YEAR] || '-'} ${this.slotBPlayer[C.NAME] || '-'}`;
+    badge.style.display = 'inline-flex';
+    badge.style.background = `${bg}66`;
+    badge.style.borderColor = bd;
+    badge.style.color = '#fff';
+  },
+
+  renderCompare() {
+    const rows = this.getScoreRows();
+    const a = SkillCalcCore.calcComboScore(this.slotA, rows);
+    const b = SkillCalcCore.calcComboScore(this.slotB, rows);
+    const result = document.getElementById('skillcalc-vs-result');
+    const cardA = document.getElementById('skillcalc-slot-a-card');
+    const cardB = document.getElementById('skillcalc-slot-b-card');
+    const hasA = this.slotA.some(item => item.skillName && item.level);
+    const hasB = this.slotB.some(item => item.skillName && item.level);
+    if (cardA) cardA.classList.remove('is-winning');
+    if (cardB) cardB.classList.remove('is-winning');
+    if (!result) return;
+    if (!hasA || !hasB) {
+      result.textContent = '두 슬롯을 입력해주세요';
+      return;
+    }
+    const compare = SkillCalcCore.compareComboTotals(a.total, b.total);
+    result.textContent = compare.label;
+    if (compare.winner === 'A' && cardA) cardA.classList.add('is-winning');
+    if (compare.winner === 'B' && cardB) cardB.classList.add('is-winning');
+  },
+
+  renderPlayerList() {
+    const list = document.getElementById('skillcalc-player-list');
+    const count = document.getElementById('skillcalc-list-count');
+    if (!list) return;
+    if (!State.skillScoreTable) {
+      list.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
+      if (count) count.textContent = '';
+      return;
+    }
+    const players = this.getSortedPlayers();
+    if (count) count.textContent = `${players.length}명`;
+    if (!players.length) {
+      list.innerHTML = '<div class="lounge-sec-loading">보관함 선수가 없습니다.</div>';
+      return;
+    }
+    const C = this.getColumns();
+    list.innerHTML = players.map((item, idx) => {
+      const p = item.player;
+      const typeKey = TYPE_COLOR[p[C.TYPE]] || 'sig';
+      const bd = CARD_BD[typeKey] || CARD_BD.sig;
+      const isSelected = this.slotBPlayer && this.slotBPlayer[C.KEY] === p[C.KEY];
+      const skillHtml = item.combo.map(skill => `
+        <div class="skill-player-chip">
+          <span>${escapeHtml(skill.skillName || '-')}</span>
+          <b>Lv.${escapeHtml(skill.level || '-')}</b>
+        </div>`).join('');
+      return `
+        <button class="skill-player-row${isSelected ? ' is-selected' : ''}" type="button" style="border-left-color:${bd};" onclick="SkillCalcTab.loadPlayerToSlotB(${idx})">
+          <div class="skill-player-main">
+            <div class="skill-player-name">${escapeHtml(p[C.YEAR] || '-')} ${escapeHtml(p[C.NAME] || '-')}</div>
+            <div class="skill-player-meta">${escapeHtml(TYPE_MAP[p[C.TYPE]] || p[C.TYPE] || '-')} · ${escapeHtml(p[C.AWAKEN] || '-')}</div>
+          </div>
+          <div class="skill-player-skills">${skillHtml}</div>
+          <div class="skill-player-score">${fmt2(item.result.total)}</div>
+        </button>`;
+    }).join('');
   },
 };
 

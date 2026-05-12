@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node tests/lounge-admin.test.js && node tests/gas-team-basic.test.js"
+    "test": "node tests/lounge-admin.test.js && node tests/gas-team-basic.test.js && node tests/skill-calc-core.test.js && node tests/gas-skill-score-table.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3"

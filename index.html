@@ -649,10 +649,57 @@
 
   <!-- 스킬계산기 페이지 -->
   <div id="page-skill" class="menu-page" style="display:none;">
-    <div class="prep-screen">
-      <div class="prep-icon" style="font-size:28px;">🧮</div>
-      <div class="prep-title">스킬계산기</div>
-      <div class="prep-sub">준비중입니다</div>
+    <div class="skillcalc-layout">
+      <div class="skillcalc-tabs">
+        <button class="skillcalc-tab on" id="skillcalc-tab-hitter" type="button" onclick="SkillCalcTab.switchKind('hitter', this)">타자</button>
+        <button class="skillcalc-tab" id="skillcalc-tab-pitcher" type="button" onclick="SkillCalcTab.switchKind('pitcher', this)">투수</button>
+        <span class="skillcalc-updated" id="skillcalc-updated"></span>
+      </div>
+
+      <div class="skillcalc-row">
+        <section class="skillcalc-sec skillcalc-sec--left">
+          <div class="skillcalc-sec-hd">
+            <span class="skillcalc-sec-title">스킬 조합 비교</span>
+          </div>
+          <div class="skillcalc-sec-body">
+            <div class="skill-slot-card" id="skillcalc-slot-a-card">
+              <div class="skill-slot-title-row">
+                <div class="skill-slot-title">슬롯 A</div>
+                <button class="skill-slot-reset" type="button" onclick="SkillCalcTab.resetSlot('A')">초기화</button>
+              </div>
+              <div class="skill-combo-table" id="skillcalc-slot-a"></div>
+            </div>
+
+            <div class="skill-vs-row" id="skillcalc-vs-row">
+              <span class="skill-vs-label">VS</span>
+              <span class="skill-vs-result" id="skillcalc-vs-result">두 슬롯을 입력해주세요</span>
+            </div>
+
+            <div class="skill-slot-card" id="skillcalc-slot-b-card">
+              <div class="skill-slot-title-row">
+                <div class="skill-slot-title">
+                  <span>슬롯 B</span>
+                  <span class="skill-player-badge" id="skillcalc-slot-b-badge" style="display:none;"></span>
+                </div>
+                <button class="skill-slot-reset" type="button" onclick="SkillCalcTab.resetSlot('B')">초기화</button>
+              </div>
+              <div class="skill-combo-table" id="skillcalc-slot-b"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="skillcalc-sec skillcalc-sec--right">
+          <div class="skillcalc-sec-hd">
+            <span class="skillcalc-sec-title">보관함 스킬 리스트</span>
+            <span class="skillcalc-list-count" id="skillcalc-list-count"></span>
+          </div>
+          <div class="skillcalc-sec-body">
+            <div class="skill-player-list" id="skillcalc-player-list">
+              <div class="lounge-sec-loading">불러오는 중...</div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 
@@ -1062,6 +1109,7 @@
 
 
 <script src="api.js?v=1777810012133"></script>
+<script src="skill-calc-core.js?v=1777810012133"></script>
 
 
 

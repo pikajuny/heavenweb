@@ -3404,6 +3404,345 @@ input, select, textarea { font-family: inherit; }
 .menu-page { display: block; }
 
 /* ================================================================
+   스킬계산기
+================================================================ */
+.skillcalc-layout {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+.skillcalc-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-height: var(--subnav-h, 38px);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: var(--app-sticky-h, 88px);
+  z-index: 98;
+  padding: 0 8px;
+}
+.skillcalc-tab {
+  height: var(--subnav-h, 38px);
+  padding: 0 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.skillcalc-tab.on {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
+}
+.skillcalc-updated {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.skillcalc-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border-light);
+}
+.skillcalc-sec {
+  min-width: 0;
+  background: var(--bg-primary);
+}
+.skillcalc-sec--left {
+  width: 58%;
+  border-right: 1px solid var(--border-light);
+}
+.skillcalc-sec--right {
+  width: 42%;
+}
+.skillcalc-sec-hd {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+.skillcalc-sec-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.skillcalc-list-count {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.skillcalc-sec-body {
+  padding: 10px;
+}
+.skill-slot-card {
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  transition: border-color .18s, box-shadow .18s;
+}
+.skill-slot-card.is-winning {
+  border-color: rgba(240,192,64,0.9);
+  box-shadow: 0 0 0 1px rgba(240,192,64,0.25), 0 0 18px rgba(240,192,64,0.22);
+}
+.skill-slot-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+.skill-slot-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.skill-player-badge {
+  max-width: 190px;
+  min-height: 20px;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid var(--border-medium);
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-slot-reset {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border: 1px solid var(--border-medium);
+  border-radius: 5px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+.skill-slot-reset:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.skill-combo-grid {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) 62px minmax(92px, 1fr) 62px minmax(92px, 1fr) 62px 90px;
+  align-items: stretch;
+}
+.skill-combo-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 3px 5px;
+  border-right: 1px solid rgba(0,0,0,0.28);
+  border-bottom: 1px solid rgba(0,0,0,0.28);
+  background: #efc0a0;
+  color: #050505;
+  font-size: 12px;
+  font-weight: 900;
+}
+.skill-combo-cell {
+  min-height: 28px;
+  padding: 3px 5px;
+  border-right: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  background: rgba(255,255,255,0.04);
+}
+.skillcalc-select {
+  width: 100%;
+  height: 22px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 999px;
+  background: #d9d9d9;
+  color: #050505;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.skill-combo-score,
+.skill-combo-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  background: #d9d9d9;
+  color: #050505;
+  border-right: 1px solid rgba(0,0,0,0.45);
+  font-size: 19px;
+  font-weight: 900;
+}
+.skill-combo-total {
+  font-size: 18px;
+  border-left: 1px solid rgba(0,0,0,0.45);
+}
+.skill-vs-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  margin: 8px 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+}
+.skill-vs-label {
+  min-width: 32px;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.skill-vs-result {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+.skill-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.skill-player-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(160px, 1.6fr) 58px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 9px;
+  border: 1px solid var(--border-light);
+  border-left: 3px solid transparent;
+  border-radius: 7px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  text-align: left;
+}
+.skill-player-row:hover,
+.skill-player-row.is-selected {
+  background: var(--bg-tertiary);
+  border-color: var(--border-medium);
+}
+.skill-player-main {
+  min-width: 0;
+}
+.skill-player-name {
+  font-size: 13px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-player-meta {
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-player-skills {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+}
+.skill-player-chip {
+  min-width: 0;
+  padding: 4px 5px;
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  text-align: center;
+}
+.skill-player-chip span,
+.skill-player-chip b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-player-chip span {
+  color: var(--text-secondary);
+  font-size: 9px;
+}
+.skill-player-chip b {
+  margin-top: 1px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+.skill-player-score {
+  justify-self: end;
+  min-width: 48px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  background: rgba(201,162,39,0.1);
+  color: #C9A227;
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .skillcalc-row {
+    flex-direction: column;
+  }
+  .skillcalc-sec--left,
+  .skillcalc-sec--right {
+    width: 100%;
+    border-right: none;
+  }
+  .skillcalc-sec--left {
+    border-bottom: 1px solid var(--border-light);
+  }
+}
+
+@media (max-width: 720px) {
+  .skillcalc-sec-body {
+    padding: 8px;
+  }
+  .skill-combo-grid {
+    grid-template-columns: minmax(74px, 1fr) 46px minmax(74px, 1fr) 46px minmax(74px, 1fr) 46px 58px;
+  }
+  .skill-combo-head {
+    font-size: 10px;
+    padding: 2px;
+  }
+  .skillcalc-select {
+    font-size: 10px;
+    height: 21px;
+  }
+  .skill-combo-score,
+  .skill-combo-total {
+    min-height: 30px;
+    font-size: 15px;
+  }
+  .skill-player-row {
+    grid-template-columns: 1fr 52px;
+  }
+  .skill-player-skills {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+  .skill-player-score {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+/* ================================================================
    숏컷 바
 ================================================================ */
 .shortcut-bar { height:var(--shortcut-h, 100px); box-sizing:border-box; background:var(--bg-secondary); border-bottom:1px solid var(--border-medium); padding:4px 16px 10px; display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; position:sticky; top:var(--app-sticky-h, 88px); z-index:99; }
