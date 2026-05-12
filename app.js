@@ -4333,12 +4333,9 @@ const SkillCalcTab = {
     if (cardA) cardA.classList.remove('is-winning');
     if (cardB) cardB.classList.remove('is-winning');
     if (!result) return;
-    if (!hasA || !hasB) {
-      result.textContent = '두 슬롯을 입력해주세요';
-      return;
-    }
+    result.textContent = '';
+    if (!hasA || !hasB) return;
     const compare = SkillCalcCore.compareComboTotals(a.total, b.total);
-    result.textContent = compare.label;
     if (compare.winner === 'A' && cardA) cardA.classList.add('is-winning');
     if (compare.winner === 'B' && cardB) cardB.classList.add('is-winning');
   },
