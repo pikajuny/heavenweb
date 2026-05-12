@@ -3680,8 +3680,8 @@ input, select, textarea { font-family: inherit; }
 .skill-player-row {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(96px, 1fr) minmax(160px, 1.6fr) 58px;
-  gap: 8px;
+  grid-template-columns: minmax(82px, .95fr) minmax(120px, 1.45fr) 54px;
+  gap: 6px;
   align-items: center;
   padding: 8px 9px;
   border: 1px solid var(--border-light);
@@ -3792,15 +3792,32 @@ input, select, textarea { font-family: inherit; }
     font-size: 15px;
   }
   .skill-player-row {
-    grid-template-columns: 1fr 52px;
-  }
-  .skill-player-skills {
-    grid-column: 1 / -1;
-    order: 3;
+    grid-template-columns: minmax(70px, .9fr) minmax(104px, 1.35fr) 48px;
+    gap: 4px;
+    padding: 7px 6px;
   }
   .skill-player-score {
-    grid-column: 2;
-    grid-row: 1;
+    min-width: 44px;
+    padding: 5px 4px;
+    font-size: 12px;
+  }
+  .skill-player-name {
+    font-size: 12px;
+  }
+  .skill-player-meta {
+    font-size: 9px;
+  }
+  .skill-player-skills {
+    gap: 3px;
+  }
+  .skill-player-chip {
+    padding: 3px 3px;
+  }
+  .skill-player-chip span {
+    font-size: 8px;
+  }
+  .skill-player-chip b {
+    font-size: 10px;
   }
 }
 
