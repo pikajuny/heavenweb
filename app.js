@@ -4141,7 +4141,7 @@ const SkillCalcTab = {
     if (State.skillScoreTable) return;
 
     const list = document.getElementById('skillcalc-player-list');
-    if (list) list.innerHTML = '<div class="lounge-sec-loading">스킬점수표 불러오는 중...</div>';
+    if (list) list.innerHTML = '<div class="lounge-sec-loading">내 선수들 불러오는 중...</div>';
 
     Api.call('getSkillScoreTable', []).then(res => {
       if (!res.success) throw new Error(res.error || '스킬점수표를 불러오지 못했습니다.');
