@@ -3598,7 +3598,7 @@ input, select, textarea { font-family: inherit; }
 }
 .skill-combo-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 54px 58px;
+  grid-template-columns: 36px minmax(0, 1fr) 54px 58px;
   align-items: center;
   gap: 6px;
   min-height: 52px;
@@ -3644,7 +3644,7 @@ input, select, textarea { font-family: inherit; }
 }
 .skill-combo-total-row {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   min-height: 54px;
@@ -3797,7 +3797,7 @@ input, select, textarea { font-family: inherit; }
     gap: 8px;
   }
   .skill-combo-row {
-    grid-template-columns: 42px minmax(0, 1fr) 46px 48px;
+    grid-template-columns: 34px minmax(0, 1fr) 46px 48px;
     gap: 4px;
     min-height: 46px;
     padding: 7px 6px;
@@ -3812,7 +3812,7 @@ input, select, textarea { font-family: inherit; }
   }
   .skill-combo-total-row {
     min-height: 46px;
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: 34px minmax(0, 1fr);
   }
   .skill-vs-row {
     min-height: 44px;
