@@ -3466,7 +3466,7 @@ input, select, textarea { font-family: inherit; }
 .skillcalc-sec--left .skillcalc-sec-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr);
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
 }
 .skillcalc-sec-hd {
@@ -3601,8 +3601,8 @@ input, select, textarea { font-family: inherit; }
   grid-template-columns: 44px minmax(0, 1fr) 54px 58px;
   align-items: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 7px 8px;
+  min-height: 52px;
+  padding: 9px 8px;
   border-bottom: 1px solid var(--border-light);
   background: rgba(15,17,23,0.34);
 }
@@ -3647,8 +3647,8 @@ input, select, textarea { font-family: inherit; }
   grid-template-columns: 44px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
-  min-height: 48px;
-  padding: 8px;
+  min-height: 54px;
+  padding: 9px 8px;
   background: rgba(201,162,39,0.07);
 }
 .skill-combo-total {
@@ -3789,14 +3789,14 @@ input, select, textarea { font-family: inherit; }
   }
   .skillcalc-sec--left .skillcalc-sec-body {
     grid-template-columns: 1fr;
-    align-items: stretch;
+    align-items: center;
     gap: 8px;
   }
   .skill-combo-row {
     grid-template-columns: 42px minmax(0, 1fr) 46px 48px;
     gap: 4px;
-    min-height: 40px;
-    padding: 6px;
+    min-height: 46px;
+    padding: 7px 6px;
   }
   .skillcalc-select {
     font-size: 10px;
@@ -3807,7 +3807,7 @@ input, select, textarea { font-family: inherit; }
     font-size: 14px;
   }
   .skill-combo-total-row {
-    min-height: 40px;
+    min-height: 46px;
     grid-template-columns: 42px minmax(0, 1fr);
   }
   .skill-vs-row {
