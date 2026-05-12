@@ -3556,7 +3556,7 @@ input, select, textarea { font-family: inherit; }
   gap: 7px;
   min-width: 0;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
 }
 .skill-player-badge {
@@ -3662,13 +3662,13 @@ input, select, textarea { font-family: inherit; }
 .skill-vs-label {
   min-width: 32px;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--accent);
   letter-spacing: .04em;
 }
 .skill-vs-result {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text-primary);
 }
 .skill-player-list {
