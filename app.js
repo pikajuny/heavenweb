@@ -4270,26 +4270,25 @@ const SkillCalcTab = {
       return `<select class="skillcalc-select" data-slot="${slotKey}" data-idx="${idx}" data-field="${field}">${opts.join('')}</select>`;
     };
 
-    const heads = ['스킬1', '레벨', '스킬2', '레벨', '스킬3', '레벨', '총합']
-      .map(text => `<div class="skill-combo-head">${text}</div>`).join('');
     const controls = [0, 1, 2].map(idx => {
       const item = slot[idx] || {};
       const levels = item.skillName ? SkillCalcCore.getLevelsForSkill(rows, item.skillName) : [];
-      return [
-        `<div class="skill-combo-cell skill-combo-cell--skill">${selectHtml(idx, 'skillName', skillNames, item.skillName, '스킬 선택')}</div>`,
-        `<div class="skill-combo-cell skill-combo-cell--level">${selectHtml(idx, 'level', levels.map(lv => ({ value: lv, label: lv })), item.level, 'Lv')}</div>`,
-      ].join('');
+      return `
+        <div class="skill-combo-row">
+          <div class="skill-combo-label">스킬${idx + 1}</div>
+          <div class="skill-combo-pick">${selectHtml(idx, 'skillName', skillNames, item.skillName, '스킬 선택')}</div>
+          <div class="skill-combo-level">${selectHtml(idx, 'level', levels.map(lv => ({ value: lv, label: lv })), item.level, 'Lv')}</div>
+          <div class="skill-combo-row-score">${fmt2(result.scores[idx])}</div>
+        </div>`;
     }).join('');
-    const scoreCells = [0, 1, 2].map(idx =>
-      `<div class="skill-combo-score" style="grid-column:${idx * 2 + 1} / span 2;">${fmt2(result.scores[idx])}</div>`
-    ).join('');
 
     root.innerHTML = `
-      <div class="skill-combo-grid">
-        ${heads}
+      <div class="skill-combo-rows">
         ${controls}
-        <div class="skill-combo-total" style="grid-row:2 / span 2;grid-column:7;">${fmt2(result.total)}</div>
-        ${scoreCells}
+        <div class="skill-combo-total-row">
+          <div class="skill-combo-label">총합</div>
+          <div class="skill-combo-total">${fmt2(result.total)}</div>
+        </div>
       </div>`;
 
     root.querySelectorAll('.skillcalc-select').forEach(sel => {

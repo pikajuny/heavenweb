@@ -3463,6 +3463,12 @@ input, select, textarea { font-family: inherit; }
 .skillcalc-sec--right {
   width: 42%;
 }
+.skillcalc-sec--left .skillcalc-sec-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
 .skillcalc-sec-hd {
   min-height: 38px;
   display: flex;
@@ -3586,35 +3592,33 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-primary);
   border-color: var(--border-strong);
 }
-.skill-combo-grid {
-  display: grid;
-  grid-template-columns: minmax(92px, 1fr) 62px minmax(92px, 1fr) 62px minmax(92px, 1fr) 62px 90px;
-  align-items: stretch;
-  background: rgba(255,255,255,0.025);
-}
-.skill-combo-head {
+.skill-combo-rows {
   display: flex;
+  flex-direction: column;
+}
+.skill-combo-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 54px 58px;
   align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 4px 5px;
-  border-right: 1px solid var(--border-light);
+  gap: 6px;
+  min-height: 44px;
+  padding: 7px 8px;
   border-bottom: 1px solid var(--border-light);
-  background: rgba(255,255,255,0.055);
+  background: rgba(15,17,23,0.34);
+}
+.skill-combo-label {
   color: var(--text-secondary);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.skill-combo-cell {
-  min-height: 36px;
-  padding: 6px 6px;
-  border-right: 1px solid var(--border-light);
-  border-bottom: 1px solid var(--border-light);
-  background: rgba(15,17,23,0.38);
+.skill-combo-pick,
+.skill-combo-level {
+  min-width: 0;
 }
 .skillcalc-select {
   width: 100%;
-  height: 24px;
+  height: 26px;
   border: 1px solid var(--border-medium);
   border-radius: 5px;
   background: var(--bg-primary);
@@ -3628,31 +3632,39 @@ input, select, textarea { font-family: inherit; }
   border-color: rgba(88,166,255,0.85);
   box-shadow: 0 0 0 2px rgba(88,166,255,0.14);
 }
-.skill-combo-score,
+.skill-combo-row-score,
 .skill-combo-total {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  background: rgba(255,255,255,0.032);
+  justify-content: flex-end;
   color: var(--text-primary);
-  border-right: 1px solid var(--border-light);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
+  white-space: nowrap;
+}
+.skill-combo-total-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px;
+  background: rgba(201,162,39,0.07);
 }
 .skill-combo-total {
   font-size: 20px;
   color: #C9A227;
-  background: rgba(201,162,39,0.09);
-  border-left: 1px solid rgba(201,162,39,0.22);
+  justify-content: flex-end;
 }
 .skill-vs-row {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   gap: 10px;
-  min-height: 36px;
-  margin: 8px 0;
-  padding: 7px 11px;
+  min-height: 100%;
+  margin: 0;
+  padding: 12px 10px;
   border: 1px solid var(--border-light);
   border-radius: 8px;
   background:
@@ -3660,7 +3672,7 @@ input, select, textarea { font-family: inherit; }
     var(--bg-secondary);
 }
 .skill-vs-label {
-  min-width: 32px;
+  min-width: 0;
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -3775,21 +3787,34 @@ input, select, textarea { font-family: inherit; }
   .skillcalc-sec-body {
     padding: 8px;
   }
-  .skill-combo-grid {
-    grid-template-columns: minmax(74px, 1fr) 46px minmax(74px, 1fr) 46px minmax(74px, 1fr) 46px 58px;
+  .skillcalc-sec--left .skillcalc-sec-body {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
   }
-  .skill-combo-head {
-    font-size: 10px;
-    padding: 2px;
+  .skill-combo-row {
+    grid-template-columns: 42px minmax(0, 1fr) 46px 48px;
+    gap: 4px;
+    min-height: 40px;
+    padding: 6px;
   }
   .skillcalc-select {
     font-size: 10px;
-    height: 21px;
+    height: 24px;
   }
-  .skill-combo-score,
+  .skill-combo-row-score,
   .skill-combo-total {
-    min-height: 30px;
-    font-size: 15px;
+    font-size: 14px;
+  }
+  .skill-combo-total-row {
+    min-height: 40px;
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+  .skill-vs-row {
+    min-height: 42px;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 10px;
   }
   .skill-player-row {
     grid-template-columns: minmax(70px, .9fr) minmax(104px, 1.35fr) 48px;
