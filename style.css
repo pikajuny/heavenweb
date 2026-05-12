@@ -3788,6 +3788,13 @@ input, select, textarea { font-family: inherit; }
 }
 
 @media (max-width: 720px) {
+  .skillcalc-sec--left {
+    height: auto;
+    min-height: 500px;
+  }
+  .skillcalc-sec--left .skillcalc-sec-body {
+    overflow: visible;
+  }
   .skillcalc-sec-body {
     padding: 8px;
   }
@@ -3815,10 +3822,16 @@ input, select, textarea { font-family: inherit; }
     grid-template-columns: 34px minmax(0, 1fr);
   }
   .skill-vs-row {
-    min-height: 44px;
-    width: 64px;
+    min-height: 40px;
+    width: 100%;
     justify-self: center;
-    padding: 8px 10px;
+    padding: 0;
+    margin: 2px 0;
+    position: relative;
+    z-index: 0;
+  }
+  .skill-vs-label {
+    font-size: 17px;
   }
   .skill-player-row {
     grid-template-columns: minmax(70px, .9fr) minmax(104px, 1.35fr) 48px;
