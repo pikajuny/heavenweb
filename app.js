@@ -3087,12 +3087,49 @@ const App = {
       document.getElementById('login-new').style.display = 'none';
       document.getElementById('login-existing').style.display = 'block';
       document.getElementById('login-club-display').textContent = State.clubId + ' 님';
-      setTimeout(() => App.enterExisting(), 0);
+      setTimeout(() => App._resumeSavedSession(), 0);
       return true;
     } catch (_) {
       this._clearSession();
       return false;
     }
+  },
+
+  _resumeSavedSession() {
+    showLoading('계정 확인 중...');
+    Api.call('validateSavedLogin', [State.email || '', State.clubId || '']).then(res => {
+        hideLoading();
+        if (!res.success) {
+          App._clearSession();
+          State.clubId = null; State.email = null;
+          document.getElementById('login-existing').style.display = 'none';
+          document.getElementById('login-new').style.display = 'none';
+          document.getElementById('login-google').style.display = 'flex';
+          showScreen('login-screen');
+          showErr('login-err', res.error || '계정 확인에 실패했습니다. 다시 로그인해주세요.');
+          return;
+        }
+        if (!res.valid) {
+          App._clearSession();
+          State.clubId = null; State.email = null;
+          document.getElementById('login-existing').style.display = 'none';
+          document.getElementById('login-new').style.display = 'none';
+          document.getElementById('login-google').style.display = 'flex';
+          showScreen('login-screen');
+          showErr('login-err', '계정 연동이 변경됐습니다. 다시 로그인해주세요.');
+          return;
+        }
+        App.enterExisting();
+      }).catch(err => {
+        hideLoading();
+        App._clearSession();
+        State.clubId = null; State.email = null;
+        document.getElementById('login-existing').style.display = 'none';
+        document.getElementById('login-new').style.display = 'none';
+        document.getElementById('login-google').style.display = 'flex';
+        showScreen('login-screen');
+        showErr('login-err', err.message);
+      });
   },
 
   openGoogleLogin() {
