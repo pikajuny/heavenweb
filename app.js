@@ -1465,6 +1465,16 @@ const State = {
   photoCache: {},
 };
 
+function applySkillScoreTable(data) {
+  const table = data || { hitter: [], pitcher: [] };
+  State.skillScoreTable = table;
+  const getNames = rows => [...new Set((rows || [])
+    .map(row => String(row?.skillName || '').trim())
+    .filter(Boolean))];
+  State.hitterSkills = getNames(table.hitter);
+  State.pitcherSkills = getNames(table.pitcher);
+}
+
 // ================================================================
 // 타자 DB 열 인덱스 (0-based)
 // ================================================================
@@ -3231,8 +3241,7 @@ const App = {
     Promise.all([
       load('getHitters', [State.clubId], data => { State.hitters = data; }),
       load('getPitchers', [State.clubId], data => { State.pitchers = data; }),
-      load('getHitterSkills', [], data => { State.hitterSkills = data; }),
-      load('getPitcherSkills', [], data => { State.pitcherSkills = data; }),
+      load('getSkillScoreTable', [], applySkillScoreTable),
       load('getHitterLineup', [State.clubId], data => { State.hitterLineup = data; }),
       load('getPitcherLineup', [State.clubId], data => { State.pitcherLineup = data; }),
     ]).then(() => {
@@ -4182,7 +4191,7 @@ const SkillCalcTab = {
 
     Api.call('getSkillScoreTable', []).then(res => {
       if (!res.success) throw new Error(res.error || '스킬점수표를 불러오지 못했습니다.');
-      State.skillScoreTable = res.data || { hitter: [], pitcher: [] };
+      applySkillScoreTable(res.data);
       this._loaded = true;
       this.render();
     }).catch(err => {
@@ -5562,12 +5571,11 @@ const RenameModal = {
         State.hitterLineup = []; State.pitcherLineup = [];
         showLoading('데이터 재동기화 중...');
         let done = 0;
-        const finish = () => { if (++done >= 6) { hideLoading(); App.renderAll(); } };
+        const finish = () => { if (++done >= 5) { hideLoading(); App.renderAll(); } };
         const fail  = e => { hideLoading(); showErr('login-err', '[재로드 오류] ' + (e?.message || e)); finish(); };
         Api.call('getHitters', [newName]).then(r => { if(r.success) State.hitters = r.data; finish(); }).catch(fail);
         Api.call('getPitchers', [newName]).then(r => { if(r.success) State.pitchers = r.data; finish(); }).catch(fail);
-        Api.call('getHitterSkills', []).then(r => { if(r.success) State.hitterSkills = r.data; finish(); }).catch(fail);
-        Api.call('getPitcherSkills', []).then(r => { if(r.success) State.pitcherSkills = r.data; finish(); }).catch(fail);
+        Api.call('getSkillScoreTable', []).then(r => { if(r.success) applySkillScoreTable(r.data); finish(); }).catch(fail);
         Api.call('getHitterLineup', [newName]).then(r => { if(r.success) State.hitterLineup = r.data; finish(); }).catch(fail);
         Api.call('getPitcherLineup', [newName]).then(r => { if(r.success) State.pitcherLineup = r.data; finish(); }).catch(fail);
       }).catch(e => { hideLoading(); btn.disabled = false; this._showErr(e.message); });
