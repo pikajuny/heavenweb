@@ -1404,7 +1404,7 @@ const POT_CLASS = v => {
 const POT_LEVELS = ['-','E','D','D+','C','C+','B','B+','A','A+','S','S+','SS','SS+','SR','SR+'];
 const AWAKEN_LIST = ['10강','1각','2각','3각','4각','5각','6각','7각','8각','9각'];
 const TYPE_LIST = ['골글','시그','시그(F)','임팩','임팩(F)','국대','라올'];
-const SKILL_LEVELS = ['-','5','6','7','8'];
+const SKILL_LEVELS = ['-','5','6','7','8','9','10'];
 
 const RP_ROLES = {
   '1RP':['승리1','승리2','셋업1','셋업2'],
