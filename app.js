@@ -934,17 +934,63 @@ const PITCHER_POSITIONS = ['SP1','SP2','SP3','SP4','SP5','RP1','RP2','RP3','RP4'
 
 const TeamTab = {
   data: null,
+  loadedClubId: null,
+  loadingPromise: null,
   postrainType: null,
   postrainIdx: null,
 
-  load() {
-    Api.call('getTeamInfo', [State.clubId]).then(res => {
-        if (res.success) {
-          this.data = res;
-          State.teamInfo = { tacticStatus: res.tacticStatus };
-          this.render();
+  load(force = false) {
+    const clubId = State.clubId;
+    if (!force && this.data && this.loadedClubId === clubId) return Promise.resolve(this.data);
+    if (this.loadingPromise) return this.loadingPromise;
+
+    this.setLoadStatus('팀 정보를 불러오는 중...');
+    const fetchData = async attempt => {
+      try {
+        const res = await Api.call('getTeamInfo', [clubId]);
+        if (!res.success) throw new Error(res.error || '팀 정보를 불러오지 못했습니다.');
+        return res;
+      } catch (error) {
+        if (attempt === 0) {
+          await new Promise(resolve => setTimeout(resolve, 400));
+          return fetchData(1);
         }
-      }).catch(e => console.error(e));
+        throw error;
+      }
+    };
+
+    this.loadingPromise = fetchData(0).then(res => {
+      this.data = res;
+      this.loadedClubId = clubId;
+      State.teamInfo = { tacticStatus: res.tacticStatus };
+      this.setLoadStatus('');
+      this.render();
+      return res;
+    }).catch(error => {
+      console.error('[TeamTab.load]', error);
+      this.setLoadStatus(`팀 정보를 불러오지 못했습니다: ${error.message}`, true);
+      return null;
+    }).finally(() => {
+      this.loadingPromise = null;
+    });
+    return this.loadingPromise;
+  },
+
+  setLoadStatus(message, isError = false) {
+    const box = document.getElementById('team-info-load-state');
+    if (!box) return;
+    box.style.display = message ? 'block' : 'none';
+    box.className = isError ? 'err-msg' : 'team-info-loading';
+    box.replaceChildren(document.createTextNode(message));
+    if (isError) {
+      box.appendChild(document.createTextNode(' '));
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'bs';
+      button.textContent = '다시 시도';
+      button.onclick = () => this.load(true);
+      box.appendChild(button);
+    }
   },
 
   render() {
@@ -1314,7 +1360,7 @@ const TeamTab = {
     Api.call('savePostrain', [State.clubId, type, idx, values]).then(() => {
         hideLoading();
         this.closePostrainModal();
-        this.load();
+        this.load(true);
         App.refreshLineups();
       }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
   },
@@ -1329,7 +1375,7 @@ const TeamTab = {
     rows.forEach((tr, i) => {
       const major = tr.querySelector('[data-field="major"]')?.value || '';
       const basic = tr.querySelector('[data-field="basic"]')?.value || '';
-      Api.call('savePostrainSkill', [State.clubId, 'hitter', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
+      Api.call('savePostrainSkill', [State.clubId, 'hitter', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(true); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
     });
   },
 
@@ -1343,7 +1389,7 @@ const TeamTab = {
     rows.forEach((tr, i) => {
       const major = tr.querySelector('[data-field="major"]')?.value || '';
       const basic = tr.querySelector('[data-field="basic"]')?.value || '';
-      Api.call('savePostrainSkill', [State.clubId, 'pitcher', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
+      Api.call('savePostrainSkill', [State.clubId, 'pitcher', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(true); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
     });
   },
 
@@ -1473,6 +1519,20 @@ function applySkillScoreTable(data) {
     .filter(Boolean))];
   State.hitterSkills = getNames(table.hitter);
   State.pitcherSkills = getNames(table.pitcher);
+  if (typeof AddModal !== 'undefined') AddModal.refreshSkillOptions();
+  if (typeof EditModal !== 'undefined') EditModal.refreshSkillOptions();
+}
+
+function populateSkillNameSelects(prefix, skills) {
+  const sorted = ['-', ...[...skills].sort((a, b) => a.localeCompare(b, 'ko'))];
+  const options = sorted.map(skill => `<option value="${skill}">${skill}</option>`).join('');
+  for (let i = 1; i <= 3; i++) {
+    const select = document.getElementById(`${prefix}-sk${i}n`);
+    if (!select) continue;
+    const selected = select.value;
+    select.innerHTML = options;
+    if (sorted.includes(selected)) select.value = selected;
+  }
 }
 
 // ================================================================
@@ -2008,6 +2068,12 @@ const EditModal = {
     modal.style.display = 'block';
   },
 
+  refreshSkillOptions() {
+    if (this.key === null) return;
+    const skills = this.isHitter ? State.hitterSkills : State.pitcherSkills;
+    populateSkillNameSelects('em', skills);
+  },
+
   _buildForm(p, isHitter) {
     const C = isHitter ? HITTER_COL : PITCHER_COL;
     const ro = (lbl, val) =>
@@ -2466,16 +2532,7 @@ const AddModal = {
     document.getElementById('add-modal-title').textContent = isHitter ? '타자 추가' : '투수 추가';
 
     // 스킬 select 옵션 채우기 (가나다순)
-    const skills = isHitter ? State.hitterSkills : State.pitcherSkills;
-    const sorted = ['-', ...[...skills].sort((a, b) => a.localeCompare(b, 'ko'))];
-    const skillOpts = sorted.map(s => `<option value="${s}">${s}</option>`).join('');
-    const skIds = isHitter
-      ? ['add-h-sk1n', 'add-h-sk2n', 'add-h-sk3n']
-      : ['add-p-sk1n', 'add-p-sk2n', 'add-p-sk3n'];
-    skIds.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = skillOpts;
-    });
+    this.refreshSkillOptions();
     document.getElementById('add-tab-0-content').style.display = 'block';
     document.getElementById('add-tab-1-content').style.display = 'none';
     document.getElementById('add-tab-2-content').style.display = 'none';
@@ -2487,6 +2544,12 @@ const AddModal = {
     document.getElementById('add-hitter-pots').style.display = isHitter ? 'block' : 'none';
     document.getElementById('add-pitcher-pots').style.display = isHitter ? 'none' : 'block';
     document.getElementById('add-err').style.display = 'none';
+  },
+
+  refreshSkillOptions() {
+    const prefix = this.isHitter ? 'add-h' : 'add-p';
+    const skills = this.isHitter ? State.hitterSkills : State.pitcherSkills;
+    populateSkillNameSelects(prefix, skills);
   },
 
   close() {
@@ -3257,7 +3320,6 @@ const App = {
     safe('HitterTab.renderStorage',  () => HitterTab.renderStorage());
     safe('PitcherTab.renderLineup',  () => PitcherTab.renderLineup());
     safe('PitcherTab.renderStorage', () => PitcherTab.renderStorage());
-    safe('TeamTab.load',             () => TeamTab.load());
     loadShortcutData();
     applyLineupScale();
   },
@@ -3321,6 +3383,7 @@ const App = {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.getElementById('tab-' + tab).style.display = 'block';
     if (tab === 'shortcut') SummaryTab.render();
+    if (tab === 'team') TeamTab.load();
     applyLineupScale();
     applyTabScale();
     updateStickyHeights();

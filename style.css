@@ -290,6 +290,13 @@ input, select, textarea { font-family: inherit; }
   white-space: pre-line;
 }
 
+.team-info-loading {
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 8px 10px;
+  text-align: center;
+}
+
 /* ================================================================
    섹션 바
 ================================================================ */
