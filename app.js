@@ -1175,8 +1175,7 @@ const TeamTab = {
 
   saveAll() {
     this.saveBasic();
-    this.saveHitterSkills();
-    this.savePitcherSkills();
+    this.saveSkills();
     this.saveYears();
   },
 
@@ -1365,31 +1364,30 @@ const TeamTab = {
       }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
   },
 
-  saveHitterSkills() {
-    const rows = document.querySelectorAll('#hitter-postrain-body tr');
-    let saved = 0;
-    const total = rows.length;
-    if (!total) return;
+  saveSkills() {
+    if (this._skillsSaving) return;
+    const collect = type => Array.from(document.querySelectorAll('#' + type + '-postrain-body tr'), tr => ({
+      major: tr.querySelector('[data-field="major"]')?.value || '',
+      basic: tr.querySelector('[data-field="basic"]')?.value || '',
+    }));
+    const skills = { hitter: collect('hitter'), pitcher: collect('pitcher') };
+    if (!skills.hitter.length && !skills.pitcher.length) return;
+    this._skillsSaving = true;
     showLoading('스킬 저장 중...');
-
-    rows.forEach((tr, i) => {
-      const major = tr.querySelector('[data-field="major"]')?.value || '';
-      const basic = tr.querySelector('[data-field="basic"]')?.value || '';
-      Api.call('savePostrainSkill', [State.clubId, 'hitter', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(true); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
-    });
-  },
-
-  savePitcherSkills() {
-    const rows = document.querySelectorAll('#pitcher-postrain-body tr');
-    let saved = 0;
-    const total = rows.length;
-    if (!total) return;
-    showLoading('스킬 저장 중...');
-
-    rows.forEach((tr, i) => {
-      const major = tr.querySelector('[data-field="major"]')?.value || '';
-      const basic = tr.querySelector('[data-field="basic"]')?.value || '';
-      Api.call('savePostrainSkill', [State.clubId, 'pitcher', i, major, basic]).then(() => { if (++saved >= total) { hideLoading(); this.load(true); loadShortcutData(); } }).catch(e => { hideLoading(); alert('저장 실패: ' + e.message); });
+    return Api.call('savePostrainSkills', [State.clubId, skills]).then(res => {
+      if (!res || res.success !== true) throw new Error(res?.error || '스킬 저장 실패');
+      return true;
+    }).catch(e => {
+      alert('스킬 저장 실패: ' + e.message);
+      return false;
+    }).finally(() => {
+      this._skillsSaving = false;
+      hideLoading();
+    }).then(saved => {
+      if (saved) {
+        this.load(true);
+        loadShortcutData();
+      }
     });
   },
 
