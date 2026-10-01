@@ -6,7 +6,8 @@ const response = (status = 200, payload = { ok: true, result: { success: true } 
   ok: status >= 200 && status < 300, status, text: async () => JSON.stringify(payload)
 });
 function load(fetch) {
-  const context = { window: {}, fetch, setTimeout: fn => { fn(); }, Map, Set, Error, Math };
+  const context = { window: {}, fetch, AbortController, TypeError,
+    setTimeout: (fn, ms) => ms < 2000 ? fn() : setTimeout(fn, ms), clearTimeout, Map, Set, Error, Math };
   vm.createContext(context);
   vm.runInContext(source + ';globalThis.api = Api;', context);
   return context.api;

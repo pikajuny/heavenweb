@@ -29,13 +29,14 @@ const handler = require('../api/gas');
       };
       await handler({ method: 'POST', body: scenario === 'invalid' ? '{' : { action: 'getHitters', args: ['private@example.test'] } }, res);
       assert.ok(headers['X-Request-Id'], 'response exposes a server-generated correlation ID');
-      assert.strictEqual(logs.length, 1, 'each completed request emits one diagnostic record');
-      assert.strictEqual(logs[0].requestId, headers['X-Request-Id']);
-      assert.strictEqual(logs[0].outcome, {
+      const completed = logs.filter(log => log.event === 'gas_request');
+      assert.strictEqual(completed.length, 1, 'each completed request emits one completion record');
+      assert.strictEqual(completed[0].requestId, headers['X-Request-Id']);
+      assert.strictEqual(completed[0].outcome, {
         success: 'success', http: 'upstream_http_error', non_json: 'upstream_non_json',
         application: 'gas_error', result: 'gas_result_error', network: 'transport_error', invalid: 'invalid_request'
       }[scenario]);
-      assert.ok(logs[0].durationMs >= 0);
+      assert.ok(completed[0].durationMs >= 0);
       assert.ok(!JSON.stringify(logs).includes('private@example.test'), 'logs exclude arguments and raw errors/bodies');
       if (scenario === 'success') assert.deepStrictEqual(res.body, { ok: true, result: { success: true, data: [] } });
     }

@@ -49,16 +49,17 @@ const Api = {
     }
   },
 
-  _request(action, args) {
+  async _request(action, args) {
     const transient = status => [429, 502, 503, 504].includes(status);
-    return fetch(this.endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, args })
-    }).catch(error => {
-      error.retryable = true;
-      throw error;
-    }).then(async res => {
+    const controller = new AbortController();
+    const deadline = setTimeout(() => controller.abort(), 55000);
+    try {
+      const res = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, args }),
+        signal: controller.signal,
+      });
       const text = await res.text();
       let payload;
       try {
@@ -73,8 +74,6 @@ const Api = {
         error.retryable = transient(res.status);
         throw error;
       }
-      return payload;
-    }).then(payload => {
       if (!payload || payload.ok !== true) {
         const detail = payload && payload.upstreamBody ? ' - ' + payload.upstreamBody : '';
         const error = new Error(((payload && payload.error) || 'API request failed') + detail);
@@ -82,7 +81,20 @@ const Api = {
         throw error;
       }
       return payload.result;
-    });
+    } catch (error) {
+      if (controller.signal.aborted) {
+        const timeout = new Error(this._readActions.has(action)
+          ? '데이터 조회 대기시간을 초과했습니다. 다시 불러와주세요.'
+          : '응답 대기시간을 초과했습니다. 저장이 반영됐는지 확인 후 다시 시도해주세요.');
+        timeout.code = 'API_TIMEOUT';
+        timeout.retryable = true;
+        throw timeout;
+      }
+      if (error instanceof TypeError) error.retryable = true;
+      throw error;
+    } finally {
+      clearTimeout(deadline);
+    }
   }
 };
 

@@ -3,6 +3,8 @@ const { randomUUID } = require('node:crypto');
 module.exports = async function handler(req, res) {
   const startedAt = Date.now();
   const requestId = randomUUID();
+  const controller = new AbortController();
+  let deadline;
   const diagnostic = { event: 'gas_request', requestId, action: null, upstreamStatus: null, outcome: 'invalid_request' };
   res.setHeader('X-Request-Id', requestId);
   try {
@@ -25,14 +27,17 @@ module.exports = async function handler(req, res) {
       diagnostic.action = typeof payload.action === 'string' && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(payload.action)
         ? payload.action : null;
       diagnostic.outcome = 'transport_error';
+      console.info(JSON.stringify({ ...diagnostic, event: 'gas_request_started', timeoutMs: 50000 }));
+      deadline = setTimeout(() => controller.abort(), 50000);
       const gasRes = await fetch(gasApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
 
-      const text = await gasRes.text();
       diagnostic.upstreamStatus = gasRes.status;
+      const text = await gasRes.text();
       const contentType = gasRes.headers.get('content-type') || '';
 
       let gasPayload = null;
@@ -66,9 +71,17 @@ module.exports = async function handler(req, res) {
         : gasPayload.result && gasPayload.result.success === false ? 'gas_result_error' : 'success';
       res.status(200).json(gasPayload);
     } catch (err) {
-      res.status(500).json({ ok: false, error: err.message || String(err) });
+      if (controller.signal.aborted) {
+        diagnostic.outcome = 'upstream_timeout';
+        res.status(504).json({ ok: false, code: 'GAS_TIMEOUT', requestId,
+          error: '서버 응답 대기시간을 초과했습니다. 저장 요청은 반영 여부를 확인해주세요.' });
+      } else {
+        res.status(diagnostic.outcome === 'transport_error' ? 502 : 500)
+          .json({ ok: false, error: err.message || String(err), requestId });
+      }
     }
   } finally {
+    if (deadline) clearTimeout(deadline);
     console.info(JSON.stringify({ ...diagnostic, durationMs: Date.now() - startedAt }));
   }
 };
