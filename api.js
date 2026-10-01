@@ -1,7 +1,7 @@
 const Api = {
   endpoint: window.COMPYA_API_ENDPOINT || '/api/gas',
   _readActions: new Set([
-    'getHitters', 'getPitchers', 'getHitterLineup', 'getPitcherLineup',
+    'getInitialData', 'getHitters', 'getPitchers', 'getHitterLineup', 'getPitcherLineup',
     'getTeamInfo', 'getShortcutData', 'getSkillScoreTable', 'getHitterSkills',
     'getPitcherSkills', 'getPhotoDataUrls', 'searchPlayerPhotos', 'getRankings', 'getClubSnapshot',
   ]),

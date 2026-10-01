@@ -1603,7 +1603,7 @@ function fmtPct(v) {
 }
 
 function showScreen(id) {
-  ['login-screen','onboarding-screen','app-screen'].forEach(s => {
+  ['login-screen','onboarding-screen','startup-screen','app-screen'].forEach(s => {
     document.getElementById(s).style.display = s === id ? (s === 'app-screen' ? 'block' : 'flex') : 'none';
   });
 }
@@ -3284,31 +3284,41 @@ const App = {
   },
 
   enterApp() {
+    if (this._initialLoading) return;
+    this._initialLoading = true;
     App._saveSession();
-    showScreen('app-screen');
+    showScreen('startup-screen');
+    document.getElementById('startup-err').style.display = 'none';
+    document.getElementById('startup-retry').style.display = 'none';
     document.getElementById('club-badge').textContent = State.clubId;
     // 구단명 메뉴 버튼 텍스트 설정
     const menuClubBtn = document.getElementById('menu-btn-myclub');
     if (menuClubBtn) menuClubBtn.textContent = State.clubId;
-    updateStickyHeights();
-    // 기본 랜딩: 라운지
-    switchMenu('lounge', document.getElementById('menu-btn-lounge'));
     showLoading('데이터 불러오는 중...');
 
-    const onFail = e => { hideLoading(); showErr('login-err', '[????] ' + (e?.message || e)); };
-    const load = (method, args, apply) => Api.call(method, args)
-      .then(res => { if (res.success) apply(res.data); else throw new Error(res.error || method + ' failed'); })
-      .catch(onFail);
-    Promise.all([
-      load('getHitters', [State.clubId], data => { State.hitters = data; }),
-      load('getPitchers', [State.clubId], data => { State.pitchers = data; }),
-      load('getSkillScoreTable', [], applySkillScoreTable),
-      load('getHitterLineup', [State.clubId], data => { State.hitterLineup = data; }),
-      load('getPitcherLineup', [State.clubId], data => { State.pitcherLineup = data; }),
-    ]).then(() => {
-      hideLoading();
+    return Api.call('getInitialData', [State.clubId]).then(res => {
+      if (!res || res.success !== true) throw new Error(res?.error || '데이터 조회 실패');
+      const data = res.data;
+      if (!data || !['hitters', 'pitchers', 'hitterLineup', 'pitcherLineup'].every(key => Array.isArray(data[key])) || !data.skillScoreTable) {
+        throw new Error('필수 데이터가 누락되었습니다.');
+      }
+      applySkillScoreTable(data.skillScoreTable);
+      State.hitters = data.hitters;
+      State.pitchers = data.pitchers;
+      State.hitterLineup = data.hitterLineup;
+      State.pitcherLineup = data.pitcherLineup;
+      showScreen('app-screen');
+      updateStickyHeights();
+      switchMenu('lounge', document.getElementById('menu-btn-lounge'));
       App.renderAll();
       App.loadPhotoCache(() => App.renderPhotoViews());
+    }).catch(e => {
+      showScreen('startup-screen');
+      showErr('startup-err', '데이터를 불러오지 못했습니다. ' + (e?.message || e));
+      document.getElementById('startup-retry').style.display = 'inline-block';
+    }).finally(() => {
+      this._initialLoading = false;
+      hideLoading();
     });
   },
 

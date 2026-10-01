@@ -50,7 +50,7 @@ input, select, textarea { font-family: inherit; }
 /* ================================================================
    로그인 & 온보딩
 ================================================================ */
-#login-screen, #onboarding-screen {
+#login-screen, #onboarding-screen, #startup-screen {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
