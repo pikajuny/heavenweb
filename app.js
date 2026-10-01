@@ -3296,7 +3296,7 @@ const App = {
     if (menuClubBtn) menuClubBtn.textContent = State.clubId;
     showLoading('데이터 불러오는 중...');
 
-    return Api.call('getInitialData', [State.clubId]).then(res => {
+    return this._loadInitialData().then(res => {
       if (!res || res.success !== true) throw new Error(res?.error || '데이터 조회 실패');
       const data = res.data;
       if (!data || !['hitters', 'pitchers', 'hitterLineup', 'pitcherLineup'].every(key => Array.isArray(data[key])) || !data.skillScoreTable) {
@@ -3319,6 +3319,26 @@ const App = {
     }).finally(() => {
       this._initialLoading = false;
       hideLoading();
+    });
+  },
+
+  _loadInitialData() {
+    return Api.call('getInitialData', [State.clubId]).catch(error => {
+      if (!/^Unknown API action:\s*getInitialData\s*$/i.test(error?.message || '')) throw error;
+      // Older deployed GAS versions still expose the individual read actions.
+      const reads = [
+        ['hitters', 'getHitters', [State.clubId]],
+        ['pitchers', 'getPitchers', [State.clubId]],
+        ['hitterLineup', 'getHitterLineup', [State.clubId]],
+        ['pitcherLineup', 'getPitcherLineup', [State.clubId]],
+        ['skillScoreTable', 'getSkillScoreTable', []],
+      ];
+      return Promise.all(reads.map(([key, action, args]) => Api.call(action, args).then(result => {
+        if (!result || result.success !== true || result.data === undefined) {
+          throw new Error(action + ': ' + (result?.error || '데이터 조회 실패'));
+        }
+        return [key, result.data];
+      }))).then(entries => ({ success: true, data: Object.fromEntries(entries) }));
     });
   },
 

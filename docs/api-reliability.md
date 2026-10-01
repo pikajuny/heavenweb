@@ -29,6 +29,14 @@ errors can reach the browser before it stops waiting.
 Deploy backend changes with `push.gas` from `gas/`, then frontend changes with
 `push.git` from `web/`.
 
+If `getInitialData` reports `Unknown API action`, the deployed GAS backend does
+not expose the new action. The frontend falls back to the existing individual
+read APIs only for that exact error; every read must succeed before entry.
+Verify that Vercel's `GAS_API_URL` points to the intended active web app and that
+the existing GAS deployment uses the latest version. Uploading source alone does
+not update a versioned deployment. In Apps Script, use Deploy > Manage deployments
+> Edit > New version > Deploy to keep the existing deployment URL.
+
 References:
 - https://developers.google.com/apps-script/reference/cache/cache
 - https://vercel.com/docs/functions/configuring-functions/duration

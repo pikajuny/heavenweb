@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node tests/lounge-admin.test.js && node tests/login-session.test.js && node tests/gas-team-basic.test.js && node tests/skill-calc-core.test.js && node tests/postrain-batch.test.js && node tests/gas-diagnostics.test.js && node tests/api-resilience.test.js && node tests/bootstrap.test.js && node tests/bootstrap-shared-sheet.test.js && node tests/gas-skill-score-table.test.js && node tests/skill-score-cache.test.js && node tests/api-timeout.test.js"
+    "test": "node tests/lounge-admin.test.js && node tests/login-session.test.js && node tests/gas-team-basic.test.js && node tests/skill-calc-core.test.js && node tests/postrain-batch.test.js && node tests/gas-diagnostics.test.js && node tests/api-resilience.test.js && node tests/bootstrap.test.js && node tests/bootstrap-compatibility.test.js && node tests/bootstrap-shared-sheet.test.js && node tests/gas-skill-score-table.test.js && node tests/skill-score-cache.test.js && node tests/api-timeout.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3"
