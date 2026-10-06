@@ -1,11 +1,13 @@
 const { randomUUID } = require('node:crypto');
+const { URL } = require('node:url');
 
 module.exports = async function handler(req, res) {
   const startedAt = Date.now();
   const requestId = randomUUID();
   const controller = new AbortController();
   let deadline;
-  const diagnostic = { event: 'gas_request', requestId, action: null, upstreamStatus: null, outcome: 'invalid_request' };
+  const diagnostic = { event: 'gas_request', requestId, action: null, upstreamStatus: null,
+    upstreamHost: null, responseStage: null, outcome: 'invalid_request' };
   res.setHeader('X-Request-Id', requestId);
   try {
     if (req.method !== 'POST') {
@@ -37,6 +39,9 @@ module.exports = async function handler(req, res) {
       });
 
       diagnostic.upstreamStatus = gasRes.status;
+      // Only the hostname is safe to log: redirect URLs contain bearer-like keys.
+      try { diagnostic.upstreamHost = new URL(gasRes.url || gasApiUrl).hostname; } catch (_) {}
+      diagnostic.responseStage = gasRes.redirected ? 'redirect_target' : 'deployment';
       const text = await gasRes.text();
       const contentType = gasRes.headers.get('content-type') || '';
 
@@ -50,8 +55,9 @@ module.exports = async function handler(req, res) {
         res.status(200).json({
           ok: false,
           error: `GAS request failed: ${gasRes.status}`,
+          code: 'GAS_HTTP_ERROR',
+          requestId,
           upstreamStatus: gasRes.status,
-          upstreamBody: text.slice(0, 1000),
         });
         return;
       }
@@ -61,8 +67,9 @@ module.exports = async function handler(req, res) {
         res.status(200).json({
           ok: false,
           error: 'GAS response was not JSON',
+          code: 'GAS_NON_JSON',
+          requestId,
           upstreamStatus: gasRes.status,
-          upstreamBody: text.slice(0, 1000),
         });
         return;
       }

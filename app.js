@@ -3204,11 +3204,20 @@ const App = {
   },
 
   openGoogleLogin() {
+    document.getElementById('login-err').style.display = 'none';
     Api.call('getGoogleAuthUrl', []).then(res => {
         if (!res.success) { showErr('login-err', '로그인 URL 생성에 실패했습니다.'); return; }
         App._loginPopup = window.open(res.url, 'google_login', 'width=500,height=600,left=100,top=100');
         if (!App._loginPopup) showErr('login-err', '팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도해주세요.');
       }).catch(err => showErr('login-err', err.message));
+  },
+
+  refreshLogin() {
+    if (this._loginPopup) {
+      try { this._loginPopup.close(); } catch (_) {}
+      this._loginPopup = null;
+    }
+    window.location.reload();
   },
 
   enterExisting() {

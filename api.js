@@ -6,6 +6,7 @@ const Api = {
     'getPitcherSkills', 'getPhotoDataUrls', 'searchPlayerPhotos', 'getRankings', 'getClubSnapshot',
   ]),
   _pendingReads: new Map(),
+  _loginActions: new Set(['getGoogleAuthUrl', 'loginWithToken', 'validateSavedLogin']),
   _readQueue: [],
   _activeReads: 0,
 
@@ -13,7 +14,7 @@ const Api = {
     // Writes invalidate sharing so a later read cannot reuse a pre-save request.
     if (!this._readActions.has(action)) {
       this._pendingReads.clear();
-      return this._request(action, args);
+      return this._loginActions.has(action) ? this._retryRead(action, args) : this._request(action, args);
     }
     const key = JSON.stringify([this.endpoint, action, args]);
     if (this._pendingReads.has(key)) return this._pendingReads.get(key);
@@ -51,6 +52,7 @@ const Api = {
 
   async _request(action, args) {
     const transient = status => [429, 502, 503, 504].includes(status);
+    const recoverable = status => transient(status) || (status === 404 && this._loginActions.has(action));
     const controller = new AbortController();
     const deadline = setTimeout(() => controller.abort(), 55000);
     try {
@@ -65,19 +67,23 @@ const Api = {
       try {
         payload = text ? JSON.parse(text) : null;
       } catch (_) {
-        const error = new Error('API returned non-JSON response: ' + text.slice(0, 300));
-        error.retryable = transient(res.status);
+        const error = new Error('서버에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.');
+        error.retryable = recoverable(res.status);
         throw error;
       }
       if (!res.ok) {
         const error = new Error((payload && payload.error) || ('API request failed: ' + res.status));
-        error.retryable = transient(res.status);
+        error.retryable = recoverable(res.status);
         throw error;
       }
       if (!payload || payload.ok !== true) {
-        const detail = payload && payload.upstreamBody ? ' - ' + payload.upstreamBody : '';
-        const error = new Error(((payload && payload.error) || 'API request failed') + detail);
-        error.retryable = transient(payload && payload.upstreamStatus);
+        const upstreamStatus = payload && payload.upstreamStatus;
+        const error = new Error(upstreamStatus
+          ? '서버에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.'
+          : ((payload && payload.error) || 'API request failed'));
+        error.code = payload && payload.code;
+        error.requestId = payload && payload.requestId;
+        error.retryable = recoverable(upstreamStatus);
         throw error;
       }
       return payload.result;

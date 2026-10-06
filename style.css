@@ -3955,3 +3955,14 @@ input, select, textarea { font-family: inherit; }
       inset 0 0 16px rgba(255,218,102,0.16);
   }
 }
+/* Login recovery remains available when the upstream server fails. */
+.login-recovery-btn {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--border, #39414b);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text, #e2e8f0);
+  font: inherit;
+  cursor: pointer;
+}
