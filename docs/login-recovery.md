@@ -6,6 +6,14 @@ at most twice for upstream 404 or transient transport errors. Login token replay
 requires the updated backend; deploy it before enabling the frontend retries.
 Other mutations are never retried automatically.
 
+When the original upstream POST redirects to Google's HTTPS `/macros/echo`
+response endpoint and that endpoint returns 404, the proxy retries retrieving
+that same response URL with GET at most twice. It never repeats the POST, and
+recovery GETs may not redirect. All attempts share the original 50-second
+deadline. This can recover a transient response-delivery failure; a persistent
+Google 404 still requires investigation. `responseRetries` in the completion
+log records the number of response retrieval retries.
+
 Successful token login results are kept in GAS ScriptCache for 120 seconds.
 The original token is consumed only after a successful result is cached. A script
 lock prevents concurrent requests from processing the same token twice. Cache

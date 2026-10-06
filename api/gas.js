@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
   const controller = new AbortController();
   let deadline;
   const diagnostic = { event: 'gas_request', requestId, action: null, upstreamStatus: null,
-    upstreamHost: null, responseStage: null, outcome: 'invalid_request' };
+    upstreamHost: null, responseStage: null, responseRetries: 0, outcome: 'invalid_request' };
   res.setHeader('X-Request-Id', requestId);
   try {
     if (req.method !== 'POST') {
@@ -31,17 +31,35 @@ module.exports = async function handler(req, res) {
       diagnostic.outcome = 'transport_error';
       console.info(JSON.stringify({ ...diagnostic, event: 'gas_request_started', timeoutMs: 50000 }));
       deadline = setTimeout(() => controller.abort(), 50000);
-      const gasRes = await fetch(gasApiUrl, {
+      let gasRes = await fetch(gasApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
 
+      diagnostic.responseStage = gasRes.redirected ? 'redirect_target' : 'deployment';
+      diagnostic.upstreamStatus = gasRes.status;
+      try { diagnostic.upstreamHost = new URL(gasRes.url || gasApiUrl).hostname; } catch (_) {}
+      let responseUrl = null;
+      try {
+        const target = new URL(gasRes.url);
+        if (gasRes.redirected && target.protocol === 'https:' &&
+            target.hostname === 'script.googleusercontent.com' && target.pathname === '/macros/echo') {
+          responseUrl = target.href;
+        }
+      } catch (_) {}
+      // Retry retrieval of the already-generated result, never the original POST.
+      // Disallow redirects on recovery GETs so they cannot invoke a GAS handler.
+      while (responseUrl && gasRes.status === 404 && diagnostic.responseRetries < 2) {
+        await gasRes.text();
+        diagnostic.responseRetries++;
+        await new Promise(resolve => setTimeout(resolve, 250 * diagnostic.responseRetries));
+        gasRes = await fetch(responseUrl, { method: 'GET', redirect: 'error', signal: controller.signal });
+      }
       diagnostic.upstreamStatus = gasRes.status;
       // Only the hostname is safe to log: redirect URLs contain bearer-like keys.
       try { diagnostic.upstreamHost = new URL(gasRes.url || gasApiUrl).hostname; } catch (_) {}
-      diagnostic.responseStage = gasRes.redirected ? 'redirect_target' : 'deployment';
       const text = await gasRes.text();
       const contentType = gasRes.headers.get('content-type') || '';
 
