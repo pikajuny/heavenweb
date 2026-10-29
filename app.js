@@ -3096,14 +3096,23 @@ const App = {
       if (!e.data || (e.data.type !== 'gsi_success' && e.data.type !== 'gsi_error')) return;
       if (App._loginPopup) { try { App._loginPopup.close(); } catch(_) {} App._loginPopup = null; }
       if (e.data.type === 'gsi_error') {
-        showErr('login-err', '로그인에 실패했습니다: ' + e.data.error);
+        LoungeAdmin.authError('로그인에 실패했습니다: ' + e.data.error);
         return;
       }
       showLoading('로그인 중...');
       Api.call('loginWithToken', [e.data.token]).then(res => {
           hideLoading();
           if (!res.success) {
-            showErr('login-err', res.error || '로그인에 실패했습니다.');
+            LoungeAdmin.authError(res.error || '로그인에 실패했습니다.');
+            return;
+          }
+          LoungeAdmin.rememberToken(e.data.token);
+          if (LoungeAdmin._authPending) {
+            const target = LoungeAdmin._authPending;
+            LoungeAdmin._authPending = false;
+            if (target === 'withdraw') {
+              showErr('withdraw-err', 'Google 재인증을 완료했습니다. 탈퇴 확인을 다시 눌러주세요.');
+            } else LoungeAdmin.open();
             return;
           }
           State.email = res.email;
@@ -3120,7 +3129,7 @@ const App = {
           }
         }).catch(err => {
           hideLoading();
-          showErr('login-err', err.message);
+          LoungeAdmin.authError(err.message);
         });
     });
     if (this._restoreSession()) return;
@@ -3203,13 +3212,14 @@ const App = {
       });
   },
 
-  openGoogleLogin() {
+  openGoogleLogin(reauthenticate = false) {
+    if (!reauthenticate) LoungeAdmin._authPending = false;
     document.getElementById('login-err').style.display = 'none';
-    Api.call('getGoogleAuthUrl', []).then(res => {
-        if (!res.success) { showErr('login-err', '로그인 URL 생성에 실패했습니다.'); return; }
+    return Api.call('getGoogleAuthUrl', []).then(res => {
+        if (!res.success) { LoungeAdmin.authError('로그인 URL 생성에 실패했습니다.'); return; }
         App._loginPopup = window.open(res.url, 'google_login', 'width=500,height=600,left=100,top=100');
-        if (!App._loginPopup) showErr('login-err', '팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도해주세요.');
-      }).catch(err => showErr('login-err', err.message));
+        if (!App._loginPopup) LoungeAdmin.authError('팝업이 차단됐습니다. 브라우저 팝업 허용 후 다시 시도해주세요.');
+      }).catch(err => LoungeAdmin.authError(err.message));
   },
 
   refreshLogin() {
@@ -3525,29 +3535,12 @@ function switchMenu(menuId, btn) {
     updateStickyHeights();
   }
   if (menuId === 'lounge') {
-    switchLoungeTab('home', document.getElementById('lounge-tab-btn-home'));
-  }
-  if (menuId === 'skill') {
-    SkillCalcTab.init();
-  }
-}
-
-function switchLoungeTab(tabId, btn) {
-  document.querySelectorAll('.lounge-tab').forEach(b => b.classList.remove('on'));
-  if (btn) btn.classList.add('on');
-  document.querySelectorAll('.lounge-tab-content').forEach(tab => {
-    tab.style.display = tab.id === 'lounge-tab-' + tabId ? 'block' : 'none';
-  });
-  updateStickyHeights();
-  updateLoungeCompactLayout();
-  if (tabId === 'home') {
-    LoungeHome.load();
-    Board.load();
-  }
-  if (tabId === 'ranking') {
     LoungeRanking.load();
     GoldenGlove.load();
     requestAnimationFrame(applyGoldenGloveScale);
+  }
+  if (menuId === 'skill') {
+    SkillCalcTab.init();
   }
 }
 
@@ -3803,471 +3796,6 @@ function parseHtmlToGrid(html) {
     return r.map(v => (v === undefined ? '' : v));
   });
 }
-
-// ================================================================
-// [라운지 섹션] 알림장/공지사항 — LoungeHome
-// ================================================================
-const LoungeHome = {
-  _loading: false,
-  _isAdmin: false,
-  _notepad: null,
-  _heavenLinks: [],
-  _heavenDraft: [],
-  _heavenEditSlot: 1,
-  _noticePage: 0,
-  _noticePageSize: 10,
-  _noticeHasNext: false,
-  _currentNoticeId: '',
-  _currentNotice: null,
-
-  load() {
-    const body = document.getElementById('notice-list-body');
-    if (!body || this._loading) return;
-    this._loading = true;
-    this._noticePageSize = this.getNoticePageSize();
-    this.updateNoticeControls();
-    body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
-    LoungeApi.call('getHome', [State.email || '', this._noticePageSize, this._noticePage * this._noticePageSize]).then(data => {
-      this._loading = false;
-      this._isAdmin = !!data.isAdmin;
-      this._notepad = data.notepad || null;
-      this._heavenLinks = this.normalizeHeavenLinks(data.heavenLinks || []);
-      const noticeData = data.notices || {};
-      this._noticeHasNext = !!noticeData.hasNext;
-      this.renderNotepad(this._notepad);
-      this.renderHeavenLinks(this._heavenLinks);
-      this.renderNotices(noticeData.notices || []);
-      this.updateAdminControls();
-      this.updateNoticeControls();
-    }).catch(e => {
-      this._loading = false;
-      this._noticeHasNext = false;
-      this.updateNoticeControls();
-      body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
-      const heavenBody = document.getElementById('heaven-link-list-body');
-      if (heavenBody) heavenBody.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
-      this.renderNotepad(null);
-      this.updateAdminControls();
-    });
-  },
-
-  renderNotepad(notepad) {
-    const dateEl = document.getElementById('notepad-date');
-    const opponentEl = document.getElementById('notepad-opponent');
-    const linesEl = document.getElementById('notepad-lines');
-    if (dateEl) dateEl.textContent = notepad?.dateLabel || '오늘 날짜';
-    if (opponentEl) opponentEl.textContent = notepad?.opponent || '-';
-    if (!linesEl) return;
-    const lines = (notepad?.lines || []).filter(line => String(line || '').trim());
-    linesEl.innerHTML = lines.length
-      ? lines.slice(0, 3).map((line, i) => `<div class="notepad-line"><span>${i + 1}</span>${escapeHtml(line)}</div>`).join('')
-      : '<div class="notepad-line notepad-line-empty">알림장이 비어 있습니다.</div>';
-  },
-
-  normalizeHeavenLinks(links) {
-    const source = Array.isArray(links) ? links : [];
-    return [1, 2, 3, 4].map(slotIndex => {
-      const link = source.find(item => Number(item?.slotIndex || item?.slot_index) === slotIndex) || {};
-      return {
-        slotIndex,
-        name: String(link.name || ''),
-        description: String(link.description || ''),
-        url: String(link.url || ''),
-        isActive: !!(link.isActive ?? link.is_active),
-      };
-    });
-  },
-
-  renderHeavenLinks(links) {
-    const body = document.getElementById('heaven-link-list-body');
-    if (!body) return;
-    const activeLinks = this.normalizeHeavenLinks(links).filter(link => link.isActive && link.url).slice(0, 4);
-    if (!activeLinks.length) {
-      body.innerHTML = '<div class="board-empty">등록된 링크가 없습니다.</div>';
-      updateLoungeCompactLayout();
-      return;
-    }
-    body.innerHTML = `<div class="heaven-link-list">${activeLinks.map(link => `
-      <div class="heaven-link-row" data-url="${escapeHtml(link.url)}" onclick="LoungeHome.openHeavenLink(this.dataset.url)">
-        <div class="heaven-link-name">${link.name ? `${escapeHtml(link.name)} ↗` : '↗'}</div>
-        <div class="heaven-link-desc">${escapeHtml(link.description || '-')}</div>
-      </div>
-    `).join('')}</div>`;
-    updateLoungeCompactLayout();
-  },
-
-  openHeavenLink(url) {
-    const text = String(url || '').trim();
-    if (!text) return;
-    window.open(text, '_blank', 'noopener,noreferrer');
-  },
-
-  renderNotices(notices) {
-    const body = document.getElementById('notice-list-body');
-    if (!body) return;
-    if (!notices.length) {
-      if (this._noticePage > 0) {
-        this._noticePage -= 1;
-        this.load();
-        return;
-      }
-      body.innerHTML = '<div class="board-empty">아직 공지사항이 없습니다.</div>';
-      updateLoungeCompactLayout();
-      return;
-    }
-    body.innerHTML = `<div class="notice-list">${notices.map(notice => `
-      <div class="notice-row" onclick="LoungeHome.openNotice('${escapeHtml(notice.noticeId)}')">
-        <div class="notice-row-title">${escapeHtml(notice.title)}</div>
-        <div class="notice-row-author">${escapeHtml(notice.authorName || '-')}</div>
-        <div class="notice-row-time">${escapeHtml(this.formatTime(notice.createdAt))}</div>
-      </div>
-    `).join('')}</div>`;
-    updateLoungeCompactLayout();
-  },
-
-  getNoticePageSize() {
-    if (isLoungeHomeStacked()) return getLoungeCompactMaxRows();
-    return 5;
-  },
-
-  updateAdminControls() {
-    const display = this._isAdmin ? 'inline-flex' : 'none';
-    const notepadBtn = document.getElementById('notepad-edit-btn');
-    const heavenBtn = document.getElementById('heaven-link-edit-btn');
-    const noticeBtn = document.getElementById('notice-write-btn');
-    const adminBtn = document.getElementById('lounge-admin-btn');
-    if (notepadBtn) notepadBtn.style.display = display;
-    if (heavenBtn) heavenBtn.style.display = display;
-    if (noticeBtn) noticeBtn.style.display = display;
-    if (adminBtn) adminBtn.style.display = display;
-  },
-
-  updateNoticeControls() {
-    const prev = document.getElementById('notice-prev-btn');
-    const next = document.getElementById('notice-next-btn');
-    if (prev) prev.disabled = this._loading || this._noticePage <= 0;
-    if (next) next.disabled = this._loading || !this._noticeHasNext;
-  },
-
-  prevNoticePage() {
-    if (this._loading || this._noticePage <= 0) return;
-    this._noticePage -= 1;
-    this.load();
-  },
-
-  nextNoticePage() {
-    if (this._loading || !this._noticeHasNext) return;
-    this._noticePage += 1;
-    this.load();
-  },
-
-  openNotepadEdit() {
-    if (!this._isAdmin) return;
-    const lines = this._notepad?.lines || [];
-    document.getElementById('notepad-edit-opponent').value = this._notepad?.opponent || '';
-    document.getElementById('notepad-edit-line1').value = lines[0] || '';
-    document.getElementById('notepad-edit-line2').value = lines[1] || '';
-    document.getElementById('notepad-edit-line3').value = lines[2] || '';
-    document.getElementById('notepad-edit-err').style.display = 'none';
-    document.getElementById('notepad-modal-bg').style.display = 'flex';
-  },
-
-  closeNotepadEdit() {
-    const modal = document.getElementById('notepad-modal-bg');
-    if (modal) modal.style.display = 'none';
-  },
-
-  saveNotepad() {
-    if (!this._isAdmin) return;
-    const btn = document.getElementById('notepad-save-btn');
-    if (btn?.disabled) return;
-    const values = [
-      document.getElementById('notepad-edit-opponent')?.value || '',
-      document.getElementById('notepad-edit-line1')?.value || '',
-      document.getElementById('notepad-edit-line2')?.value || '',
-      document.getElementById('notepad-edit-line3')?.value || '',
-    ];
-    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-    LoungeApi.call('saveNotepad', [State.email || '', ...values]).then(data => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      this._notepad = data.notepad || null;
-      this._isAdmin = !!data.isAdmin;
-      this.renderNotepad(this._notepad);
-      this.updateAdminControls();
-      this.closeNotepadEdit();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      showErr('notepad-edit-err', e.message);
-    });
-  },
-
-  openHeavenLinkEdit() {
-    if (!this._isAdmin) return;
-    this._heavenDraft = this.normalizeHeavenLinks(this._heavenLinks).map(link => ({ ...link }));
-    this._heavenEditSlot = 1;
-    const err = document.getElementById('heaven-link-edit-err');
-    if (err) err.style.display = 'none';
-    this.renderHeavenLinkSlot();
-    document.getElementById('heaven-link-modal-bg').style.display = 'flex';
-    setTimeout(() => document.getElementById('heaven-link-name')?.focus(), 0);
-  },
-
-  closeHeavenLinkEdit() {
-    const modal = document.getElementById('heaven-link-modal-bg');
-    if (modal) modal.style.display = 'none';
-  },
-
-  switchHeavenLinkSlot(slotIndex) {
-    const slot = Math.max(1, Math.min(4, Number(slotIndex) || 1));
-    this.captureHeavenLinkSlot();
-    this._heavenEditSlot = slot;
-    this.renderHeavenLinkSlot();
-  },
-
-  captureHeavenLinkSlot() {
-    if (!this._heavenDraft.length) return;
-    const index = this._heavenEditSlot - 1;
-    if (!this._heavenDraft[index]) return;
-    this._heavenDraft[index] = {
-      slotIndex: this._heavenEditSlot,
-      name: document.getElementById('heaven-link-name')?.value || '',
-      description: document.getElementById('heaven-link-description')?.value || '',
-      url: document.getElementById('heaven-link-url')?.value || '',
-      isActive: !!document.getElementById('heaven-link-active')?.checked,
-    };
-  },
-
-  renderHeavenLinkSlot() {
-    const link = this._heavenDraft[this._heavenEditSlot - 1] || { name: '', description: '', url: '', isActive: false };
-    ['1', '2', '3', '4'].forEach(slot => {
-      const tab = document.getElementById('heaven-link-tab-' + slot);
-      if (tab) tab.classList.toggle('on', Number(slot) === this._heavenEditSlot);
-    });
-    const name = document.getElementById('heaven-link-name');
-    const description = document.getElementById('heaven-link-description');
-    const url = document.getElementById('heaven-link-url');
-    const active = document.getElementById('heaven-link-active');
-    if (name) name.value = link.name || '';
-    if (description) description.value = link.description || '';
-    if (url) url.value = link.url || '';
-    if (active) active.checked = !!link.isActive;
-  },
-
-  saveHeavenLinks() {
-    if (!this._isAdmin) return;
-    this.captureHeavenLinkSlot();
-    const btn = document.getElementById('heaven-link-save-btn');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-    LoungeApi.call('saveHeavenLinks', [State.email || '', this._heavenDraft]).then(data => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      this._isAdmin = !!data.isAdmin;
-      this._heavenLinks = this.normalizeHeavenLinks(data.heavenLinks || []);
-      this.renderHeavenLinks(this._heavenLinks);
-      this.updateAdminControls();
-      this.closeHeavenLinkEdit();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      showErr('heaven-link-edit-err', e.message);
-    });
-  },
-
-  openNoticeWrite() {
-    if (!this._isAdmin) return;
-    this._currentNoticeId = '';
-    this._currentNotice = null;
-    this.setNoticeOwnerControls(false);
-    document.getElementById('notice-modal-title').textContent = '공지 글쓰기';
-    document.getElementById('notice-modal-body').innerHTML = `
-      <div class="board-form">
-        <input class="board-input" id="notice-write-title" maxlength="100" placeholder="제목">
-        <textarea class="board-textarea" id="notice-write-body" maxlength="4000" placeholder="내용"></textarea>
-        <div id="notice-write-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="LoungeHome.closeNoticeModal()">취소</button>
-          <button class="bp" id="notice-write-submit" onclick="LoungeHome.submitNotice()">등록</button>
-        </div>
-      </div>`;
-    document.getElementById('notice-modal-bg').style.display = 'flex';
-    setTimeout(() => document.getElementById('notice-write-title')?.focus(), 0);
-  },
-
-  submitNotice() {
-    if (!this._isAdmin) return;
-    const title = document.getElementById('notice-write-title')?.value || '';
-    const body = document.getElementById('notice-write-body')?.value || '';
-    const btn = document.getElementById('notice-write-submit');
-    const titleEl = document.getElementById('notice-write-title');
-    const bodyEl = document.getElementById('notice-write-body');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '등록 중...'; }
-    if (titleEl) titleEl.disabled = true;
-    if (bodyEl) bodyEl.disabled = true;
-    LoungeApi.call('createNotice', [State.email || '', State.clubId || '', title, body]).then(() => {
-      this.closeNoticeModal();
-      this._noticePage = 0;
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '등록'; }
-      if (titleEl) titleEl.disabled = false;
-      if (bodyEl) bodyEl.disabled = false;
-      showErr('notice-write-err', e.message);
-    });
-  },
-
-  openNotice(noticeId) {
-    this._currentNoticeId = noticeId;
-    this._currentNotice = null;
-    this.setNoticeOwnerControls(false);
-    document.getElementById('notice-modal-title').textContent = '불러오는 중...';
-    document.getElementById('notice-modal-body').innerHTML = '<div class="lounge-sec-loading">공지 불러오는 중...</div>';
-    document.getElementById('notice-modal-bg').style.display = 'flex';
-    LoungeApi.call('getNotice', [State.email || '', noticeId]).then(data => {
-      this._isAdmin = !!data.isAdmin;
-      this.renderNotice(data.notice);
-      this.updateAdminControls();
-    }).catch(e => {
-      document.getElementById('notice-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
-    });
-  },
-
-  renderNotice(notice) {
-    this._currentNotice = notice || null;
-    document.getElementById('notice-modal-title').textContent = notice?.title || '';
-    this.setNoticeOwnerControls(this._isAdmin && !!notice);
-    document.getElementById('notice-modal-body').innerHTML = `
-      <div class="board-post-meta notice-post-meta">
-        <span>${escapeHtml(notice?.authorName || '-')}</span>
-        <span>|</span>
-        <span>${escapeHtml(this.formatDateTime(notice?.createdAt))}</span>
-      </div>
-      <div class="board-post-body">${escapeHtml(notice?.body || '')}</div>`;
-  },
-
-  setNoticeOwnerControls(visible) {
-    ['notice-edit-btn', 'notice-delete-btn'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (!btn) return;
-      btn.style.display = visible ? 'inline-flex' : 'none';
-      btn.disabled = false;
-    });
-  },
-
-  openNoticeEdit() {
-    if (!this._isAdmin || !this._currentNotice) return;
-    this.setNoticeOwnerControls(false);
-    document.getElementById('notice-modal-title').textContent = '공지 수정';
-    document.getElementById('notice-modal-body').innerHTML = `
-      <div class="board-form">
-        <input class="board-input" id="notice-edit-title" maxlength="100" placeholder="제목" value="${escapeHtml(this._currentNotice.title || '')}">
-        <textarea class="board-textarea" id="notice-edit-body" maxlength="4000" placeholder="내용">${escapeHtml(this._currentNotice.body || '')}</textarea>
-        <div id="notice-edit-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="LoungeHome.renderNotice(LoungeHome._currentNotice)">취소</button>
-          <button class="bp" id="notice-edit-submit" onclick="LoungeHome.submitNoticeEdit()">저장</button>
-        </div>
-      </div>`;
-  },
-
-  submitNoticeEdit() {
-    if (!this._isAdmin || !this._currentNoticeId) return;
-    const title = document.getElementById('notice-edit-title')?.value || '';
-    const body = document.getElementById('notice-edit-body')?.value || '';
-    const btn = document.getElementById('notice-edit-submit');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-    LoungeApi.call('updateNotice', [State.email || '', this._currentNoticeId, title, body]).then(data => {
-      this._currentNotice = data.notice || null;
-      this._isAdmin = !!data.isAdmin;
-      this.renderNotice(this._currentNotice);
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      showErr('notice-edit-err', e.message);
-    });
-  },
-
-  confirmDeleteNotice() {
-    if (!this._isAdmin || !this._currentNoticeId) return;
-    const err = document.getElementById('notice-delete-err');
-    const btn = document.getElementById('notice-delete-confirm-btn');
-    if (err) err.style.display = 'none';
-    if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
-    document.getElementById('notice-delete-confirm').style.display = 'flex';
-  },
-
-  closeDeleteConfirm() {
-    const modal = document.getElementById('notice-delete-confirm');
-    if (modal) modal.style.display = 'none';
-  },
-
-  deleteCurrentNotice() {
-    if (!this._isAdmin || !this._currentNoticeId) return;
-    const btn = document.getElementById('notice-delete-confirm-btn');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '삭제 중...'; }
-    LoungeApi.call('deleteNotice', [State.email || '', this._currentNoticeId]).then(() => {
-      this.closeDeleteConfirm();
-      this.closeNoticeModal();
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
-      showErr('notice-delete-err', e.message);
-    });
-  },
-
-  closeNoticeModal() {
-    const modal = document.getElementById('notice-modal-bg');
-    if (modal) modal.style.display = 'none';
-    this.closeDeleteConfirm();
-  },
-
-  formatTime(value) {
-    const text = String(value || '').trim();
-    if (!text) return '';
-
-    const date = new Date(text);
-    if (isNaN(date.getTime())) {
-      return this.formatDateTime(value, { compact: true });
-    }
-
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return '방금 전';
-    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-    if (diff < 172800) return '어제';
-
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
-      month: '2-digit',
-      day: '2-digit'
-    }).formatToParts(date).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-
-    return `${parts.month}.${parts.day}`;
-  },
-
-  formatDateTime(value, options = {}) {
-    const date = new Date(String(value || ''));
-    if (isNaN(date.getTime())) return '';
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).formatToParts(date).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-    return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
-  },
-};
 
 // ================================================================
 // 스킬계산기
@@ -4537,13 +4065,49 @@ const SkillCalcTab = {
 
 const LoungeAdmin = {
   _targetClubId: '',
+  _authPending: false,
+  _token: '',
+
+  token() {
+    try { return sessionStorage.getItem('compya.auth') || this._token; } catch (_) { return this._token; }
+  },
+
+  rememberToken(token) {
+    this._token = token;
+    try { sessionStorage.setItem('compya.auth', token); } catch (_) {}
+  },
+
+  authorize(target = 'admin') {
+    this._authPending = target;
+    App.openGoogleLogin(true);
+  },
+
+  authError(message) {
+    const id = this._authPending === 'withdraw' ? 'withdraw-err'
+      : this._authPending ? 'admin-auth-err' : 'login-err';
+    this._authPending = false;
+    showErr(id, message);
+  },
+
+  call(action, args = []) {
+    return Api.call(action, [this.token(), ...args]).then(res => {
+      if (!res.success) throw new Error(res.error || '관리 요청에 실패했습니다.');
+      return res;
+    });
+  },
 
   open() {
-    if (!LoungeHome._isAdmin) return;
     const modal = document.getElementById('admin-modal-bg');
     if (modal) modal.style.display = 'flex';
-    this.loadInviteCode();
-    this.loadUsers();
+    const panel = document.getElementById('admin-authorized-panel');
+    panel.style.display = 'none';
+    document.getElementById('admin-auth-err').style.display = 'none';
+    this.call('getAdminStatus').then(data => {
+      if (!data.isAdmin) throw new Error('관리자 권한이 없습니다.');
+      panel.style.display = 'block';
+      this.loadInviteCode();
+      this.loadUsers();
+    }).catch(e => showErr('admin-auth-err', e.message));
   },
 
   close() {
@@ -4559,7 +4123,7 @@ const LoungeAdmin = {
     if (codeEl) codeEl.textContent = '------';
     if (dateEl) dateEl.textContent = 'KST 기준 매일 00:00에 바뀝니다.';
     if (errEl) errEl.style.display = 'none';
-    LoungeApi.call('getTodayInviteCode', [State.email || '']).then(data => {
+    this.call('adminGetTodayInviteCode').then(data => {
       if (codeEl) codeEl.textContent = data.code || '------';
       if (dateEl) dateEl.textContent = `${data.dateKey || '오늘'} KST 암구호`;
     }).catch(e => {
@@ -4574,7 +4138,7 @@ const LoungeAdmin = {
     const el = document.getElementById('admin-user-list');
     if (!el) return;
     el.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
-    LoungeApi.call('listUsers', [State.email || '']).then(data => {
+    this.call('adminListUsers').then(data => {
       this.renderUsers(data.users || []);
     }).catch(e => {
       el.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
@@ -4594,7 +4158,7 @@ const LoungeAdmin = {
           <div class="admin-user-club">${escapeHtml(u.clubId)}</div>
           <div class="admin-user-team">${escapeHtml(u.teamName || '-')}</div>
         </div>
-        <button class="board-delete-btn" data-club-id="${escapeHtml(u.clubId)}">탈퇴</button>
+        <button class="manage-delete-btn" data-club-id="${escapeHtml(u.clubId)}">탈퇴</button>
       </div>`).join('')}</div>`;
     el.querySelectorAll('[data-club-id]').forEach(btn => {
       btn.addEventListener('click', () => this.openEjectConfirm(btn.dataset.clubId || ''));
@@ -4634,7 +4198,7 @@ const LoungeAdmin = {
       btn.disabled = true;
       btn.textContent = '탈퇴 중...';
     }
-    LoungeApi.call('ejectUser', [State.email || '', this._targetClubId]).then(() => {
+    this.call('adminEjectUser', [this._targetClubId]).then(() => {
       if (btn) btn.textContent = '탈퇴';
       this.closeEjectConfirm();
       this.loadUsers();
@@ -4649,345 +4213,7 @@ const LoungeAdmin = {
 };
 
 // ================================================================
-// [라운지 섹션] 자유게시판 — Board
-// ================================================================
-const Board = {
-  _loading: false,
-  _currentPostId: '',
-  _currentPost: null,
-  _page: 0,
-  _pageSize: 3,
-  _hasNext: false,
-
-  load() {
-    const body = document.getElementById('board-list-body');
-    if (!body || !State.clubId || this._loading) return;
-    this._loading = true;
-    this._pageSize = this.getPageSize();
-    this.updateControls();
-    body.innerHTML = '<div class="lounge-sec-loading">불러오는 중...</div>';
-    BoardApi.call('listPosts', [State.clubId, this._pageSize, this._page * this._pageSize]).then(data => {
-      this._loading = false;
-      const posts = Array.isArray(data) ? data : (data.posts || []);
-      this._hasNext = Array.isArray(data) ? posts.length >= this._pageSize : !!data.hasNext;
-      this.renderList(posts);
-      this.updateControls();
-    }).catch(e => {
-      this._loading = false;
-      this._hasNext = false;
-      this.updateControls();
-      body.innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
-    });
-  },
-
-  getPageSize() {
-    const body = document.getElementById('board-list-body');
-    if (isLoungeHomeStacked()) return getLoungeCompactMaxRows();
-    const height = body?.clientHeight || 0;
-    const rowHeight = 31;
-    return Math.max(3, Math.min(50, Math.floor(height / rowHeight) || 3));
-  },
-
-  prevPage() {
-    if (this._loading || this._page <= 0) return;
-    this._page -= 1;
-    this.load();
-  },
-
-  nextPage() {
-    if (this._loading || !this._hasNext) return;
-    this._page += 1;
-    this.load();
-  },
-
-  updateControls() {
-    const prev = document.getElementById('board-prev-btn');
-    const next = document.getElementById('board-next-btn');
-    if (prev) prev.disabled = this._loading || this._page <= 0;
-    if (next) next.disabled = this._loading || !this._hasNext;
-  },
-
-  renderList(posts) {
-    const body = document.getElementById('board-list-body');
-    if (!body) return;
-    if (!posts.length) {
-      if (this._page > 0) {
-        this._page -= 1;
-        this.load();
-        return;
-      }
-      body.innerHTML = '<div class="board-empty">아직 작성된 글이 없습니다.</div>';
-      updateLoungeCompactLayout();
-      return;
-    }
-    body.innerHTML = `<div class="board-list">${posts.map(post => `
-      <div class="board-row" onclick="Board.open('${escapeHtml(post.postId)}')">
-        <div class="board-row-title">
-          <span class="board-row-title-text">${escapeHtml(post.title)}</span>
-          <span class="board-row-comments">[${Number(post.commentCount || 0)}]</span>
-          ${post.hasNewComment ? '<span class="board-new-badge">N</span>' : ''}
-        </div>
-        <div class="board-row-author">${escapeHtml(post.clubId || '-')}</div>
-        <div class="board-row-time">${escapeHtml(this.formatTime(post.createdAt))}</div>
-      </div>
-    `).join('')}</div>`;
-    updateLoungeCompactLayout();
-  },
-
-  formatTime(value) {
-    const text = String(value || '').trim();
-    if (!text) return '';
-
-    const date = new Date(text);
-    if (isNaN(date.getTime())) {
-      return this.formatDateTime(value, { compact: true });
-    }
-
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return '방금 전';
-    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-    if (diff < 172800) return '어제';
-
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
-      month: '2-digit',
-      day: '2-digit'
-    }).formatToParts(date).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-
-    return `${parts.month}.${parts.day}`;
-  },
-
-  formatDateTime(value, options = {}) {
-    const text = String(value || '').trim();
-    if (!text) return '';
-    const date = new Date(text);
-    if (isNaN(date.getTime())) {
-      const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-      return match
-        ? (options.compact ? `${match[4]}:${match[5]}` : `${match[2]}/${match[3]} ${match[4]}:${match[5]}`)
-        : text;
-    }
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Seoul',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).formatToParts(date).reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
-    return options.compact ? `${parts.hour}:${parts.minute}` : `${parts.month}/${parts.day} ${parts.hour}:${parts.minute}`;
-  },
-
-  openWrite() {
-    this._currentPostId = '';
-    this._currentPost = null;
-    this.setOwnerControls(false);
-    document.getElementById('board-modal-title').textContent = '글쓰기';
-    document.getElementById('board-modal-body').innerHTML = `
-      <div class="board-form">
-        <input class="board-input" id="board-write-title" maxlength="80" placeholder="제목">
-        <textarea class="board-textarea" id="board-write-body" maxlength="2000" placeholder="내용"></textarea>
-        <div id="board-write-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="Board.close()">취소</button>
-          <button class="bp" id="board-write-submit" onclick="Board.submitPost()">등록</button>
-        </div>
-      </div>`;
-    document.getElementById('board-modal-bg').style.display = 'flex';
-    setTimeout(() => document.getElementById('board-write-title')?.focus(), 0);
-  },
-
-  submitPost() {
-    const title = document.getElementById('board-write-title')?.value || '';
-    const body = document.getElementById('board-write-body')?.value || '';
-    const submitBtn = document.getElementById('board-write-submit');
-    const titleEl = document.getElementById('board-write-title');
-    const bodyEl = document.getElementById('board-write-body');
-    if (submitBtn?.disabled) return;
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '등록 중...'; }
-    if (titleEl) titleEl.disabled = true;
-    if (bodyEl) bodyEl.disabled = true;
-    BoardApi.call('createPost', [State.clubId, State.teamName || '', title, body]).then(() => {
-      this.close();
-      this._page = 0;
-      this.load();
-    }).catch(e => {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '등록'; }
-      if (titleEl) titleEl.disabled = false;
-      if (bodyEl) bodyEl.disabled = false;
-      showErr('board-write-err', e.message);
-    });
-  },
-
-  open(postId) {
-    this._currentPostId = postId;
-    this._currentPost = null;
-    this.setOwnerControls(false);
-    document.getElementById('board-modal-title').textContent = '불러오는 중...';
-    document.getElementById('board-modal-body').innerHTML = '<div class="lounge-sec-loading">게시글 불러오는 중...</div>';
-    document.getElementById('board-modal-bg').style.display = 'flex';
-    BoardApi.call('getPost', [State.clubId, postId]).then(data => {
-      this.renderPost(data.post, data.comments || []);
-      this.load();
-    }).catch(e => {
-      document.getElementById('board-modal-body').innerHTML = `<div class="lounge-sec-err">${escapeHtml(e.message)}</div>`;
-    });
-  },
-
-  renderPost(post, comments) {
-    this._currentPost = post || null;
-    this._currentComments = comments || [];
-    document.getElementById('board-modal-title').textContent = post.title || '';
-    this.setOwnerControls(post?.clubId === State.clubId);
-    document.getElementById('board-modal-body').innerHTML = `
-      <div class="board-post-meta">
-        <span>${escapeHtml(post.clubId || '-')}</span>
-        <span>|</span>
-        <span>${escapeHtml(this.formatDateTime(post.createdAt))}</span>
-      </div>
-      <div class="board-post-body">${escapeHtml(post.body || '')}</div>
-      <div class="board-comment-title">댓글 ${comments.length}</div>
-      <div class="board-comment-list">
-        ${comments.length ? comments.map(comment => `
-          <div class="board-comment">
-            <div class="board-comment-meta">
-              <span>${escapeHtml(comment.clubId || '-')}</span>
-              <span>|</span>
-              <span>${escapeHtml(this.formatDateTime(comment.createdAt))}</span>
-              ${comment.clubId === State.clubId ? `<button class="comment-delete-btn" onclick="Board.deleteComment(event,'${escapeHtml(comment.commentId)}')">삭제</button>` : ''}
-            </div>
-            <div class="board-comment-body">${escapeHtml(comment.body || '')}</div>
-          </div>
-        `).join('') : '<div class="board-empty" style="height:42px;">아직 댓글이 없습니다.</div>'}
-      </div>
-      <div class="board-comment-form">
-        <textarea class="board-textarea" id="board-comment-body" maxlength="500" placeholder="댓글을 입력하세요"></textarea>
-        <button class="bp" id="board-comment-submit" onclick="Board.submitComment()">등록</button>
-      </div>
-      <div id="board-comment-err" class="err-msg" style="display:none;margin-top:8px;"></div>`;
-  },
-
-  setOwnerControls(visible) {
-    ['board-edit-btn', 'board-delete-btn'].forEach(id => {
-      const btn = document.getElementById(id);
-      if (!btn) return;
-      btn.style.display = visible ? 'inline-flex' : 'none';
-      btn.disabled = false;
-    });
-  },
-
-  openEditPost() {
-    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
-    this.setOwnerControls(false);
-    document.getElementById('board-modal-title').textContent = '글 수정';
-    document.getElementById('board-modal-body').innerHTML = `
-      <div class="board-form">
-        <input class="board-input" id="board-edit-title" maxlength="80" placeholder="제목" value="${escapeHtml(this._currentPost.title || '')}">
-        <textarea class="board-textarea" id="board-edit-body" maxlength="2000" placeholder="내용">${escapeHtml(this._currentPost.body || '')}</textarea>
-        <div id="board-edit-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="Board.renderPost(Board._currentPost, Board._currentComments || [])">취소</button>
-          <button class="bp" id="board-edit-submit" onclick="Board.submitPostEdit()">저장</button>
-        </div>
-      </div>`;
-  },
-
-  submitPostEdit() {
-    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
-    const title = document.getElementById('board-edit-title')?.value || '';
-    const body = document.getElementById('board-edit-body')?.value || '';
-    const btn = document.getElementById('board-edit-submit');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '저장 중...'; }
-    BoardApi.call('updatePost', [State.clubId, this._currentPostId, title, body]).then(data => {
-      this.renderPost(data.post, data.comments || []);
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '저장'; }
-      showErr('board-edit-err', e.message);
-    });
-  },
-
-  deleteComment(event, commentId) {
-    if (event) event.stopPropagation();
-    if (!commentId) return;
-    const btn = event?.currentTarget;
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '삭제 중'; }
-    BoardApi.call('deleteComment', [State.clubId, commentId]).then(data => {
-      this.renderPost(data.post, data.comments || []);
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
-      showErr('board-comment-err', e.message);
-    });
-  },
-
-  confirmDelete() {
-    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
-    const modal = document.getElementById('board-delete-confirm');
-    const err = document.getElementById('board-delete-err');
-    const btn = document.getElementById('board-delete-confirm-btn');
-    if (err) err.style.display = 'none';
-    if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
-    if (modal) modal.style.display = 'flex';
-  },
-
-  closeDeleteConfirm() {
-    const modal = document.getElementById('board-delete-confirm');
-    if (modal) modal.style.display = 'none';
-  },
-
-  deleteCurrentPost() {
-    if (!this._currentPostId || this._currentPost?.clubId !== State.clubId) return;
-    const btn = document.getElementById('board-delete-confirm-btn');
-    if (btn?.disabled) return;
-    if (btn) { btn.disabled = true; btn.textContent = '삭제 중...'; }
-    BoardApi.call('deletePost', [State.clubId, this._currentPostId]).then(() => {
-      this.closeDeleteConfirm();
-      this.close();
-      this.load();
-    }).catch(e => {
-      if (btn) { btn.disabled = false; btn.textContent = '삭제'; }
-      showErr('board-delete-err', e.message);
-    });
-  },
-
-  submitComment() {
-    const body = document.getElementById('board-comment-body')?.value || '';
-    const submitBtn = document.getElementById('board-comment-submit');
-    const bodyEl = document.getElementById('board-comment-body');
-    if (submitBtn?.disabled) return;
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = '등록 중...'; }
-    if (bodyEl) bodyEl.disabled = true;
-    BoardApi.call('addComment', [State.clubId, this._currentPostId, body]).then(data => {
-      this.renderPost(data.post, data.comments || []);
-      this.load();
-    }).catch(e => {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '등록'; }
-      if (bodyEl) bodyEl.disabled = false;
-      showErr('board-comment-err', e.message);
-    });
-  },
-
-  close() {
-    const modal = document.getElementById('board-modal-bg');
-    if (modal) modal.style.display = 'none';
-    this.closeDeleteConfirm();
-  }
-};
-
-// ================================================================
-// [라운지 섹션] 덱파워 랭킹 — LoungeRanking
+// [라운지 섹션] 덱파워 랭킹
 // ================================================================
 const LoungeRanking = {
   _loading: false,
@@ -5720,6 +4946,10 @@ const WithdrawModal = {
   },
 
   submit() {
+    if (!LoungeAdmin.token()) {
+      this._showErr('Google 재인증 후 다시 탈퇴를 진행해주세요.');
+      return;
+    }
     const val = document.getElementById('withdraw-input').value;
     if (val !== WITHDRAW_PHRASE) { this._showErr('입력한 문구가 다릅니다.'); return; }
 
@@ -5727,7 +4957,7 @@ const WithdrawModal = {
     btn.disabled = true;
     showLoading('탈퇴 처리 중...');
 
-    Api.call('deleteAccount', [State.clubId]).then(res => {
+    Api.call('deleteAccount', [State.clubId, LoungeAdmin.token()]).then(res => {
         hideLoading();
         btn.disabled = false;
         if (!res.success) { this._showErr(res.error || '탈퇴 처리에 실패했습니다.'); return; }
@@ -5785,62 +5015,14 @@ function updateStickyHeights() {
   applyHeaderScale();
   const h = document.querySelector('.app-sticky')?.offsetHeight || 0;
   if (h > 0) document.documentElement.style.setProperty('--app-sticky-h', h + 'px');
-  const shortcut = Array.from(document.querySelectorAll('.shortcut-bar, .lounge-shortcut-bar'))
+  const shortcut = Array.from(document.querySelectorAll('.shortcut-bar'))
     .find(el => el.offsetParent !== null);
   const sh = shortcut?.offsetHeight || 100;
   document.documentElement.style.setProperty('--shortcut-h', sh + 'px');
-  const subnav = Array.from(document.querySelectorAll('.app-tabs, .lounge-tabs'))
+  const subnav = Array.from(document.querySelectorAll('.app-tabs'))
     .find(el => el.offsetParent !== null);
   const th = subnav?.offsetHeight || 38;
   document.documentElement.style.setProperty('--subnav-h', th + 'px');
-  updateLoungeCompactLayout();
-}
-
-function updateLoungeCompactLayout() {
-  const row = document.querySelector('#lounge-tab-home .lounge-row-compact');
-  if (!row) return;
-  const columns = getLoungeCompactColumns(row);
-  const sections = Array.from(row.querySelectorAll('.lounge-sec--compact'));
-  if (columns.length < 2 || sections.length < 2) return;
-  const wasStacked = row.classList.contains('is-stacked');
-  const isStacked = columns[1].offsetTop > columns[0].offsetTop;
-  row.classList.toggle('is-stacked', isStacked);
-  columns.forEach(column => {
-    column.style.height = isStacked ? 'auto' : '';
-  });
-  sections.forEach(section => {
-    section.style.height = isStacked ? getLoungeCompactSectionHeight(section) + 'px' : '';
-  });
-  if (wasStacked !== isStacked && row.offsetParent !== null) {
-    setTimeout(() => {
-      if (typeof LoungeHome !== 'undefined' && !LoungeHome._loading) LoungeHome.load();
-      if (typeof Board !== 'undefined' && !Board._loading) Board.load();
-    }, 0);
-  }
-}
-
-function getLoungeCompactColumns(row) {
-  return Array.from(row.children).filter(child => {
-    return child.classList?.contains('lounge-left-column') || child.classList?.contains('lounge-sec--compact');
-  });
-}
-
-function isLoungeHomeStacked() {
-  const row = document.querySelector('#lounge-tab-home .lounge-row-compact');
-  return !!row && row.classList.contains('is-stacked');
-}
-
-function getLoungeCompactMaxRows() {
-  const maxBodyHeight = Math.min(window.innerHeight * 0.38, 320) - 25;
-  return Math.max(3, Math.min(10, Math.floor(maxBodyHeight / 31) || 3));
-}
-
-function getLoungeCompactSectionHeight(section) {
-  const rowCount = section.querySelectorAll('.heaven-link-row, .notice-row, .board-row').length;
-  const hasEmpty = !!section.querySelector('.board-empty, .lounge-sec-loading, .lounge-sec-err');
-  const rows = rowCount || (hasEmpty ? 3 : 1);
-  const visibleRows = Math.min(rows, getLoungeCompactMaxRows());
-  return 27 + visibleRows * 32;
 }
 
 function applyOrderBarScaleById(barId) {

@@ -135,6 +135,7 @@
       <button class="menu-item menu-item-club" id="menu-btn-myclub" onclick="switchMenu('myclub',this)">—</button>
       <button class="menu-item" onclick="switchMenu('skill',this)">스킬계산기</button>
       <button class="menu-item" onclick="switchMenu('battle',this)">클럽대전 기록실</button>
+      <button class="menu-item" id="menu-btn-admin" onclick="LoungeAdmin.open()">관리</button>
     </nav>
 
   </div>
@@ -143,88 +144,7 @@
   <div id="page-lounge" class="menu-page">
     <div class="lounge-layout">
 
-      <section class="lounge-shortcut-bar">
-        <div class="notepad-wrap">
-          <div class="notepad-top">
-            <div class="notepad-date" id="notepad-date">오늘 날짜</div>
-            <div class="notepad-opponent">클대: vs <span id="notepad-opponent">-</span></div>
-            <button class="lounge-refresh-btn notepad-edit-btn" id="notepad-edit-btn" onclick="LoungeHome.openNotepadEdit()" style="display:none;">수정</button>
-            <button class="lounge-refresh-btn" id="lounge-admin-btn" onclick="LoungeAdmin.open()" style="display:none;">관리</button>
-          </div>
-          <div class="notepad-lines" id="notepad-lines">
-            <div class="notepad-line">알림장이 비어 있습니다.</div>
-          </div>
-        </div>
-      </section>
-
-      <div class="lounge-tabs">
-        <button class="lounge-tab on" id="lounge-tab-btn-home" onclick="switchLoungeTab('home',this)">홈</button>
-        <button class="lounge-tab" id="lounge-tab-btn-ranking" onclick="switchLoungeTab('ranking',this)">랭킹</button>
-      </div>
-
-      <div id="lounge-tab-home" class="lounge-tab-content">
-        <div class="lounge-row lounge-row-compact">
-          <div class="lounge-left-column lounge-sec--half">
-            <section class="lounge-sec lounge-sec--compact lounge-sec--heaven" id="lounge-sec-heaven">
-              <div class="lounge-sec-hd">
-                <div class="board-title-wrap">
-                  <span class="lounge-sec-title">HEAVEN LINK</span>
-                </div>
-                <div class="lounge-hd-actions">
-                  <button class="lounge-refresh-btn" id="heaven-link-edit-btn" onclick="LoungeHome.openHeavenLinkEdit()" style="display:none;">수정</button>
-                </div>
-              </div>
-              <div id="heaven-link-list-body" class="lounge-sec-body lounge-compact-body">
-                <div class="lounge-sec-loading">불러오는 중...</div>
-              </div>
-            </section>
-
-            <section class="lounge-sec lounge-sec--compact lounge-sec--notice" id="lounge-sec-home">
-              <div class="lounge-sec-hd">
-                <div class="board-title-wrap">
-                  <span class="lounge-sec-title">공지사항</span>
-                  <div class="board-page-controls">
-                    <button class="rank-page-btn board-page-btn" id="notice-prev-btn" onclick="LoungeHome.prevNoticePage()" aria-label="이전 공지 목록" title="이전">‹</button>
-                    <button class="rank-page-btn board-page-btn" id="notice-next-btn" onclick="LoungeHome.nextNoticePage()" aria-label="다음 공지 목록" title="다음">›</button>
-                  </div>
-                </div>
-                <div class="lounge-hd-actions">
-                  <button class="lounge-refresh-btn" id="notice-write-btn" onclick="LoungeHome.openNoticeWrite()" style="display:none;">글쓰기</button>
-                  <button class="lounge-refresh-btn" onclick="LoungeHome.load()" aria-label="공지사항 새로고침" title="새로고침">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                  </button>
-                </div>
-              </div>
-              <div id="notice-list-body" class="lounge-sec-body lounge-compact-body">
-                <div class="lounge-sec-loading">불러오는 중...</div>
-              </div>
-            </section>
-          </div>
-
-          <section class="lounge-sec lounge-sec--half lounge-sec--compact" id="lounge-sec-board">
-            <div class="lounge-sec-hd">
-              <div class="board-title-wrap">
-                <span class="lounge-sec-title">자유게시판</span>
-                <div class="board-page-controls">
-                  <button class="rank-page-btn board-page-btn" id="board-prev-btn" onclick="Board.prevPage()" aria-label="이전 글 목록" title="이전">‹</button>
-                  <button class="rank-page-btn board-page-btn" id="board-next-btn" onclick="Board.nextPage()" aria-label="다음 글 목록" title="다음">›</button>
-                </div>
-              </div>
-              <div class="lounge-hd-actions">
-                <button class="lounge-refresh-btn" onclick="Board.openWrite()">글쓰기</button>
-                <button class="lounge-refresh-btn" onclick="Board.load()" aria-label="자유게시판 새로고침" title="새로고침">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                </button>
-              </div>
-            </div>
-            <div id="board-list-body" class="lounge-sec-body lounge-compact-body">
-              <div class="lounge-sec-loading">불러오는 중...</div>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <div id="lounge-tab-ranking" class="lounge-tab-content" style="display:none;">
+      <div id="lounge-tab-ranking" class="lounge-ranking-content">
         <div class="lounge-row">
 
           <!-- [섹션] 덱파워 랭킹 -->
@@ -814,6 +734,7 @@
           oninput="WithdrawModal.onInput(this)"
           onkeydown="if(event.key==='Enter') WithdrawModal.submit()"
           style="border-color:var(--border-medium);">
+        <button class="bs" type="button" onclick="LoungeAdmin.authorize('withdraw')">Google 재인증</button>
         <span id="withdraw-err" style="font-size:12px;color:var(--danger-text);display:none;margin-top:4px;"></span>
       </div>
     </div>
@@ -964,105 +885,22 @@
 </div>
 
 
-<!-- 자유게시판 모달 -->
-<div id="board-modal-bg" class="board-modal-bg" style="display:none;">
-  <div class="board-modal">
-    <div class="board-modal-hd">
+<div id="admin-modal-bg" class="manage-modal-bg" style="display:none;">
+  <div class="manage-modal admin-modal">
+    <div class="manage-modal-hd">
       <div>
-        <div class="board-modal-kicker">자유게시판</div>
-        <div class="board-modal-title" id="board-modal-title"></div>
-      </div>
-      <div class="board-modal-actions">
-        <button class="board-edit-btn" id="board-edit-btn" onclick="Board.openEditPost()" style="display:none;">수정</button>
-        <button class="board-delete-btn" id="board-delete-btn" onclick="Board.confirmDelete()" style="display:none;">삭제</button>
-        <button class="modal-close" onclick="Board.close()">✕</button>
-      </div>
-    </div>
-    <div class="board-modal-body" id="board-modal-body"></div>
-  </div>
-</div>
-
-<div id="board-delete-confirm" class="board-confirm-bg" style="display:none;">
-  <div class="board-confirm-modal">
-    <div class="board-confirm-title">게시글 삭제</div>
-    <div class="board-confirm-text">삭제한 글은 목록에서 사라집니다. 계속할까요?</div>
-    <div id="board-delete-err" class="err-msg" style="display:none;margin-top:10px;"></div>
-    <div class="board-confirm-actions">
-      <button class="bs" onclick="Board.closeDeleteConfirm()">취소</button>
-      <button class="bp board-danger-btn" id="board-delete-confirm-btn" onclick="Board.deleteCurrentPost()">삭제</button>
-    </div>
-  </div>
-</div>
-
-<div id="notepad-modal-bg" class="board-modal-bg" style="display:none;">
-  <div class="board-modal notice-edit-modal">
-    <div class="board-modal-hd">
-      <div>
-        <div class="board-modal-kicker">알림장</div>
-        <div class="board-modal-title">알림장 수정</div>
-      </div>
-      <button class="modal-close" onclick="LoungeHome.closeNotepadEdit()">✕</button>
-    </div>
-    <div class="board-modal-body">
-      <div class="board-form">
-        <input class="board-input" id="notepad-edit-opponent" maxlength="80" placeholder="클럽상대">
-        <input class="board-input" id="notepad-edit-line1" maxlength="120" placeholder="알림 1">
-        <input class="board-input" id="notepad-edit-line2" maxlength="120" placeholder="알림 2">
-        <input class="board-input" id="notepad-edit-line3" maxlength="120" placeholder="알림 3">
-        <div id="notepad-edit-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="LoungeHome.closeNotepadEdit()">취소</button>
-          <button class="bp" id="notepad-save-btn" onclick="LoungeHome.saveNotepad()">저장</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="heaven-link-modal-bg" class="board-modal-bg" style="display:none;">
-  <div class="board-modal notice-edit-modal">
-    <div class="board-modal-hd">
-      <div>
-        <div class="board-modal-kicker">HEAVEN LINK</div>
-        <div class="board-modal-title">HEAVEN LINK 수정</div>
-      </div>
-      <button class="modal-close" onclick="LoungeHome.closeHeavenLinkEdit()">✕</button>
-    </div>
-    <div class="board-modal-body">
-      <div class="heaven-link-tabs" role="tablist" aria-label="HEAVEN LINK 슬롯">
-        <button class="heaven-link-tab on" id="heaven-link-tab-1" onclick="LoungeHome.switchHeavenLinkSlot(1)" type="button">링크 1</button>
-        <button class="heaven-link-tab" id="heaven-link-tab-2" onclick="LoungeHome.switchHeavenLinkSlot(2)" type="button">링크 2</button>
-        <button class="heaven-link-tab" id="heaven-link-tab-3" onclick="LoungeHome.switchHeavenLinkSlot(3)" type="button">링크 3</button>
-        <button class="heaven-link-tab" id="heaven-link-tab-4" onclick="LoungeHome.switchHeavenLinkSlot(4)" type="button">링크 4</button>
-      </div>
-      <div class="board-form heaven-link-form">
-        <input class="board-input" id="heaven-link-name" maxlength="80" placeholder="이름">
-        <input class="board-input" id="heaven-link-description" maxlength="160" placeholder="설명">
-        <input class="board-input" id="heaven-link-url" maxlength="500" placeholder="URL">
-        <label class="heaven-link-active">
-          <input type="checkbox" id="heaven-link-active">
-          <span>활성화</span>
-        </label>
-        <div id="heaven-link-edit-err" class="err-msg" style="display:none;"></div>
-        <div class="board-form-actions">
-          <button class="bs" onclick="LoungeHome.closeHeavenLinkEdit()">취소</button>
-          <button class="bp" id="heaven-link-save-btn" onclick="LoungeHome.saveHeavenLinks()">저장</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="admin-modal-bg" class="board-modal-bg" style="display:none;">
-  <div class="board-modal admin-modal">
-    <div class="board-modal-hd">
-      <div>
-        <div class="board-modal-kicker">관리자</div>
-        <div class="board-modal-title">가입 코드 · 유저 관리</div>
+        <div class="manage-modal-kicker">관리자</div>
+        <div class="manage-modal-title">가입 코드 · 유저 관리</div>
       </div>
       <button class="modal-close" onclick="LoungeAdmin.close()">✕</button>
     </div>
-    <div class="board-modal-body admin-modal-body">
+    <div class="manage-modal-body admin-modal-body">
+      <div class="admin-panel-section">
+        <button class="bs" onclick="LoungeAdmin.authorize()">Google 재인증</button>
+        <div class="admin-panel-help">관리자 계정으로 로그인해주세요. 인증은 최대 6시간 유지됩니다.</div>
+        <div id="admin-auth-err" class="err-msg" style="display:none;"></div>
+      </div>
+      <div id="admin-authorized-panel" style="display:none;">
       <section class="admin-panel-section">
         <div class="admin-panel-label">오늘의 초대코드</div>
         <div class="admin-invite-code" id="admin-invite-code">------</div>
@@ -1075,63 +913,34 @@
           <div class="lounge-sec-loading">불러오는 중...</div>
         </div>
       </section>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="admin-eject-confirm" class="board-confirm-bg" style="display:none;">
-  <div class="board-confirm-modal admin-eject-confirm">
-    <div class="board-confirm-title">유저 탈퇴</div>
-    <div class="board-confirm-text">
+<div id="admin-eject-confirm" class="manage-confirm-bg" style="display:none;">
+  <div class="manage-confirm-modal admin-eject-confirm">
+    <div class="manage-confirm-title">유저 탈퇴</div>
+    <div class="manage-confirm-text">
       <b id="admin-eject-club-label"></b> 구단을 탈퇴시키려면 구단명을 다시 입력하세요.
     </div>
-    <input class="board-input" id="admin-eject-input" type="text" placeholder="구단명 입력"
+    <input class="manage-input" id="admin-eject-input" type="text" placeholder="구단명 입력"
       oninput="LoungeAdmin.updateEjectConfirm()">
     <div id="admin-eject-err" class="err-msg" style="display:none;margin-top:10px;"></div>
-    <div class="board-confirm-actions">
+    <div class="manage-confirm-actions">
       <button class="bs" onclick="LoungeAdmin.closeEjectConfirm()">취소</button>
-      <button class="bp board-danger-btn" id="admin-eject-confirm-btn" onclick="LoungeAdmin.confirmEject()" disabled>탈퇴</button>
+      <button class="bp manage-danger-btn" id="admin-eject-confirm-btn" onclick="LoungeAdmin.confirmEject()" disabled>탈퇴</button>
     </div>
   </div>
 </div>
 
-<div id="notice-modal-bg" class="board-modal-bg" style="display:none;">
-  <div class="board-modal">
-    <div class="board-modal-hd">
-      <div>
-        <div class="board-modal-kicker">공지사항</div>
-        <div class="board-modal-title" id="notice-modal-title"></div>
-      </div>
-      <div class="board-modal-actions">
-        <button class="board-edit-btn" id="notice-edit-btn" onclick="LoungeHome.openNoticeEdit()" style="display:none;">수정</button>
-        <button class="board-delete-btn" id="notice-delete-btn" onclick="LoungeHome.confirmDeleteNotice()" style="display:none;">삭제</button>
-        <button class="modal-close" onclick="LoungeHome.closeNoticeModal()">✕</button>
-      </div>
-    </div>
-    <div class="board-modal-body" id="notice-modal-body"></div>
-  </div>
-</div>
-
-<div id="notice-delete-confirm" class="board-confirm-bg" style="display:none;">
-  <div class="board-confirm-modal">
-    <div class="board-confirm-title">공지 삭제</div>
-    <div class="board-confirm-text">삭제한 공지는 목록에서 사라집니다. 계속할까요?</div>
-    <div id="notice-delete-err" class="err-msg" style="display:none;margin-top:10px;"></div>
-    <div class="board-confirm-actions">
-      <button class="bs" onclick="LoungeHome.closeDeleteConfirm()">취소</button>
-      <button class="bp board-danger-btn" id="notice-delete-confirm-btn" onclick="LoungeHome.deleteCurrentNotice()">삭제</button>
-    </div>
-  </div>
-</div>
-
-
-<script src="api.js?v=1777810012133"></script>
-<script src="skill-calc-core.js?v=1777810012133"></script>
+<script src="api.js?v=1793232000000"></script>
+<script src="skill-calc-core.js?v=1793232000000"></script>
 
 
 
 
 
-<script src="app.js?v=1777810012133"></script>
+<script src="app.js?v=1793232000000"></script>
 </body>
 </html>
