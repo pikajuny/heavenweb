@@ -2,13 +2,16 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const entries = new Map([['session_oauth-admin', 'admin@example.com'], ['session_oauth-user', 'user@example.com']]);
-let admins = ' ADMIN@example.com, second@example.com\nthird@example.com';
+let rows = [
+  ['이메일', '구단ID', '등록일시', 'KBO구단', '기존E', '기존F', '기존G', '기존H', '관리자'],
+  [' ADMIN@example.com ', 'admin-club', '', '', '', '', '', '', true],
+  ['user@example.com', 'user-club', '', '', '', '', '', '', false],
+];
 let deletes = 0;
 const ctx = {
   CacheService: { getScriptCache: () => ({ get: k => entries.get(k) || null, put: (k,v) => entries.set(k,v), remove: k => entries.delete(k) }) },
-  PropertiesService: { getScriptProperties: () => ({ getProperty: k => k === 'ADMIN_EMAILS' ? admins : null }) },
   LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock() {} }) },
-  SpreadsheetApp: { openById: () => ({ getSheetByName: () => ({ getDataRange: () => ({ getValues: () => [ ['email','club'], ['admin@example.com','admin-club'], ['user@example.com','user-club'] ] }) }) }) },
+  SpreadsheetApp: { openById: () => ({ getSheetByName: () => ({ getDataRange: () => ({ getValues: () => rows }) }) }) },
   SS_ID: 'sheet', SHEET: { USER_DB: 'users' },
 };
 vm.createContext(ctx);
@@ -31,9 +34,25 @@ assert.equal(deletes, 0, 'unauthorized requests never mutate sheets');
 assert.equal(ctx.deleteOwnAccount('user-club', 'oauth-user').success, true);
 assert.equal(ctx.adminEjectUser('oauth-admin', 'user-club').success, true);
 assert.equal(deletes, 2);
-admins = '';
+rows[1][8] = false;
 assert.throws(() => ctx.adminListUsers('oauth-admin'), /권한/);
-admins = 'admin@example.com';
+for (const value of ['', false, 'FALSE', 'yes', 1]) {
+  rows[1][8] = value;
+  assert.equal(ctx.getAdminStatus('oauth-admin').isAdmin, false);
+}
+for (const value of [true, 'TRUE', ' true ']) {
+  rows[1][8] = value;
+  assert.equal(ctx.getAdminStatus('oauth-admin').isAdmin, true);
+}
+rows.forEach(row => row.splice(8, 0, 'other'));
+assert.equal(ctx.getAdminStatus('oauth-admin').isAdmin, true, 'finds header even outside I');
+rows[0][9] = 'other-header';
+assert.equal(ctx.getAdminStatus('oauth-admin').isAdmin, false, 'missing header denies access');
+rows[0][9] = '관리자';
+const savedRows = rows;
+rows = [];
+assert.equal(ctx.getAdminStatus('oauth-admin').isAdmin, false, 'empty sheet denies access');
+rows = savedRows;
 entries.delete('auth_session_oauth-admin');
 assert.throws(() => ctx.adminGetTodayInviteCode('oauth-admin'), /로그인/);
 // Check the public dispatch table too: old unguarded helpers must stay private.
