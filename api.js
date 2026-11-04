@@ -3,7 +3,7 @@ const Api = {
   _readActions: new Set([
     'getInitialData', 'getHitters', 'getPitchers', 'getHitterLineup', 'getPitcherLineup',
     'getTeamInfo', 'getShortcutData', 'getSkillScoreTable', 'getHitterSkills',
-    'getPitcherSkills', 'getPhotoDataUrls', 'searchPlayerPhotos', 'getRankings', 'getClubSnapshot',
+    'getPitcherSkills', 'getPhotoDataUrls', 'searchPlayerPhotos', 'getRankings', 'getClubSnapshot', 'getNotices',
   ]),
   _pendingReads: new Map(),
   _loginActions: new Set(['getGoogleAuthUrl', 'loginWithToken', 'validateSavedLogin']),

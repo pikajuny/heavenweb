@@ -143,6 +143,34 @@
   <!-- 라운지 페이지 -->
   <div id="page-lounge" class="menu-page">
     <div class="lounge-layout">
+      <section class="lounge-sec notice-section" aria-label="공지사항">
+        <div class="lounge-sec-hd">
+          <span class="lounge-sec-title">공지사항</span>
+          <div class="lounge-hd-actions">
+            <button type="button" class="lounge-refresh-btn" id="notice-manage" onclick="LoungeNotices.manage()">공지 관리</button>
+            <button type="button" class="lounge-refresh-btn" id="notice-new" onclick="LoungeNotices.edit(true)" hidden>글쓰기</button>
+            <button type="button" class="lounge-refresh-btn" id="notice-edit" onclick="LoungeNotices.edit()" hidden>수정</button>
+            <button type="button" class="rank-page-btn" id="notice-prev" onclick="LoungeNotices.move(-1)" aria-label="이전 공지 페이지" disabled>‹</button>
+            <span class="rank-page-label" id="notice-page">1 / 1</span>
+            <button type="button" class="rank-page-btn" id="notice-next" onclick="LoungeNotices.move(1)" aria-label="다음 공지 페이지" disabled>›</button>
+            <button type="button" class="lounge-refresh-btn" id="notice-refresh" onclick="LoungeNotices.load()">새로고침</button>
+          </div>
+        </div>
+        <div class="notice-management-help"><span id="notice-manage-error" class="err-msg" style="display:none;"></span></div>
+        <div class="notice-board">
+          <div class="notice-sidebar" aria-label="공지 목록">
+            <div id="notice-list"><div class="lounge-sec-loading">공지 불러오는 중...</div></div>
+          </div>
+          <article class="notice-article" aria-labelledby="notice-detail-title" aria-live="polite">
+            <div class="notice-article-hd">
+              <div class="notice-article-date" id="notice-detail-date"></div>
+              <div class="notice-article-date" id="notice-detail-author"></div>
+              <h2 id="notice-detail-title">업데이트 소식</h2>
+            </div>
+            <div class="notice-detail-body" id="notice-detail-body">공지가 등록되면 여기에서 내용을 확인할 수 있습니다.</div>
+          </article>
+        </div>
+      </section>
 
       <div id="lounge-tab-ranking" class="lounge-ranking-content">
         <div class="lounge-row">
@@ -934,13 +962,33 @@
   </div>
 </div>
 
-<script src="api.js?v=1793232000000"></script>
-<script src="skill-calc-core.js?v=1793232000000"></script>
+<dialog id="notice-editor" class="manage-modal notice-editor" aria-labelledby="notice-editor-heading" oncancel="if (LoungeNotices._saving) event.preventDefault()">
+  <div class="manage-modal-hd">
+    <h2 class="manage-modal-title" id="notice-editor-heading">공지 작성</h2>
+    <button type="button" class="modal-close" onclick="LoungeNotices.closeEditor()" aria-label="작성창 닫기">✕</button>
+  </div>
+  <form class="manage-modal-body notice-editor-form" onsubmit="event.preventDefault(); LoungeNotices.save();">
+    <label for="notice-editor-title">제목</label>
+    <input id="notice-editor-title" class="manage-input" maxlength="200" required>
+    <label for="notice-editor-body">내용</label>
+    <textarea id="notice-editor-body" maxlength="30000" rows="12"></textarea>
+    <label class="notice-public-label"><input type="checkbox" id="notice-editor-public"> 공개하기</label>
+    <div id="notice-editor-error" class="err-msg" style="display:none;" role="status"></div>
+    <div class="notice-editor-actions">
+      <button type="button" class="bs" onclick="LoungeAdmin.authorize('notice')">Google 재인증</button>
+      <button type="button" class="bs" onclick="LoungeNotices.closeEditor()">취소</button>
+      <button type="submit" class="bp" id="notice-save">저장</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="api.js?v=1793750400002"></script>
+<script src="skill-calc-core.js?v=1793750400002"></script>
 
 
 
 
 
-<script src="app.js?v=1793232000000"></script>
+<script src="app.js?v=1793750400002"></script>
 </body>
 </html>

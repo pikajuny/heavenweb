@@ -3112,6 +3112,8 @@ const App = {
             LoungeAdmin._authPending = false;
             if (target === 'withdraw') {
               showErr('withdraw-err', 'Google 재인증을 완료했습니다. 탈퇴 확인을 다시 눌러주세요.');
+            } else if (target === 'notice') {
+              showErr('notice-editor-error', 'Google 재인증을 완료했습니다. 저장을 다시 눌러주세요.');
             } else LoungeAdmin.open();
             return;
           }
@@ -3535,6 +3537,7 @@ function switchMenu(menuId, btn) {
     updateStickyHeights();
   }
   if (menuId === 'lounge') {
+    LoungeNotices.load();
     LoungeRanking.load();
     GoldenGlove.load();
     requestAnimationFrame(applyGoldenGloveScale);
@@ -4063,6 +4066,153 @@ const SkillCalcTab = {
   },
 };
 
+const LoungeNotices = {
+  _data: [],
+  _page: 0,
+  _pageSize: 10,
+  _loading: false,
+  _selectedId: null,
+  _adminMode: false,
+  _editing: null,
+  _saving: false,
+
+  async load() {
+    if (this._loading) return;
+    this._loading = true;
+    this._data = [];
+    this._page = 0;
+    this._selectedId = null;
+    this.renderDetail(null);
+    this.updateControls();
+    const body = document.getElementById('notice-list');
+    body.innerHTML = '<div class="lounge-sec-loading">공지 불러오는 중...</div>';
+    try {
+      const result = await (this._adminMode ? LoungeAdmin.call('adminGetNotices') : Api.call('getNotices', []));
+      if (!result.success) throw new Error(result.error || '공지를 불러오지 못했습니다.');
+      this._data = Array.isArray(result.data) ? result.data : [];
+      this.render();
+    } catch (error) {
+      body.innerHTML = '<div class="lounge-sec-err">' + escapeHtml(error.message) + '</div>';
+    } finally {
+      this._loading = false;
+      this.updateControls();
+    }
+  },
+
+  updateControls() {
+    const pages = Math.max(1, Math.ceil(this._data.length / this._pageSize));
+    document.getElementById('notice-prev').disabled = this._loading || this._page === 0;
+    document.getElementById('notice-next').disabled = this._loading || this._page >= pages - 1;
+    document.getElementById('notice-refresh').disabled = this._loading;
+    document.getElementById('notice-new').hidden = !this._adminMode;
+    document.getElementById('notice-edit').hidden = !this._adminMode || this._selectedId === null;
+    document.getElementById('notice-manage').textContent = this._adminMode ? '공개 글 보기' : '공지 관리';
+    document.getElementById('notice-page').textContent = (this._page + 1) + ' / ' + pages;
+  },
+
+  move(delta) {
+    const pages = Math.max(1, Math.ceil(this._data.length / this._pageSize));
+    this._page = Math.max(0, Math.min(pages - 1, this._page + delta));
+    this._selectedId = null;
+    this.render();
+  },
+
+  render() {
+    const list = document.getElementById('notice-list');
+    const visible = this._data.slice(this._page * this._pageSize, (this._page + 1) * this._pageSize);
+    const selected = visible.find(item => item.id === this._selectedId) || visible[0] || null;
+    this._selectedId = selected ? selected.id : null;
+    if (!visible.length) {
+      list.innerHTML = '<div class="lounge-sec-loading">등록된 공지가 없습니다.</div>';
+    } else {
+      list.innerHTML = visible.map(notice => '<button type="button" class="notice-list-row' +
+        (notice.id === this._selectedId ? ' is-selected' : '') + '" aria-pressed="' +
+        (notice.id === this._selectedId) + '" onclick="LoungeNotices.open(' + Number(notice.id) + ')">' +
+        '<span class="notice-list-title">' + escapeHtml(notice.title) + (notice.published === false ? ' · 비공개' : '') + '</span>' +
+        '<span class="notice-list-date">' + escapeHtml(notice.date) + '</span></button>').join('');
+    }
+    this.renderDetail(selected);
+    this.updateControls();
+  },
+
+  open(id) {
+    if (!this._data.some(item => item.id === id)) return;
+    this._selectedId = id;
+    this.render();
+  },
+
+  async manage() {
+    if (this._loading || this._saving) return;
+    document.getElementById('notice-manage-error').style.display = 'none';
+    try {
+      if (!this._adminMode) {
+        const status = await LoungeAdmin.call('getAdminStatus');
+        if (!status.isAdmin) throw new Error('관리자 권한이 없습니다. 상단 관리에서 Google 재인증을 진행해주세요.');
+      }
+      this._adminMode = !this._adminMode;
+      await this.load();
+    } catch (error) {
+      showErr('notice-manage-error', error.message);
+    }
+  },
+
+  edit(creating = false) {
+    if (!this._adminMode || this._loading || this._saving) return;
+    const notice = creating ? null : this._data.find(item => item.id === this._selectedId);
+    if (!creating && !notice) return;
+    this._editing = notice ? { ...notice } : null;
+    document.getElementById('notice-editor-heading').textContent = notice ? '공지 수정' : '공지 작성';
+    document.getElementById('notice-editor-title').value = notice ? notice.title : '';
+    document.getElementById('notice-editor-body').value = notice ? notice.body : '';
+    document.getElementById('notice-editor-public').checked = notice ? notice.published : false;
+    document.getElementById('notice-editor-error').style.display = 'none';
+    const dialog = document.getElementById('notice-editor');
+    if (!dialog.open) dialog.showModal();
+    document.getElementById('notice-editor-title').focus();
+  },
+
+  closeEditor() {
+    if (!this._saving) document.getElementById('notice-editor').close();
+  },
+
+  async save() {
+    if (this._saving || !this._adminMode) return;
+    const input = {
+      title: document.getElementById('notice-editor-title').value.trim(),
+      body: document.getElementById('notice-editor-body').value,
+      published: document.getElementById('notice-editor-public').checked,
+    };
+    if (!input.title) { showErr('notice-editor-error', '제목을 입력해주세요.'); return; }
+    this._saving = true;
+    document.getElementById('notice-save').disabled = true;
+    document.getElementById('notice-editor-error').style.display = 'none';
+    try {
+      const result = await LoungeAdmin.call('adminSaveNotice', [this._editing ? this._editing.id : null,
+        input, this._editing ? this._editing.revision : null]);
+      document.getElementById('notice-editor').close();
+      await this.load();
+      const index = this._data.findIndex(item => item.id === result.id);
+      if (index >= 0) {
+        this._page = Math.floor(index / this._pageSize);
+        this._selectedId = result.id;
+        this.render();
+      }
+    } catch (error) {
+      showErr('notice-editor-error', error.message);
+    } finally {
+      this._saving = false;
+      document.getElementById('notice-save').disabled = false;
+    }
+  },
+
+  renderDetail(notice) {
+    document.getElementById('notice-detail-title').textContent = notice ? notice.title : '업데이트 소식';
+    document.getElementById('notice-detail-date').textContent = notice ? notice.date : '';
+    document.getElementById('notice-detail-author').textContent = notice && notice.author ? '작성자 · ' + notice.author : '';
+    document.getElementById('notice-detail-body').textContent = notice ? notice.body : '공지가 등록되면 여기에서 내용을 확인할 수 있습니다.';
+  },
+};
+
 const LoungeAdmin = {
   _targetClubId: '',
   _authPending: false,
@@ -4084,6 +4234,7 @@ const LoungeAdmin = {
 
   authError(message) {
     const id = this._authPending === 'withdraw' ? 'withdraw-err'
+      : this._authPending === 'notice' ? 'notice-editor-error'
       : this._authPending ? 'admin-auth-err' : 'login-err';
     this._authPending = false;
     showErr(id, message);

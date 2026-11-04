@@ -45,6 +45,7 @@ vm.runInContext(app.slice(app.indexOf('const LoungeAdmin = {'), app.indexOf('con
   let rankings = 0, golden = 0;
   ctx.document.querySelectorAll = () => [];
   ctx.updateStickyHeights = () => {};
+  ctx.LoungeNotices = { load() {} };
   ctx.LoungeRanking = { load: () => rankings++ };
   ctx.GoldenGlove = { load: () => golden++ };
   ctx.requestAnimationFrame = () => {};
